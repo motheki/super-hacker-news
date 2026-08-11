@@ -1,7 +1,44 @@
-# Better HN
+# Super HN
 
-An alternative frontend for Hacker News available at [bhn.vercel.app](https://bhn.vercel.app).
+Super HN is a fast, focused, and responsive interface for browsing Hacker News, built with the Next.js App Router.
 
-[![Screenshot](https://github.com/user-attachments/assets/17fb41fa-04ac-4b9e-840b-f37ffc17e260)](https://bhn.vercel.app)
+- [Live application](https://super-hacker-news.vercel.app)
+- [Source repository](https://github.com/motheki/super-hacker-news)
+- [Issue tracker](https://github.com/motheki/super-hacker-news/issues)
 
-[![Screenshot](https://github.com/user-attachments/assets/5504a3ae-8bbc-4db6-a413-82e25dc546d9)](https://bhn.vercel.app)
+## Features
+
+- Top, new, Ask HN, and Show HN feeds
+- Story pages with nested, collapsible comment threads
+- Hacker News user profiles with links to submissions, comments, and favorites
+- Light and dark themes that follow or override the system preference
+- Native sharing where supported, Hacker News search, and responsive navigation
+- Installable app metadata, route-level loading states, and native view transitions
+
+## Development
+
+Install dependencies with [Aube](https://github.com/jdx/aube), then start the Next.js development server:
+
+```sh
+aube install
+aube run dev
+```
+
+Before submitting changes, run:
+
+```sh
+aube run lint
+aube run build
+```
+
+## Architecture
+
+The application uses the Next.js App Router and React Server Components by default. Route-level `loading.tsx`, `error.tsx`, and `not-found.tsx` boundaries handle navigation states, while `src/lib/hacker-news.ts` applies tagged, time-based policies to Next.js's persistent fetch cache. Client components are limited to interactive UI islands, and cross-document navigation uses the browser's native View Transitions API.
+
+## Attribution
+
+Super HN is based on [Better HN (Better Hacker News)](https://github.com/pajecawav/better-hn) by [pajecawav](https://github.com/pajecawav). The original project's copyright notice and MIT license are preserved in this repository.
+
+## License
+
+Super HN is distributed under the [MIT License](LICENSE), inherited from the original [Better HN license](https://github.com/pajecawav/better-hn/blob/master/LICENSE).

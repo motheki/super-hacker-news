@@ -1,7 +1,7 @@
 import { defineOxlintConfig } from "@pajecawav/tools";
 
 export default defineOxlintConfig({
-	ignorePatterns: ["**/.output"],
+	ignorePatterns: ["**/.next", "**/.direnv", "**/.devenv"],
 	rules: {
 		"typescript/no-unsafe-type-assertion": "off",
 	},

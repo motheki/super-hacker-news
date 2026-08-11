@@ -1,0 +1,154 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+	--font-sans: var(--font-geist-pixel);
+}
+
+:root {
+	--color-canvas: #fff;
+	--color-ink: #000;
+	background: var(--color-canvas);
+	color: var(--color-ink);
+	color-scheme: light;
+	font-family: var(--font-geist-pixel), monospace;
+	scrollbar-gutter: stable;
+}
+
+:root.dark {
+	--color-canvas: #000;
+	--color-ink: #fff;
+	color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme]) {
+		--color-canvas: #000;
+		--color-ink: #fff;
+		color-scheme: dark;
+	}
+}
+
+body {
+	background: var(--color-canvas);
+	color: var(--color-ink);
+}
+
+body,
+button {
+	font: inherit;
+}
+
+button,
+a {
+	outline-offset: 3px;
+}
+
+button:focus-visible,
+a:focus-visible {
+	outline: 2px solid currentColor;
+}
+
+@view-transition {
+	navigation: auto;
+}
+
+.page-transition {
+	view-transition-name: page;
+	view-transition-class: page-fade;
+}
+
+::view-transition {
+	pointer-events: none;
+}
+
+::view-transition-group(site-header) {
+	animation: none;
+	z-index: 100;
+}
+
+::view-transition-old(site-header) {
+	display: none;
+}
+
+::view-transition-new(site-header) {
+	animation: none;
+}
+
+::view-transition-old(.page-forward) {
+	--slide-offset: -2.5rem;
+	animation:
+		120ms ease-in both vt-fade-out,
+		260ms ease-in-out both vt-slide-out;
+}
+
+::view-transition-new(.page-forward) {
+	--slide-offset: 2.5rem;
+	animation:
+		180ms ease-out 100ms both vt-fade-in,
+		260ms ease-in-out both vt-slide-in;
+}
+
+::view-transition-old(.page-back) {
+	--slide-offset: 2.5rem;
+	animation:
+		120ms ease-in both vt-fade-out,
+		260ms ease-in-out both vt-slide-out;
+}
+
+::view-transition-new(.page-back) {
+	--slide-offset: -2.5rem;
+	animation:
+		180ms ease-out 100ms both vt-fade-in,
+		260ms ease-in-out both vt-slide-in;
+}
+
+::view-transition-old(.page-fade),
+::view-transition-old(root) {
+	animation: 120ms ease-in both vt-fade-out;
+}
+
+::view-transition-new(.page-fade),
+::view-transition-new(root) {
+	animation: 180ms ease-out both vt-fade-in;
+}
+
+@keyframes vt-fade-out {
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes vt-fade-in {
+	from {
+		opacity: 0;
+	}
+}
+
+@keyframes vt-slide-out {
+	to {
+		translate: var(--slide-offset);
+	}
+}
+
+@keyframes vt-slide-in {
+	from {
+		translate: var(--slide-offset);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		scroll-behavior: auto !important;
+		transition-duration: 0s !important;
+	}
+
+	::view-transition-old(*),
+	::view-transition-new(*),
+	::view-transition-group(*) {
+		animation-duration: 0s !important;
+		animation-delay: 0s !important;
+	}
+}
