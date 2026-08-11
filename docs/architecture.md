@@ -26,7 +26,7 @@ Cache Components use `use cache`, explicit cache lifetimes, and resource-specifi
 
 The light theme uses a paper canvas (`#e6ebe9`) with dark ink and muted gray hierarchy. The dark theme intentionally becomes pure black and white. Geist Pixel supplies the retro display character, while dotted rules, restrained hover fills, and compact spacing keep the interface readable without visual chrome.
 
-The favicon follows the same system: a black, hard-edged terminal outline on the paper canvas. Its geometry uses a 64-unit grid aligned to 16 px output so small browser icons remain crisp.
+The favicon follows the same system: a solid, hard-edged terminal drawn in the site ink color (`#242927`) on the paper canvas. Its geometry fills the 64-unit grid with a four-unit safety margin, so launcher icons remain prominent while every edge still aligns at 16 px output.
 
 ## App and browser metadata
 
@@ -37,6 +37,8 @@ Next.js file-based metadata owns the primary assets:
 - `src/app/apple-icon.png` provides the 180 px Apple touch icon used by Safari and iOS home screens.
 - `public/safari-pinned-tab.svg` provides the monochrome Safari pinned-tab mask.
 - `public/android-chrome-192x192.png` and `public/android-chrome-512x512.png` provide installable web app icons; the 512 px asset is maskable.
+
+Repository artwork is stored as lossless, opaque PNG. The README uses a 1800 × 600 E-ink banner set in the same Geist Pixel Square face as the application and a browser-captured high-resolution application screenshot; the SVG banner source is retained alongside the rendered image.
 
 The generated web app manifest uses the light E-ink canvas for its theme and launch background colors. Page metadata also supplies canonical URLs, Open Graph images, Twitter cards, JSON-LD, a sitemap, and robots rules.
 

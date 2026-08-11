@@ -2,7 +2,7 @@
 
 Super HN is a fast, focused, and responsive interface for browsing Hacker News, built with the Next.js App Router.
 
-![Super HN showing the current top stories in its E-ink light theme](docs/images/super-hn-home.png)
+![Super HN E-ink terminal banner](docs/images/super-hn-banner.png)
 
 - [Live application](https://super-hacker-news.vercel.app)
 - [Source repository](https://github.com/motheki/super-hacker-news)
@@ -16,6 +16,10 @@ Super HN is a fast, focused, and responsive interface for browsing Hacker News, 
 - Light and dark themes that follow or override the system preference
 - Native sharing where supported, Hacker News search, and responsive navigation
 - Installable app metadata, crisp browser and home-screen icons, route-level loading states, and native view transitions
+
+## Preview
+
+![Super HN showing the current top stories in its E-ink light theme](docs/images/super-hn-home.png)
 
 ## Development
 
@@ -42,7 +46,7 @@ See [Architecture and design](docs/architecture.md) for the current route map, d
 
 ## Browser icons
 
-The favicon is a 1-bit pixel terminal drawn on the same `#e6ebe9` E-ink canvas as the light theme. Next.js App Router metadata files provide a scalable browser icon, a multi-resolution ICO fallback, and an Apple touch icon. The web app manifest supplies mask-safe 192 px and 512 px PNGs, while Safari pinned tabs use a dedicated monochrome mask.
+The favicon is an opaque 1-bit pixel terminal drawn in the site text color (`#242927`) on the same `#e6ebe9` E-ink canvas as the light theme. Next.js App Router metadata files provide a scalable browser icon, a multi-resolution ICO fallback, and an Apple touch icon. The web app manifest supplies mask-safe 192 px and 512 px PNGs, while Safari pinned tabs use a dedicated monochrome mask.
 
 ## Attribution
 
