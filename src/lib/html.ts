@@ -6,9 +6,9 @@ import parseHtml, {
 	type HTMLReactParserOptions,
 } from "html-react-parser";
 import type { Route } from "next";
-import Link from "next/link";
 import { createElement } from "react";
 import sanitizeHtml from "sanitize-html";
+import { IntentPrefetchLink } from "~/components/IntentPrefetchLink";
 import { isInternalPath, replaceHnPostLinks } from "~/lib/link";
 
 const sanitizeOptions: sanitizeHtml.IOptions = {
@@ -36,7 +36,7 @@ const parserOptions: HTMLReactParserOptions = {
 		if (!href || !isInternalPath(href)) return;
 
 		return createElement(
-			Link,
+			IntentPrefetchLink,
 			{ href: href as Route },
 			domToReact(domNode.children as DOMNode[], parserOptions),
 		);

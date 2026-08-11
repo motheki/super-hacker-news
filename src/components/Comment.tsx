@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { CollapsibleComment } from "~/components/CollapsibleComment";
+import { IntentPrefetchLink } from "~/components/IntentPrefetchLink";
 import { renderHnHtml } from "~/lib/html";
 import type { Comment as CommentType } from "~/lib/post";
 
@@ -31,9 +31,9 @@ export const Comment = ({ comment, rootId, parentId, prevId, nextId }: CommentPr
 		info={
 			<>
 				{comment.user && (
-					<Link className="eink-link" href={`/user/${comment.user}`}>
+					<IntentPrefetchLink className="eink-link" href={`/user/${comment.user}`}>
 						{comment.user}
-					</Link>
+					</IntentPrefetchLink>
 				)}{" "}
 				<a className="eink-link" href={commentLink(comment.id)}>
 					{comment.time_ago}

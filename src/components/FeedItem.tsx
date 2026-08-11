@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { ViewTransition } from "react";
+import { IntentPrefetchLink } from "~/components/IntentPrefetchLink";
 import { isSafeExternalUrl } from "~/lib/link";
 import type { TopicItem } from "~/lib/topic";
 
@@ -26,19 +25,17 @@ export const FeedItem = ({ item, index }: FeedItemProps) => {
 				{index}
 			</span>
 			<article className="min-w-0 text-lg">
-				<ViewTransition enter="fade-in" exit="fade-out" default="none">
-					<h2>
-						{externalUrl ? (
-							<a className={titleClass} href={externalUrl} rel="noreferrer noopener">
-								{title}
-							</a>
-						) : (
-							<Link className={titleClass} href={`/post/${item.id}`}>
-								{title}
-							</Link>
-						)}
-					</h2>
-				</ViewTransition>
+				<h2>
+					{externalUrl ? (
+						<a className={titleClass} href={externalUrl} rel="noreferrer noopener">
+							{title}
+						</a>
+					) : (
+						<IntentPrefetchLink className={titleClass} href={`/post/${item.id}`}>
+							{title}
+						</IntentPrefetchLink>
+					)}
+				</h2>
 				{item.type === "job" ? (
 					<p className="eink-muted mt-1 text-sm">{item.time_ago}</p>
 				) : (
@@ -47,17 +44,20 @@ export const FeedItem = ({ item, index }: FeedItemProps) => {
 						{item.user && (
 							<>
 								{" by "}
-								<Link className="eink-link" href={`/user/${item.user}`}>
+								<IntentPrefetchLink
+									className="eink-link"
+									href={`/user/${item.user}`}
+								>
 									{item.user}
-								</Link>
+								</IntentPrefetchLink>
 							</>
 						)}{" "}
 						{item.time_ago}
 						{" | "}
-						<Link className="eink-link" href={`/post/${item.id}`}>
+						<IntentPrefetchLink className="eink-link" href={`/post/${item.id}`}>
 							{item.comments_count}&nbsp;
 							{item.comments_count === 1 ? "comment" : "comments"}
-						</Link>
+						</IntentPrefetchLink>
 					</p>
 				)}
 			</article>

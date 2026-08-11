@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ViewTransition } from "react";
 import { FeedItem } from "~/components/FeedItem";
 import { PageTransition } from "~/components/PageTransition";
 import { getTopicItems } from "~/lib/data";
@@ -9,6 +8,9 @@ import { parsePage } from "~/lib/route";
 import { SOCIAL_IMAGE_PATH } from "~/lib/site";
 import { TOPICS } from "~/lib/topic";
 const ITEMS_PER_PAGE = 30;
+
+// Keep the current route visible until this cached destination is ready, then fade once.
+export const instant = false;
 
 type TopicPageProps = {
 	params: Promise<{ topicName: string }>;
@@ -55,27 +57,25 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
 
 	return (
 		<PageTransition transitionKey={`${topic.name}-${page}`}>
-			<ViewTransition enter="fade-in" exit="fade-out" default="none">
-				<>
-					<h1 className="sr-only">{topic.title}</h1>
-					<div className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-4">
-						{items.map((item, index) => (
-							<FeedItem
-								item={item}
-								index={index + 1 + ITEMS_PER_PAGE * (page - 1)}
-								key={item.id}
-							/>
-						))}
-					</div>
-					<Link
-						className="eink-link mt-4 block"
-						href={`/${topic.name}?page=${page + 1}`}
-						prefetch={true}
-					>
-						More...
-					</Link>
-				</>
-			</ViewTransition>
+			<>
+				<h1 className="sr-only">{topic.title}</h1>
+				<div className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-4">
+					{items.map((item, index) => (
+						<FeedItem
+							item={item}
+							index={index + 1 + ITEMS_PER_PAGE * (page - 1)}
+							key={item.id}
+						/>
+					))}
+				</div>
+				<Link
+					className="eink-link mt-4 block"
+					href={`/${topic.name}?page=${page + 1}`}
+					prefetch={true}
+				>
+					More...
+				</Link>
+			</>
 		</PageTransition>
 	);
 }

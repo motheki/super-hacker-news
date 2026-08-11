@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ViewTransition } from "react";
 import { Comment } from "~/components/Comment";
+import { IntentPrefetchLink } from "~/components/IntentPrefetchLink";
 import { JsonLd } from "~/components/JsonLd";
 import { PageTransition } from "~/components/PageTransition";
 import { getPost } from "~/lib/data";
@@ -12,6 +11,9 @@ import { parsePostId } from "~/lib/route";
 import { SITE_URL, SOCIAL_IMAGE_PATH } from "~/lib/site";
 
 type PostPageProps = { params: Promise<{ postId: string }> };
+
+// Avoid an intermediate route fallback; intent prefetching warms likely destinations instead.
+export const instant = false;
 
 export const generateMetadata = async ({ params }: PostPageProps): Promise<Metadata> => {
 	const postId = parsePostId((await params).postId);
@@ -79,55 +81,45 @@ export default async function PostPage({ params }: PostPageProps) {
 						},
 					}}
 				/>
-				<ViewTransition enter="fade-in" exit="fade-out" default="none">
-					<h1 className="wrap-anywhere text-2xl">
-						{externalUrl ? (
-							<a
-								href={externalUrl}
-								rel="noreferrer noopener"
-								className="eink-story-link"
-							>
-								{title}
-							</a>
-						) : (
-							title
+				<h1 className="wrap-anywhere text-2xl">
+					{externalUrl ? (
+						<a href={externalUrl} rel="noreferrer noopener" className="eink-story-link">
+							{title}
+						</a>
+					) : (
+						title
+					)}
+				</h1>
+
+				<section className="mb-4">
+					<article>
+						<p className="eink-muted mt-1 text-sm">
+							{post.points} points by{" "}
+							<IntentPrefetchLink className="eink-link" href={`/user/${post.user}`}>
+								{post.user}
+							</IntentPrefetchLink>{" "}
+							{post.time_ago} | {post.comments_count}{" "}
+							{post.comments_count === 1 ? "comment" : "comments"}
+						</p>
+						{post.content && (
+							<div className="eink-rich-text wrap-anywhere border-b-2 border-dotted border-[var(--color-line)] [&_p]:my-2 [&_pre]:overflow-x-auto">
+								{renderHnHtml(post.content)}
+							</div>
 						)}
-					</h1>
-				</ViewTransition>
+					</article>
+				</section>
 
-				<ViewTransition enter="fade-in" exit="fade-out" default="none">
-					<>
-						<section className="mb-4">
-							<article>
-								<p className="eink-muted mt-1 text-sm">
-									{post.points} points by{" "}
-									<Link className="eink-link" href={`/user/${post.user}`}>
-										{post.user}
-									</Link>{" "}
-									{post.time_ago} | {post.comments_count}{" "}
-									{post.comments_count === 1 ? "comment" : "comments"}
-								</p>
-								{post.content && (
-									<div className="eink-rich-text wrap-anywhere border-b-2 border-dotted border-[var(--color-line)] [&_p]:my-2 [&_pre]:overflow-x-auto">
-										{renderHnHtml(post.content)}
-									</div>
-								)}
-							</article>
-						</section>
-
-						<div id="comments">
-							{post.comments.map((comment, index) => (
-								<Comment
-									comment={comment}
-									key={comment.id}
-									rootId={comment.id}
-									prevId={post.comments[index - 1]?.id}
-									nextId={post.comments[index + 1]?.id}
-								/>
-							))}
-						</div>
-					</>
-				</ViewTransition>
+				<div id="comments">
+					{post.comments.map((comment, index) => (
+						<Comment
+							comment={comment}
+							key={comment.id}
+							rootId={comment.id}
+							prevId={post.comments[index - 1]?.id}
+							nextId={post.comments[index + 1]?.id}
+						/>
+					))}
+				</div>
 			</>
 		</PageTransition>
 	);
