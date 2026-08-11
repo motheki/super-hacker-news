@@ -4,30 +4,39 @@ if (!("share" in navigator)) {
 	document.body.classList.add("noshare");
 }
 
-const getTheme = () => {
-	return (
-		(localStorage.getItem(THEME_STORAGE_KEY) as Theme | null) ??
-		(window.matchMedia("(prefers-color-scheme: dark)")?.matches ? THEMES.DARK : DEFAULT_THEME)
-	);
+const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+const getStoredTheme = (): Theme | null => {
+	const theme = localStorage.getItem(THEME_STORAGE_KEY);
+	return theme === THEMES.LIGHT || theme === THEMES.DARK ? theme : null;
 };
 
-const setTheme = (theme: Theme) => {
-	document.documentElement.classList.toggle("dark", theme === "dark");
+const getSystemTheme = (): Theme => (colorSchemeQuery.matches ? THEMES.DARK : DEFAULT_THEME);
+
+const getTheme = (): Theme => getStoredTheme() ?? getSystemTheme();
+
+const applyTheme = (theme: Theme) => {
+	document.documentElement.classList.toggle("dark", theme === THEMES.DARK);
 	document
 		.querySelector('meta[name="theme-color"]')
 		?.setAttribute("content", getThemeColor(theme));
+};
+
+const setTheme = (theme: Theme) => {
+	applyTheme(theme);
 	localStorage.setItem(THEME_STORAGE_KEY, theme);
 };
 
 declare global {
 	interface Window {
 		UI: {
+			switchTheme(): void;
 			updateTheme(): void;
 		};
 	}
 }
 
-(window as any).UI = {
+window.UI = {
 	switchTheme() {
 		const newTheme: Theme = document.documentElement.classList.contains("dark")
 			? THEMES.LIGHT
@@ -37,8 +46,14 @@ declare global {
 	},
 
 	updateTheme() {
-		setTheme(getTheme());
+		applyTheme(getTheme());
 	},
 };
+
+colorSchemeQuery.addEventListener("change", () => {
+	if (getStoredTheme() === null) {
+		applyTheme(getSystemTheme());
+	}
+});
 
 window.UI.updateTheme();
