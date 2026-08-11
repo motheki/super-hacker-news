@@ -38,13 +38,6 @@ export const metadata: Metadata = {
 		images: [SOCIAL_IMAGE_PATH],
 	},
 	manifest: "/manifest.webmanifest",
-	icons: {
-		icon: [
-			{ url: "/favicon.ico", sizes: "any" },
-			{ url: "/favicon.svg", type: "image/svg+xml" },
-		],
-		apple: "/apple-touch-icon.png",
-	},
 };
 
 export const viewport: Viewport = {
@@ -95,6 +88,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
 	return (
 		<html lang="en" className={geistPixel.variable} suppressHydrationWarning>
 			<head>
+				<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#242927" />
 				<meta
 					name="theme-color"
 					content={getThemeColor(THEMES.LIGHT)}

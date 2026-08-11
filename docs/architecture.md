@@ -1,0 +1,51 @@
+# Architecture and design
+
+This document reflects the current Super HN application.
+
+## Product surface
+
+- `/` redirects to `/top`.
+- `/top`, `/new`, `/ask`, and `/show` render 30-story feed pages with pagination.
+- `/post/[postId]` renders a story, its metadata, and nested collapsible comments.
+- `/user/[userName]` renders Hacker News profile details and links to the original activity pages.
+- Invalid topic, page, post, and user paths are rejected before rendering.
+
+## Rendering and navigation
+
+Routes are Next.js App Router Server Components by default. Only navigation state, sharing, theme controls, and collapsible comments are client-side islands. Route-level loading, error, global error, and not-found boundaries cover navigation and failure states.
+
+Topic destinations are prefetched, likely story and user destinations warm on pointer or keyboard intent, and React View Transitions provide a short fade while keeping the topic navigation stable. Reduced-motion preferences disable transition timing.
+
+## Data and caching
+
+Feed and post data comes from the HackerWeb API, profiles come from the HNPWA API, and best-story identifiers come from the official Hacker News Firebase API. Every upstream payload is validated before it reaches a page.
+
+Cache Components use `use cache`, explicit cache lifetimes, and resource-specific cache tags. Feeds, posts, and profiles revalidate after one minute; the best-story identifier list revalidates hourly. Post processing also normalizes nested comment counts.
+
+## E-ink visual system
+
+The light theme uses a paper canvas (`#e6ebe9`) with dark ink and muted gray hierarchy. The dark theme intentionally becomes pure black and white. Geist Pixel supplies the retro display character, while dotted rules, restrained hover fills, and compact spacing keep the interface readable without visual chrome.
+
+The favicon follows the same system: a black, hard-edged terminal outline on the paper canvas. Its geometry uses a 64-unit grid aligned to 16 px output so small browser icons remain crisp.
+
+## App and browser metadata
+
+Next.js file-based metadata owns the primary assets:
+
+- `src/app/favicon.ico` provides 16 px, 32 px, and 48 px bitmap layers for browser and legacy fallback support.
+- `src/app/icon.svg` provides a resolution-independent browser and search icon.
+- `src/app/apple-icon.png` provides the 180 px Apple touch icon used by Safari and iOS home screens.
+- `public/safari-pinned-tab.svg` provides the monochrome Safari pinned-tab mask.
+- `public/android-chrome-192x192.png` and `public/android-chrome-512x512.png` provide installable web app icons; the 512 px asset is maskable.
+
+The generated web app manifest uses the light E-ink canvas for its theme and launch background colors. Page metadata also supplies canonical URLs, Open Graph images, Twitter cards, JSON-LD, a sitemap, and robots rules.
+
+## Verification
+
+Run the standard checks before publishing:
+
+```sh
+aube run lint
+aube run test
+aube run build
+```
