@@ -112,7 +112,6 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
 					<Header />
 					<main>{children}</main>
 				</div>
-				<Analytics />
 			</body>
 		</html>
 	);
