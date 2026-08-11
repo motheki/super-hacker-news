@@ -26,18 +26,14 @@ export const FeedItem = ({ item, index }: FeedItemProps) => {
 				{index}
 			</span>
 			<article className="min-w-0 text-lg">
-				<ViewTransition name={`story-${item.id}`} share="text-morph" default="none">
+				<ViewTransition enter="fade-in" exit="fade-out" default="none">
 					<h2>
 						{externalUrl ? (
 							<a className={titleClass} href={externalUrl} rel="noreferrer noopener">
 								{title}
 							</a>
 						) : (
-							<Link
-								className={titleClass}
-								href={`/post/${item.id}`}
-								transitionTypes={["story-forward"]}
-							>
+							<Link className={titleClass} href={`/post/${item.id}`}>
 								{title}
 							</Link>
 						)}
@@ -51,22 +47,14 @@ export const FeedItem = ({ item, index }: FeedItemProps) => {
 						{item.user && (
 							<>
 								{" by "}
-								<Link
-									className="eink-link"
-									href={`/user/${item.user}`}
-									transitionTypes={["nav-forward"]}
-								>
+								<Link className="eink-link" href={`/user/${item.user}`}>
 									{item.user}
 								</Link>
 							</>
 						)}{" "}
 						{item.time_ago}
 						{" | "}
-						<Link
-							className="eink-link"
-							href={`/post/${item.id}`}
-							transitionTypes={["story-forward"]}
-						>
+						<Link className="eink-link" href={`/post/${item.id}`}>
 							{item.comments_count}&nbsp;
 							{item.comments_count === 1 ? "comment" : "comments"}
 						</Link>

@@ -37,7 +37,7 @@ const parserOptions: HTMLReactParserOptions = {
 
 		return createElement(
 			Link,
-			{ href: href as Route, transitionTypes: ["nav-forward"] },
+			{ href: href as Route },
 			domToReact(domNode.children as DOMNode[], parserOptions),
 		);
 	},

@@ -31,11 +31,7 @@ export const Comment = ({ comment, rootId, parentId, prevId, nextId }: CommentPr
 		info={
 			<>
 				{comment.user && (
-					<Link
-						className="eink-link"
-						href={`/user/${comment.user}`}
-						transitionTypes={["nav-forward"]}
-					>
+					<Link className="eink-link" href={`/user/${comment.user}`}>
 						{comment.user}
 					</Link>
 				)}{" "}

@@ -16,7 +16,6 @@ const linkClass =
 
 export function TopicNavigation({ links }: { links: readonly TopicLink[] }) {
 	const pathname = usePathname();
-	const isTopicPage = links.some(link => link.href === pathname);
 
 	return links.map(link => {
 		const active = pathname === link.href;
@@ -27,7 +26,6 @@ export function TopicNavigation({ links }: { links: readonly TopicLink[] }) {
 				href={link.href}
 				key={link.href}
 				prefetch={true}
-				transitionTypes={[isTopicPage ? "topic-change" : "nav-back"]}
 			>
 				{link.title}
 			</Link>

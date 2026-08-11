@@ -55,7 +55,7 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
 
 	return (
 		<PageTransition transitionKey={`${topic.name}-${page}`}>
-			<ViewTransition enter="slide-up" default="none">
+			<ViewTransition enter="fade-in" exit="fade-out" default="none">
 				<>
 					<h1 className="sr-only">{topic.title}</h1>
 					<div className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-4">
@@ -71,7 +71,6 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
 						className="eink-link mt-4 block"
 						href={`/${topic.name}?page=${page + 1}`}
 						prefetch={true}
-						transitionTypes={["nav-forward"]}
 					>
 						More...
 					</Link>

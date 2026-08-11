@@ -47,7 +47,7 @@ export default async function UserPage({ params }: UserPageProps) {
 
 	return (
 		<PageTransition transitionKey={user.id}>
-			<ViewTransition enter="slide-up" default="none">
+			<ViewTransition enter="fade-in" exit="fade-out" default="none">
 				<section>
 					<h1 className="text-2xl">{user.id}</h1>
 					<div className="eink-muted grid grid-cols-[max-content_1fr] gap-x-2 text-sm">

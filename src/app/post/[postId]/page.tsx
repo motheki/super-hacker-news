@@ -79,7 +79,7 @@ export default async function PostPage({ params }: PostPageProps) {
 						},
 					}}
 				/>
-				<ViewTransition name={`story-${post.id}`} share="text-morph" default="none">
+				<ViewTransition enter="fade-in" exit="fade-out" default="none">
 					<h1 className="wrap-anywhere text-2xl">
 						{externalUrl ? (
 							<a
@@ -95,17 +95,13 @@ export default async function PostPage({ params }: PostPageProps) {
 					</h1>
 				</ViewTransition>
 
-				<ViewTransition enter="slide-up" default="none">
+				<ViewTransition enter="fade-in" exit="fade-out" default="none">
 					<>
 						<section className="mb-4">
 							<article>
 								<p className="eink-muted mt-1 text-sm">
 									{post.points} points by{" "}
-									<Link
-										className="eink-link"
-										href={`/user/${post.user}`}
-										transitionTypes={["nav-forward"]}
-									>
+									<Link className="eink-link" href={`/user/${post.user}`}>
 										{post.user}
 									</Link>{" "}
 									{post.time_ago} | {post.comments_count}{" "}

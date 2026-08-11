@@ -5,7 +5,7 @@ import { PageTransition } from "~/components/PageTransition";
 export default function Loading() {
 	return (
 		<PageTransition>
-			<ViewTransition exit="slide-down" default="none">
+			<ViewTransition exit="fade-out" default="none">
 				<LoadingState label="Loading user…" />
 			</ViewTransition>
 		</PageTransition>
