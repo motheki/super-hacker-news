@@ -12,7 +12,7 @@ export interface TopicLink {
 }
 
 const linkClass =
-	"inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded px-2 leading-none transition-colors hover:bg-black hover:text-white focus-visible:outline-2 motion-reduce:transition-none dark:hover:bg-white dark:hover:text-black";
+	"eink-interactive inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded px-2 leading-none transition-colors focus-visible:outline-2 motion-reduce:transition-none";
 
 export function TopicNavigation({ links }: { links: readonly TopicLink[] }) {
 	const pathname = usePathname();
@@ -23,7 +23,7 @@ export function TopicNavigation({ links }: { links: readonly TopicLink[] }) {
 		return (
 			<Link
 				aria-current={active ? "page" : undefined}
-				className={`${linkClass} ${active ? "bg-black text-white dark:bg-white dark:text-black" : ""}`}
+				className={`${linkClass} ${active ? "eink-selected" : ""}`}
 				href={link.href}
 				key={link.href}
 				prefetch={true}

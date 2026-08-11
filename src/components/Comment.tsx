@@ -19,7 +19,7 @@ export const Comment = ({ comment, rootId, parentId, prevId, nextId }: CommentPr
 		body={
 			<>
 				{comment.content && (
-					<div className="wrap-anywhere [&_a]:underline [&_p]:my-2 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:whitespace-pre-wrap [&_pre]:text-sm">
+					<div className="eink-rich-text wrap-anywhere [&_p]:my-2 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:whitespace-pre-wrap [&_pre]:text-sm">
 						{renderHnHtml(comment.content)}
 					</div>
 				)}
@@ -32,20 +32,20 @@ export const Comment = ({ comment, rootId, parentId, prevId, nextId }: CommentPr
 			<>
 				{comment.user && (
 					<Link
-						className="underline"
+						className="eink-link"
 						href={`/user/${comment.user}`}
 						transitionTypes={["nav-forward"]}
 					>
 						{comment.user}
 					</Link>
 				)}{" "}
-				<a className="hover:underline" href={commentLink(comment.id)}>
+				<a className="eink-link" href={commentLink(comment.id)}>
 					{comment.time_ago}
 				</a>
 				{rootId !== comment.id && (
 					<>
 						{" | "}
-						<a className="hover:underline" href={commentLink(rootId)}>
+						<a className="eink-link" href={commentLink(rootId)}>
 							root
 						</a>
 					</>
@@ -53,7 +53,7 @@ export const Comment = ({ comment, rootId, parentId, prevId, nextId }: CommentPr
 				{parentId && (
 					<>
 						{" | "}
-						<a className="hover:underline" href={commentLink(parentId)}>
+						<a className="eink-link" href={commentLink(parentId)}>
 							parent
 						</a>
 					</>
@@ -61,7 +61,7 @@ export const Comment = ({ comment, rootId, parentId, prevId, nextId }: CommentPr
 				{prevId && (
 					<>
 						{" | "}
-						<a className="hover:underline" href={commentLink(prevId)}>
+						<a className="eink-link" href={commentLink(prevId)}>
 							prev
 						</a>
 					</>
@@ -69,7 +69,7 @@ export const Comment = ({ comment, rootId, parentId, prevId, nextId }: CommentPr
 				{nextId && (
 					<>
 						{" | "}
-						<a className="hover:underline" href={commentLink(nextId)}>
+						<a className="eink-link" href={commentLink(nextId)}>
 							next
 						</a>
 					</>

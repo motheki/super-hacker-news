@@ -50,7 +50,7 @@ export default async function UserPage({ params }: UserPageProps) {
 			<ViewTransition enter="slide-up" default="none">
 				<section>
 					<h1 className="text-2xl">{user.id}</h1>
-					<div className="grid grid-cols-[max-content_1fr] gap-x-2 text-sm">
+					<div className="eink-muted grid grid-cols-[max-content_1fr] gap-x-2 text-sm">
 						<span>Created:</span>
 						<span>{user.created}</span>
 						<span>Karma:</span>
@@ -59,21 +59,21 @@ export default async function UserPage({ params }: UserPageProps) {
 
 					<p className="my-4">
 						<a
-							className="underline"
+							className="eink-link"
 							href={`https://news.ycombinator.com/submitted?id=${encodeURIComponent(user.id)}`}
 						>
 							submissions
 						</a>
 						{" / "}
 						<a
-							className="underline"
+							className="eink-link"
 							href={`https://news.ycombinator.com/threads?id=${encodeURIComponent(user.id)}`}
 						>
 							comments
 						</a>
 						{" / "}
 						<a
-							className="underline"
+							className="eink-link"
 							href={`https://news.ycombinator.com/favorites?id=${encodeURIComponent(user.id)}`}
 						>
 							favorites
@@ -81,7 +81,7 @@ export default async function UserPage({ params }: UserPageProps) {
 					</p>
 
 					{user.about && (
-						<div className="wrap-anywhere [&_a]:underline [&_p]:my-4">
+						<div className="eink-rich-text wrap-anywhere [&_p]:my-4">
 							{renderHnHtml(user.about)}
 						</div>
 					)}

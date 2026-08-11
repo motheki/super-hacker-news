@@ -9,19 +9,20 @@ interface FeedItemProps {
 	key?: number;
 }
 
-const titleClass = "wrap-anywhere hover:underline";
+const titleClass = "eink-story-link wrap-anywhere";
 
 export const FeedItem = ({ item, index }: FeedItemProps) => {
 	const externalUrl = isSafeExternalUrl(item.url) ? item.url : null;
 	const title = (
 		<>
-			{item.title} {item.domain && <span className="text-sm">({item.domain})</span>}
+			{item.title}{" "}
+			{item.domain && <span className="eink-faint text-sm">({item.domain})</span>}
 		</>
 	);
 
 	return (
 		<>
-			<span className="text-right text-2xl" aria-hidden="true">
+			<span className="eink-muted text-right text-2xl" aria-hidden="true">
 				{index}
 			</span>
 			<article className="min-w-0 text-lg">
@@ -43,15 +44,15 @@ export const FeedItem = ({ item, index }: FeedItemProps) => {
 					</h2>
 				</ViewTransition>
 				{item.type === "job" ? (
-					<p className="mt-1 text-sm">{item.time_ago}</p>
+					<p className="eink-muted mt-1 text-sm">{item.time_ago}</p>
 				) : (
-					<p className="mt-1 text-sm">
+					<p className="eink-muted mt-1 text-sm">
 						{item.points} points
 						{item.user && (
 							<>
 								{" by "}
 								<Link
-									className="underline"
+									className="eink-link"
 									href={`/user/${item.user}`}
 									transitionTypes={["nav-forward"]}
 								>
@@ -62,7 +63,7 @@ export const FeedItem = ({ item, index }: FeedItemProps) => {
 						{item.time_ago}
 						{" | "}
 						<Link
-							className="underline"
+							className="eink-link"
 							href={`/post/${item.id}`}
 							transitionTypes={["story-forward"]}
 						>

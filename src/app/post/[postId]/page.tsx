@@ -52,7 +52,7 @@ export default async function PostPage({ params }: PostPageProps) {
 	const title = (
 		<>
 			{post.title}
-			{post.domain && <span className="text-lg"> ({post.domain})</span>}
+			{post.domain && <span className="eink-faint text-lg"> ({post.domain})</span>}
 		</>
 	);
 
@@ -85,7 +85,7 @@ export default async function PostPage({ params }: PostPageProps) {
 							<a
 								href={externalUrl}
 								rel="noreferrer noopener"
-								className="hover:underline"
+								className="eink-story-link"
 							>
 								{title}
 							</a>
@@ -99,10 +99,10 @@ export default async function PostPage({ params }: PostPageProps) {
 					<>
 						<section className="mb-4">
 							<article>
-								<p className="mt-1 text-sm">
+								<p className="eink-muted mt-1 text-sm">
 									{post.points} points by{" "}
 									<Link
-										className="underline"
+										className="eink-link"
 										href={`/user/${post.user}`}
 										transitionTypes={["nav-forward"]}
 									>
@@ -112,7 +112,7 @@ export default async function PostPage({ params }: PostPageProps) {
 									{post.comments_count === 1 ? "comment" : "comments"}
 								</p>
 								{post.content && (
-									<div className="wrap-anywhere border-b-2 border-current [&_a]:underline [&_p]:my-2 [&_pre]:overflow-x-auto">
+									<div className="eink-rich-text wrap-anywhere border-b-2 border-dotted border-[var(--color-line)] [&_p]:my-2 [&_pre]:overflow-x-auto">
 										{renderHnHtml(post.content)}
 									</div>
 								)}

@@ -6,8 +6,16 @@
 }
 
 :root {
-	--color-canvas: #fff;
-	--color-ink: #000;
+	--color-canvas: #e6ebe9;
+	--color-ink: #242927;
+	--color-ink-muted: #5f6864;
+	--color-ink-faint: #7c8581;
+	--color-link: #505a55;
+	--color-link-visited: #77807c;
+	--color-line: #858e8a;
+	--color-selection-soft: #d4dad7;
+	--color-selection-strong: #aeb7b3;
+	--color-selection-ink: #202523;
 	--duration-exit: 150ms;
 	--duration-enter: 210ms;
 	--duration-move: 400ms;
@@ -21,6 +29,14 @@
 :root.dark {
 	--color-canvas: #000;
 	--color-ink: #fff;
+	--color-ink-muted: #fff;
+	--color-ink-faint: #fff;
+	--color-link: #fff;
+	--color-link-visited: #fff;
+	--color-line: #fff;
+	--color-selection-soft: #fff;
+	--color-selection-strong: #fff;
+	--color-selection-ink: #000;
 	color-scheme: dark;
 }
 
@@ -28,6 +44,14 @@
 	:root:not([data-theme]) {
 		--color-canvas: #000;
 		--color-ink: #fff;
+		--color-ink-muted: #fff;
+		--color-ink-faint: #fff;
+		--color-link: #fff;
+		--color-link-visited: #fff;
+		--color-line: #fff;
+		--color-selection-soft: #fff;
+		--color-selection-strong: #fff;
+		--color-selection-ink: #000;
 		color-scheme: dark;
 	}
 }
@@ -49,7 +73,65 @@ a {
 
 button:focus-visible,
 a:focus-visible {
-	outline: 2px solid currentColor;
+	outline: 2px dotted currentColor;
+}
+
+::selection {
+	background: var(--color-selection-strong);
+	color: var(--color-selection-ink);
+}
+
+.eink-muted {
+	color: var(--color-ink-muted);
+}
+
+.eink-faint {
+	color: var(--color-ink-faint);
+}
+
+.eink-link,
+.eink-rich-text a {
+	color: var(--color-link);
+	text-decoration-line: underline;
+	text-decoration-style: dotted;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.2em;
+}
+
+.eink-link:visited,
+.eink-rich-text a:visited {
+	color: var(--color-link-visited);
+}
+
+.eink-link:hover,
+.eink-rich-text a:hover {
+	color: var(--color-ink);
+}
+
+.eink-story-link {
+	color: var(--color-link);
+}
+
+.eink-story-link:visited {
+	color: var(--color-link-visited);
+}
+
+.eink-story-link:hover {
+	color: var(--color-ink);
+	text-decoration-line: underline;
+	text-decoration-style: dotted;
+	text-underline-offset: 0.2em;
+}
+
+.eink-interactive:hover {
+	background: var(--color-selection-soft);
+	color: var(--color-selection-ink);
+}
+
+.eink-selected,
+.eink-selected:hover {
+	background: var(--color-selection-strong);
+	color: var(--color-selection-ink);
 }
 
 ::view-transition {

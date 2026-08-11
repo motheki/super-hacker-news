@@ -7,7 +7,7 @@ import { PaperAirplaneIcon } from "./icons/PaperAirplaneIcon";
 import { SunIcon } from "./icons/SunIcon";
 
 const iconClass =
-	"inline-flex size-9 shrink-0 items-center justify-center rounded leading-none transition-colors hover:bg-black hover:text-white focus-visible:outline-2 motion-reduce:transition-none dark:hover:bg-white dark:hover:text-black";
+	"eink-interactive inline-flex size-9 shrink-0 items-center justify-center rounded leading-none transition-colors focus-visible:outline-2 motion-reduce:transition-none";
 
 const applyTheme = (theme: Theme) => {
 	document.documentElement.classList.toggle("dark", theme === THEMES.DARK);

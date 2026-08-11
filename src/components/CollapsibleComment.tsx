@@ -31,13 +31,13 @@ export function CollapsibleComment({
 
 	return (
 		<article id={`comment-${commentId}`} className="mt-2 first:mt-0">
-			<p id={`comment-info-${commentId}`} className="scroll-mt-12 text-sm">
+			<p id={`comment-info-${commentId}`} className="eink-muted scroll-mt-12 text-sm">
 				{info}
 				{" | "}
 				<button
 					aria-controls={detailsId}
 					aria-expanded={expanded}
-					className="underline"
+					className="eink-link"
 					onClick={toggle}
 					type="button"
 				>
@@ -56,7 +56,7 @@ export function CollapsibleComment({
 								aria-controls={detailsId}
 								aria-expanded={expanded}
 								aria-label="Fold comment"
-								className="min-w-6 border-l-2 border-dashed border-current transition-[border-style] hover:border-solid motion-reduce:transition-none sm:min-w-8"
+								className="min-w-6 border-l-2 border-dotted border-[var(--color-line)] transition-colors hover:border-current motion-reduce:transition-none sm:min-w-8"
 								onClick={toggle}
 								tabIndex={-1}
 								type="button"

@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { Header } from "~/components/Header";
 import { JsonLd } from "~/components/JsonLd";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL_IMAGE_PATH } from "~/lib/site";
-import { LEGACY_THEME_STORAGE_KEY, THEME_STORAGE_KEY } from "~/lib/theme";
+import { getThemeColor, LEGACY_THEME_STORAGE_KEY, THEME_STORAGE_KEY, THEMES } from "~/lib/theme";
 import "./globals.css";
 
 const geistPixel = Geist_Pixel({
@@ -58,11 +58,13 @@ const themeScript = `
 (() => {
   const key = ${JSON.stringify(THEME_STORAGE_KEY)};
   const legacyKey = ${JSON.stringify(LEGACY_THEME_STORAGE_KEY)};
+	const lightThemeColor = ${JSON.stringify(getThemeColor(THEMES.LIGHT))};
+	const darkThemeColor = ${JSON.stringify(getThemeColor(THEMES.DARK))};
   const colorScheme = matchMedia("(prefers-color-scheme: dark)");
   const applyTheme = (theme) => {
     document.documentElement.classList.toggle("dark", theme === "dark");
     document.documentElement.dataset.theme = theme;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? "#000000" : "#ffffff");
+	document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? darkThemeColor : lightThemeColor);
   };
   const updateFromSystem = () => {
     try {
@@ -93,7 +95,11 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
 	return (
 		<html lang="en" className={geistPixel.variable} suppressHydrationWarning>
 			<head>
-				<meta name="theme-color" content="#ffffff" suppressHydrationWarning />
+				<meta
+					name="theme-color"
+					content={getThemeColor(THEMES.LIGHT)}
+					suppressHydrationWarning
+				/>
 				<Script id="theme-initializer" strategy="beforeInteractive">
 					{themeScript}
 				</Script>

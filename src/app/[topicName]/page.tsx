@@ -68,7 +68,7 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
 						))}
 					</div>
 					<Link
-						className="mt-4 block underline"
+						className="eink-link mt-4 block"
 						href={`/${topic.name}?page=${page + 1}`}
 						prefetch={true}
 						transitionTypes={["nav-forward"]}

@@ -9,7 +9,7 @@ export default function NotFound() {
 				<section className="py-12 text-center">
 					<h1 className="text-2xl">404 — Not found</h1>
 					<Link
-						className="mt-4 inline-block underline"
+						className="eink-link mt-4 inline-block"
 						href="/top"
 						transitionTypes={["nav-back"]}
 					>
