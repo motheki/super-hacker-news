@@ -1,47 +1,81 @@
+import "server-only";
+import { cacheLife, cacheTag } from "next/cache";
 import type { Post } from "./post";
 import type { TopicItem } from "./topic";
 import type { User } from "./user";
 
 type Validator<T> = (value: unknown) => value is T;
-type CachePolicy = { revalidate: number; tags: string[] };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
 	typeof value === "object" && value !== null;
 
+const isOptionalString = (value: unknown) => value === undefined || typeof value === "string";
+const isOptionalNumber = (value: unknown) => value === undefined || typeof value === "number";
+const isOptionalBoolean = (value: unknown) => value === undefined || typeof value === "boolean";
+const isNullableString = (value: unknown) =>
+	value === undefined || value === null || typeof value === "string";
+const isNullableNumber = (value: unknown) =>
+	value === undefined || value === null || typeof value === "number";
+
 const hasCommentShape = (value: unknown): boolean =>
 	isRecord(value) &&
 	typeof value.id === "number" &&
+	isOptionalString(value.user) &&
+	isOptionalNumber(value.time) &&
+	isOptionalString(value.time_ago) &&
+	isOptionalString(value.content) &&
+	isOptionalBoolean(value.deleted) &&
+	isOptionalBoolean(value.dead) &&
+	isOptionalNumber(value.comments_count) &&
+	isOptionalString(value.url) &&
 	Array.isArray(value.comments) &&
 	value.comments.every(hasCommentShape);
 
 const isTopicItems: Validator<TopicItem[]> = (value): value is TopicItem[] =>
 	Array.isArray(value) &&
 	value.every(
-		item => isRecord(item) && typeof item.id === "number" && typeof item.title === "string",
+		item =>
+			isRecord(item) &&
+			typeof item.id === "number" &&
+			typeof item.title === "string" &&
+			isNullableNumber(item.points) &&
+			isNullableString(item.user) &&
+			typeof item.time === "number" &&
+			typeof item.time_ago === "string" &&
+			typeof item.comments_count === "number" &&
+			typeof item.type === "string" &&
+			isOptionalString(item.url) &&
+			isOptionalString(item.domain),
 	);
 
 const isPost: Validator<Post> = (value): value is Post =>
 	isRecord(value) &&
 	typeof value.id === "number" &&
 	typeof value.title === "string" &&
+	typeof value.points === "number" &&
+	typeof value.user === "string" &&
+	typeof value.time === "number" &&
+	typeof value.time_ago === "string" &&
+	isOptionalString(value.content) &&
+	isOptionalString(value.url) &&
+	isOptionalString(value.domain) &&
+	typeof value.comments_count === "number" &&
 	Array.isArray(value.comments) &&
 	value.comments.every(hasCommentShape);
 
 const isUser: Validator<User> = (value): value is User =>
-	isRecord(value) && typeof value.id === "string" && typeof value.karma === "number";
+	isRecord(value) &&
+	typeof value.id === "string" &&
+	typeof value.karma === "number" &&
+	typeof value.created_time === "number" &&
+	typeof value.created === "string" &&
+	isOptionalString(value.about);
 
 const isNumberArray: Validator<number[]> = (value): value is number[] =>
 	Array.isArray(value) && value.every(item => typeof item === "number");
 
-async function fetchJson<T>(
-	url: string,
-	isValid: Validator<T>,
-	cachePolicy: CachePolicy,
-): Promise<T | null> {
-	const response = await fetch(url, {
-		headers: { accept: "application/json" },
-		next: cachePolicy,
-	});
+async function fetchJson<T>(url: string, isValid: Validator<T>): Promise<T | null> {
+	const response = await fetch(url, { headers: { accept: "application/json" } });
 
 	if (response.status === 404) return null;
 	if (!response.ok) {
@@ -58,26 +92,33 @@ async function fetchJson<T>(
 	return isValid(value) ? value : null;
 }
 
-export const fetchTopicItems = (topic: string, page: number) =>
-	fetchJson(`https://api.hackerwebapp.com/${topic}?page=${page}.json`, isTopicItems, {
-		revalidate: 60,
-		tags: ["topics", `topic:${topic}:${page}`],
-	});
+const shortCacheLife = { stale: 60, revalidate: 60, expire: 3600 } as const;
+const storyIdsCacheLife = { stale: 3600, revalidate: 3600, expire: 86400 } as const;
 
-export const fetchPost = (postId: number) =>
-	fetchJson(`https://api.hackerwebapp.com/item/${postId}`, isPost, {
-		revalidate: 60,
-		tags: ["posts", `post:${postId}`],
-	});
+export async function fetchTopicItems(topic: string, page: number) {
+	"use cache";
+	cacheLife(shortCacheLife);
+	cacheTag("topics", `topic:${topic}:${page}`);
+	return fetchJson(`https://api.hackerwebapp.com/${topic}?page=${page}.json`, isTopicItems);
+}
 
-export const fetchUser = (userName: string) =>
-	fetchJson(`https://api.hnpwa.com/v0/user/${encodeURIComponent(userName)}.json`, isUser, {
-		revalidate: 60,
-		tags: ["users", `user:${userName}`],
-	});
+export async function fetchPost(postId: number) {
+	"use cache";
+	cacheLife(shortCacheLife);
+	cacheTag("posts", `post:${postId}`);
+	return fetchJson(`https://api.hackerwebapp.com/item/${postId}`, isPost);
+}
 
-export const fetchBestStoryIds = () =>
-	fetchJson("https://hacker-news.firebaseio.com/v0/beststories.json", isNumberArray, {
-		revalidate: 3600,
-		tags: ["stories", "stories:best"],
-	});
+export async function fetchUser(userName: string) {
+	"use cache";
+	cacheLife(shortCacheLife);
+	cacheTag("users", `user:${userName}`);
+	return fetchJson(`https://api.hnpwa.com/v0/user/${encodeURIComponent(userName)}.json`, isUser);
+}
+
+export async function fetchBestStoryIds() {
+	"use cache";
+	cacheLife(storyIdsCacheLife);
+	cacheTag("stories", "stories:best");
+	return fetchJson("https://hacker-news.firebaseio.com/v0/beststories.json", isNumberArray);
+}

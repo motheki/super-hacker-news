@@ -1,6 +1,30 @@
-import type { ReactNode } from "react";
+import { type Key, type ReactNode, ViewTransition } from "react";
 
-// Cross-document transitions are provided by CSS instead of React's canary-only component.
-export const PageTransition = ({ children }: { children: ReactNode }) => (
-	<div className="page-transition">{children}</div>
+const directionalClasses = {
+	"nav-forward": "nav-forward",
+	"nav-back": "nav-back",
+	default: "none",
+} as const;
+
+const sharedClasses = {
+	...directionalClasses,
+	"topic-change": "morph",
+} as const;
+
+interface PageTransitionProps {
+	children: ReactNode;
+	transitionKey?: Key;
+}
+
+export const PageTransition = ({ children, transitionKey }: PageTransitionProps) => (
+	<ViewTransition
+		key={transitionKey}
+		name="route-page"
+		enter={directionalClasses}
+		exit={directionalClasses}
+		share={sharedClasses}
+		default="none"
+	>
+		{children}
+	</ViewTransition>
 );

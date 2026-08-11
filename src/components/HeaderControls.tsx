@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { getThemeColor, THEME_STORAGE_KEY, THEMES, type Theme } from "~/lib/theme";
-import { runViewTransition } from "~/lib/view-transition";
 import { MoonIcon } from "./icons/MoonIcon";
 import { PaperAirplaneIcon } from "./icons/PaperAirplaneIcon";
 import { SunIcon } from "./icons/SunIcon";
@@ -60,10 +59,8 @@ export function ThemeToggle() {
 		const theme = document.documentElement.classList.contains("dark")
 			? THEMES.LIGHT
 			: THEMES.DARK;
-		runViewTransition(() => {
-			applyTheme(theme);
-			persistTheme(theme);
-		});
+		applyTheme(theme);
+		persistTheme(theme);
 	};
 
 	return (

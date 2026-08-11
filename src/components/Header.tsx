@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, ViewTransition } from "react";
 import { REPOSITORY_URL } from "~/lib/site";
 import { TOPICS } from "~/lib/topic";
 import { ShareButton, ThemeToggle } from "./HeaderControls";
@@ -20,22 +20,39 @@ const iconClass = `${interactiveClass} size-9`;
 
 const TopicNavigationFallback = () =>
 	LINKS.map(link => (
-		<Link className={topicLinkClass} href={link.href} key={link.href}>
+		<Link
+			className={topicLinkClass}
+			href={link.href}
+			key={link.href}
+			prefetch={true}
+			transitionTypes={["topic-change"]}
+		>
 			{link.title}
 		</Link>
 	));
 
 export const Header = () => (
-	<header className="sticky top-0 z-10 mb-2 flex min-w-0 items-center bg-[var(--color-canvas)] py-2 [view-transition-name:site-header] sm:static">
+	<header
+		className="sticky top-0 z-10 mb-2 flex min-w-0 items-center bg-[var(--color-canvas)] py-2 sm:static"
+		style={{ viewTransitionName: "persistent-nav" }}
+	>
 		<nav aria-label="Topics" className="mr-auto flex min-w-0 items-center gap-0.5 sm:gap-2">
-			<Suspense fallback={<TopicNavigationFallback />}>
-				<TopicNavigation links={LINKS} />
+			<Suspense
+				fallback={
+					<ViewTransition exit="fade-out" default="none">
+						<TopicNavigationFallback />
+					</ViewTransition>
+				}
+			>
+				<ViewTransition enter="fade-in" default="none">
+					<TopicNavigation links={LINKS} />
+				</ViewTransition>
 			</Suspense>
 		</nav>
 
 		<div className="ml-1 flex shrink-0 items-center gap-0.5 sm:gap-1">
 			<ShareButton />
-			<Link
+			<a
 				className={iconClass}
 				title="Search Hacker News"
 				href="https://hn.algolia.com"
@@ -43,9 +60,9 @@ export const Header = () => (
 			>
 				<span className="sr-only">Search Hacker News</span>
 				<MagnifyingGlassIcon className="size-6 shrink-0" />
-			</Link>
+			</a>
 			<ThemeToggle />
-			<Link
+			<a
 				className={`${iconClass} hidden sm:inline-flex`}
 				title="Project source code"
 				href={REPOSITORY_URL}
@@ -53,7 +70,7 @@ export const Header = () => (
 			>
 				<span className="sr-only">Project source code</span>
 				<GitHubIcon className="size-6 shrink-0" />
-			</Link>
+			</a>
 		</div>
 	</header>
 );

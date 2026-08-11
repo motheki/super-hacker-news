@@ -5,7 +5,7 @@ import type { Comment, Post } from "~/lib/post";
 export const getTopicItems = (topic: string, page: number) => fetchTopicItems(topic, page);
 
 const countComments = (comments: Comment[]) =>
-	comments.reduce((total, comment) => total + 1 + comment.comments_count, 0);
+	comments.reduce((total, comment) => total + 1 + (comment.comments_count ?? 0), 0);
 
 const withCommentCounts = (comment: Comment): Comment => {
 	const comments = comment.comments.map(withCommentCounts);

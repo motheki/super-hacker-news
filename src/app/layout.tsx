@@ -4,7 +4,8 @@ import { Geist_Pixel } from "next/font/google";
 import Script from "next/script";
 import type { ReactNode } from "react";
 import { Header } from "~/components/Header";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "~/lib/site";
+import { JsonLd } from "~/components/JsonLd";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL_IMAGE_PATH } from "~/lib/site";
 import { LEGACY_THEME_STORAGE_KEY, THEME_STORAGE_KEY } from "~/lib/theme";
 import "./globals.css";
 
@@ -24,6 +25,19 @@ export const metadata: Metadata = {
 		template: `%s | ${SITE_NAME}`,
 	},
 	description: SITE_DESCRIPTION,
+	openGraph: {
+		type: "website",
+		siteName: SITE_NAME,
+		title: SITE_NAME,
+		description: SITE_DESCRIPTION,
+		images: [SOCIAL_IMAGE_PATH],
+	},
+	twitter: {
+		card: "summary_large_image",
+		title: SITE_NAME,
+		description: SITE_DESCRIPTION,
+		images: [SOCIAL_IMAGE_PATH],
+	},
 	manifest: "/manifest.webmanifest",
 	icons: {
 		icon: [
@@ -86,6 +100,15 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
 				</Script>
 			</head>
 			<body className="min-h-dvh px-2 pb-4">
+				<JsonLd
+					value={{
+						"@context": "https://schema.org",
+						"@type": "WebSite",
+						name: SITE_NAME,
+						description: SITE_DESCRIPTION,
+						url: SITE_URL,
+					}}
+				/>
 				<div className="mx-auto max-w-3xl">
 					<Header />
 					<main>{children}</main>

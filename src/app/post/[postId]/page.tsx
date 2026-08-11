@@ -1,24 +1,44 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ViewTransition } from "react";
 import { Comment } from "~/components/Comment";
-import { CommentFolding } from "~/components/CommentFolding";
+import { JsonLd } from "~/components/JsonLd";
 import { PageTransition } from "~/components/PageTransition";
 import { getPost } from "~/lib/data";
 import { renderHnHtml } from "~/lib/html";
+import { isSafeExternalUrl } from "~/lib/link";
+import { parsePostId } from "~/lib/route";
+import { SITE_URL, SOCIAL_IMAGE_PATH } from "~/lib/site";
 
 type PostPageProps = { params: Promise<{ postId: string }> };
-
-const parsePostId = (value: string) => {
-	const postId = Number(value);
-	return Number.isSafeInteger(postId) && postId > 0 ? postId : null;
-};
 
 export const generateMetadata = async ({ params }: PostPageProps): Promise<Metadata> => {
 	const postId = parsePostId((await params).postId);
 	if (postId === null) return {};
 	const post = await getPost(postId);
-	return post ? { title: post.title } : {};
+	if (!post) return {};
+
+	const description = `${post.points} points and ${post.comments_count} comments on Hacker News.`;
+	const canonical = `/post/${post.id}`;
+	return {
+		title: post.title,
+		description,
+		alternates: { canonical },
+		openGraph: {
+			type: "article",
+			url: canonical,
+			title: post.title,
+			description,
+			images: [SOCIAL_IMAGE_PATH],
+		},
+		twitter: {
+			card: "summary_large_image",
+			title: post.title,
+			description,
+			images: [SOCIAL_IMAGE_PATH],
+		},
+	};
 };
 
 export default async function PostPage({ params }: PostPageProps) {
@@ -28,7 +48,7 @@ export default async function PostPage({ params }: PostPageProps) {
 	const post = await getPost(postId);
 	if (!post) notFound();
 
-	const isExternal = post.url?.startsWith("http");
+	const externalUrl = isSafeExternalUrl(post.url) ? post.url : null;
 	const title = (
 		<>
 			{post.title}
@@ -37,53 +57,82 @@ export default async function PostPage({ params }: PostPageProps) {
 	);
 
 	return (
-		<PageTransition>
-			<section className="mb-4">
-				<article>
-					<h1
-						className="wrap-anywhere text-2xl"
-						style={{ viewTransitionName: `story-${post.id}` }}
-					>
-						{isExternal ? (
-							<Link
-								href={post.url}
+		<PageTransition transitionKey={post.id}>
+			<>
+				<JsonLd
+					value={{
+						"@context": "https://schema.org",
+						"@type": "DiscussionForumPosting",
+						url: `${SITE_URL}/post/${post.id}`,
+						headline: post.title,
+						author: post.user
+							? {
+									"@type": "Person",
+									name: post.user,
+									url: `${SITE_URL}/user/${post.user}`,
+								}
+							: undefined,
+						interactionStatistic: {
+							"@type": "InteractionCounter",
+							interactionType: "https://schema.org/CommentAction",
+							userInteractionCount: post.comments_count,
+						},
+					}}
+				/>
+				<ViewTransition name={`story-${post.id}`} share="text-morph" default="none">
+					<h1 className="wrap-anywhere text-2xl">
+						{externalUrl ? (
+							<a
+								href={externalUrl}
 								rel="noreferrer noopener"
 								className="hover:underline"
 							>
 								{title}
-							</Link>
+							</a>
 						) : (
 							title
 						)}
 					</h1>
-					<p className="mt-1 text-sm">
-						{post.points} points by{" "}
-						<Link className="underline" href={`/user/${post.user}`} prefetch={false}>
-							{post.user}
-						</Link>{" "}
-						{post.time_ago} | {post.comments_count}{" "}
-						{post.comments_count === 1 ? "comment" : "comments"}
-					</p>
-					{post.content && (
-						<div className="wrap-anywhere border-b-2 border-current [&_a]:underline [&_p]:my-2 [&_pre]:overflow-x-auto">
-							{renderHnHtml(post.content)}
-						</div>
-					)}
-				</article>
-			</section>
+				</ViewTransition>
 
-			<div id="comments">
-				<CommentFolding containerId="comments" />
-				{post.comments.map((comment, index) => (
-					<Comment
-						comment={comment}
-						key={comment.id}
-						rootId={comment.id}
-						prevId={post.comments[index - 1]?.id}
-						nextId={post.comments[index + 1]?.id}
-					/>
-				))}
-			</div>
+				<ViewTransition enter="slide-up" default="none">
+					<>
+						<section className="mb-4">
+							<article>
+								<p className="mt-1 text-sm">
+									{post.points} points by{" "}
+									<Link
+										className="underline"
+										href={`/user/${post.user}`}
+										transitionTypes={["nav-forward"]}
+									>
+										{post.user}
+									</Link>{" "}
+									{post.time_ago} | {post.comments_count}{" "}
+									{post.comments_count === 1 ? "comment" : "comments"}
+								</p>
+								{post.content && (
+									<div className="wrap-anywhere border-b-2 border-current [&_a]:underline [&_p]:my-2 [&_pre]:overflow-x-auto">
+										{renderHnHtml(post.content)}
+									</div>
+								)}
+							</article>
+						</section>
+
+						<div id="comments">
+							{post.comments.map((comment, index) => (
+								<Comment
+									comment={comment}
+									key={comment.id}
+									rootId={comment.id}
+									prevId={post.comments[index - 1]?.id}
+									nextId={post.comments[index + 1]?.id}
+								/>
+							))}
+						</div>
+					</>
+				</ViewTransition>
+			</>
 		</PageTransition>
 	);
 }

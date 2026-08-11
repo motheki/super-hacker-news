@@ -28,12 +28,13 @@ Before submitting changes, run:
 
 ```sh
 aube run lint
+aube run test
 aube run build
 ```
 
 ## Architecture
 
-The application uses the Next.js App Router and React Server Components by default. Route-level `loading.tsx`, `error.tsx`, and `not-found.tsx` boundaries handle navigation states, while `src/lib/hacker-news.ts` applies tagged, time-based policies to Next.js's persistent fetch cache. Client components are limited to interactive UI islands, and cross-document navigation uses the browser's native View Transitions API.
+The application uses the Next.js App Router and React Server Components by default. Route-level `loading.tsx`, `error.tsx`, and `not-found.tsx` boundaries handle navigation states. Public API reads use Cache Components with `use cache`, explicit `cacheLife` policies, and cache tags; Partial Prefetching reuses route shells while selected topic links resolve URL-specific data ahead of navigation. Client components are limited to interactive UI islands, and navigation uses React's View Transition primitives.
 
 ## Attribution
 

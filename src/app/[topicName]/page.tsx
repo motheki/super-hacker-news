@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ViewTransition } from "react";
 import { FeedItem } from "~/components/FeedItem";
 import { PageTransition } from "~/components/PageTransition";
 import { getTopicItems } from "~/lib/data";
+import { parsePage } from "~/lib/route";
+import { SOCIAL_IMAGE_PATH } from "~/lib/site";
 import { TOPICS } from "~/lib/topic";
 const ITEMS_PER_PAGE = 30;
 
@@ -14,19 +17,34 @@ type TopicPageProps = {
 
 export const generateStaticParams = () => TOPICS.map(({ name: topicName }) => ({ topicName }));
 
-export const generateMetadata = async ({ params }: TopicPageProps): Promise<Metadata> => {
-	const { topicName } = await params;
+export const generateMetadata = async ({
+	params,
+	searchParams,
+}: TopicPageProps): Promise<Metadata> => {
+	const [{ topicName }, query] = await Promise.all([params, searchParams]);
 	const topic = TOPICS.find(item => item.name === topicName);
-	return topic && topic.title !== "Top" ? { title: topic.title } : {};
+	const page = parsePage(query.page);
+	if (!topic || page === null) return {};
+
+	const canonical = `/${topic.name}${page > 1 ? `?page=${page}` : ""}`;
+	return {
+		...(topic.title !== "Top" ? { title: topic.title } : {}),
+		alternates: { canonical },
+		openGraph: { url: canonical, title: topic.title, images: [SOCIAL_IMAGE_PATH] },
+		twitter: {
+			card: "summary_large_image",
+			title: topic.title,
+			images: [SOCIAL_IMAGE_PATH],
+		},
+	};
 };
 
 export default async function TopicPage({ params, searchParams }: TopicPageProps) {
 	const [{ topicName }, query] = await Promise.all([params, searchParams]);
 	const topic = TOPICS.find(item => item.name === topicName);
-	const rawPage = Array.isArray(query.page) ? query.page[0] : query.page;
-	const page = Number(rawPage ?? "1");
+	const page = parsePage(query.page);
 
-	if (!topic || !Number.isSafeInteger(page) || page < 1) {
+	if (!topic || page === null) {
 		notFound();
 	}
 
@@ -36,20 +54,29 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
 	}
 
 	return (
-		<PageTransition>
-			<h1 className="sr-only">{topic.title}</h1>
-			<div className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-4">
-				{items.map((item, index) => (
-					<FeedItem
-						item={item}
-						index={index + 1 + ITEMS_PER_PAGE * (page - 1)}
-						key={item.id}
-					/>
-				))}
-			</div>
-			<Link className="mt-4 block underline" href={`/${topic.name}?page=${page + 1}`}>
-				More...
-			</Link>
+		<PageTransition transitionKey={`${topic.name}-${page}`}>
+			<ViewTransition enter="slide-up" default="none">
+				<>
+					<h1 className="sr-only">{topic.title}</h1>
+					<div className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-4">
+						{items.map((item, index) => (
+							<FeedItem
+								item={item}
+								index={index + 1 + ITEMS_PER_PAGE * (page - 1)}
+								key={item.id}
+							/>
+						))}
+					</div>
+					<Link
+						className="mt-4 block underline"
+						href={`/${topic.name}?page=${page + 1}`}
+						prefetch={true}
+						transitionTypes={["nav-forward"]}
+					>
+						More...
+					</Link>
+				</>
+			</ViewTransition>
 		</PageTransition>
 	);
 }

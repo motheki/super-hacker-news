@@ -4,12 +4,14 @@ export interface AvailableTopic {
 	title: string;
 }
 
-export const TOPICS: AvailableTopic[] = [
+export const TOPICS = [
 	{ name: "top", value: "news", title: "Top" },
 	{ name: "new", value: "newest", title: "New" },
 	{ name: "ask", value: "ask", title: "Ask" },
 	{ name: "show", value: "show", title: "Show" },
-];
+] as const satisfies readonly AvailableTopic[];
+
+export type TopicName = (typeof TOPICS)[number]["name"];
 
 export interface TopicItem {
 	id: number;

@@ -9,10 +9,12 @@
 	"homepage": "https://super-hacker-news.vercel.app",
 	"bugs": "https://github.com/motheki/super-hacker-news/issues",
 	"scripts": {
+		"analyze": "next experimental-analyze --output",
 		"build": "next build",
 		"dev": "next dev",
 		"start": "next start",
 		"preview": "next start",
+		"test": "bun test",
 		"lint": "oxlint --config ./oxlint.config.ts . && pt format --check",
 		"fmt": "pt format",
 		"clean": "rimraf .next .vercel node_modules/.cache",

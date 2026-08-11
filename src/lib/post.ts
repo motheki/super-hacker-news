@@ -1,14 +1,14 @@
 export interface Comment {
 	id: number;
-	user: string;
-	time: number;
-	time_ago: string;
-	content: string;
+	user?: string;
+	time?: number;
+	time_ago?: string;
+	content?: string;
 	deleted?: boolean;
 	dead?: boolean;
 	comments: Comment[];
-	comments_count: number;
-	url: string;
+	comments_count?: number;
+	url?: string;
 }
 
 export interface Post {
@@ -19,7 +19,7 @@ export interface Post {
 	time: number;
 	time_ago: string;
 	content?: string;
-	url: string;
+	url?: string;
 	domain?: string;
 	comments: Comment[];
 	comments_count: number;
