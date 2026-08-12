@@ -1,11 +1,13 @@
 import "server-only";
 import {
   fetchBestStoryIds,
+  fetchItemReference,
   fetchPost,
   fetchTopicItems,
   fetchUser,
 } from "~/lib/hacker-news";
 import type { Comment, Post } from "~/lib/post";
+import { resolveRootItemId } from "~/lib/item";
 
 export const getTopicItems = (topic: string, page: number) =>
   fetchTopicItems(topic, page);
@@ -30,6 +32,9 @@ export async function getPost(postId: number) {
   const post = await fetchPost(postId);
   return post ? normalizePost(post) : null;
 }
+
+export const getRootItemId = (itemId: number) =>
+  resolveRootItemId(itemId, fetchItemReference);
 
 export const getUser = (userName: string) => fetchUser(userName);
 

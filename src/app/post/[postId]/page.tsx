@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Comment } from "~/components/Comment";
 import { IntentPrefetchLink } from "~/components/IntentPrefetchLink";
 import { JsonLd } from "~/components/JsonLd";
 import { PageTransition } from "~/components/PageTransition";
-import { getPost } from "~/lib/data";
+import { getPost, getRootItemId } from "~/lib/data";
 import { renderHnHtml } from "~/lib/html";
 import { isSafeExternalUrl } from "~/lib/link";
 import type { Post } from "~/lib/post";
@@ -137,7 +137,13 @@ export default async function PostPage({ params }: PostPageProps) {
   if (postId === null) notFound();
 
   const post = await getPost(postId);
-  if (post === null) notFound();
+  if (post === null) {
+    const rootItemId = await getRootItemId(postId);
+    if (rootItemId !== null && rootItemId !== postId) {
+      redirect(`/post/${rootItemId}#comment-${postId}`);
+    }
+    notFound();
+  }
 
   const externalUrl = isSafeExternalUrl(post.url) ? post.url : null;
   return (

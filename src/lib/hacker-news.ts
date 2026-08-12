@@ -1,5 +1,6 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
+import type { HackerNewsItemReference } from "./item";
 import type { Post } from "./post";
 import type { TopicItem } from "./topic";
 import type { User } from "./user";
@@ -77,6 +78,14 @@ const isUser: Validator<User> = (value): value is User =>
 const isNumberArray: Validator<number[]> = (value): value is number[] =>
   Array.isArray(value) && value.every((item) => typeof item === "number");
 
+const isItemReference: Validator<HackerNewsItemReference> = (
+  value,
+): value is HackerNewsItemReference =>
+  isRecord(value) &&
+  typeof value.id === "number" &&
+  typeof value.type === "string" &&
+  isOptionalNumber(value.parent);
+
 async function fetchJson<T>(
   url: string,
   isValid: Validator<T>,
@@ -127,6 +136,17 @@ export async function fetchPost(postId: number) {
     isPost,
   );
   return post;
+}
+
+export async function fetchItemReference(itemId: number) {
+  "use cache";
+  cacheLife(shortCacheLife);
+  cacheTag("items", `item:${itemId}`);
+  const item = await fetchJson(
+    `https://hacker-news.firebaseio.com/v0/item/${itemId}.json`,
+    isItemReference,
+  );
+  return item;
 }
 
 export async function fetchUser(userName: string) {
