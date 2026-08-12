@@ -8,20 +8,56 @@ import {
 } from "react";
 
 interface CollapsibleCommentProps {
-  body: ReactNode;
-  children: ReactNode;
-  commentCount: number;
-  commentId: number;
-  info: ReactNode;
+  readonly body: Readonly<ReactNode>;
+  readonly children: Readonly<ReactNode>;
+  readonly commentCount: number;
+  readonly commentId: number;
+  readonly info: Readonly<ReactNode>;
 }
 
+interface ExpandedCommentProps {
+  readonly body: Readonly<ReactNode>;
+  readonly children: Readonly<ReactNode>;
+  readonly detailsId: string;
+  readonly toggle: () => void;
+}
+
+// oxlint-disable-next-line typescript/prefer-readonly-parameter-types -- ReactNode includes framework-owned mutable portal internals.
+const ExpandedComment = ({
+  body,
+  children,
+  detailsId,
+  toggle,
+}: Readonly<ExpandedCommentProps>) => (
+  <ViewTransition enter="fade-in" exit="fade-out" default="none">
+    <div id={detailsId}>
+      <div className="outline-offset-4" tabIndex={-1}>
+        {body}
+      </div>
+      <div className="flex">
+        <button
+          aria-controls={detailsId}
+          aria-expanded={true}
+          aria-label="Fold comment"
+          className="min-w-6 border-l-2 border-dotted border-[var(--color-line)] transition-colors hover:border-current motion-reduce:transition-none sm:min-w-8"
+          onClick={toggle}
+          tabIndex={-1}
+          type="button"
+        />
+        <div className="min-w-0 flex-1">{children}</div>
+      </div>
+    </div>
+  </ViewTransition>
+);
+
+// oxlint-disable-next-line typescript/prefer-readonly-parameter-types -- ReactNode includes framework-owned mutable portal internals.
 export function CollapsibleComment({
   body,
   children,
   commentCount,
   commentId,
   info,
-}: CollapsibleCommentProps) {
+}: Readonly<CollapsibleCommentProps>) {
   const [expanded, setExpanded] = useState(true);
   const detailsId = `comment-details-${commentId}`;
 
@@ -31,7 +67,7 @@ export function CollapsibleComment({
     });
     requestAnimationFrame(() => {
       document
-        .getElementById(`comment-info-${commentId}`)
+        .querySelector(`#comment-info-${commentId}`)
         ?.scrollIntoView({ block: "nearest" });
     });
   };
@@ -56,25 +92,9 @@ export function CollapsibleComment({
       </p>
 
       {expanded && (
-        <ViewTransition enter="fade-in" exit="fade-out" default="none">
-          <div id={detailsId}>
-            <div className="outline-offset-4" tabIndex={-1}>
-              {body}
-            </div>
-            <div className="flex">
-              <button
-                aria-controls={detailsId}
-                aria-expanded={expanded}
-                aria-label="Fold comment"
-                className="min-w-6 border-l-2 border-dotted border-[var(--color-line)] transition-colors hover:border-current motion-reduce:transition-none sm:min-w-8"
-                onClick={toggle}
-                tabIndex={-1}
-                type="button"
-              />
-              <div className="min-w-0 flex-1">{children}</div>
-            </div>
-          </div>
-        </ViewTransition>
+        <ExpandedComment body={body} detailsId={detailsId} toggle={toggle}>
+          {children}
+        </ExpandedComment>
       )}
     </article>
   );

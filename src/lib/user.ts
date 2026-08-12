@@ -1,7 +1,7 @@
 export interface User {
-  about?: string;
-  created_time: number;
-  created: string;
-  id: string;
-  karma: number;
+  readonly about?: string;
+  readonly created_time: number;
+  readonly created: string;
+  readonly id: string;
+  readonly karma: number;
 }

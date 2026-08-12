@@ -10,18 +10,18 @@ import type { Comment, Post } from "~/lib/post";
 export const getTopicItems = (topic: string, page: number) =>
   fetchTopicItems(topic, page);
 
-const countComments = (comments: Comment[]) =>
+const countComments = (comments: readonly Comment[]) =>
   comments.reduce(
     (total, comment) => total + 1 + (comment.comments_count ?? 0),
     0,
   );
 
-const withCommentCounts = (comment: Comment): Comment => {
+const withCommentCounts = (comment: Readonly<Comment>): Comment => {
   const comments = comment.comments.map(withCommentCounts);
   return { ...comment, comments, comments_count: countComments(comments) };
 };
 
-const normalizePost = (post: Post): Post => {
+const normalizePost = (post: Readonly<Post>): Post => {
   const comments = post.comments.map(withCommentCounts);
   return { ...post, comments, comments_count: countComments(comments) };
 };

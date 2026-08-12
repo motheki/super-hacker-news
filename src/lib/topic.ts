@@ -1,7 +1,7 @@
 export interface AvailableTopic {
-  name: string;
-  value: string;
-  title: string;
+  readonly name: string;
+  readonly value: string;
+  readonly title: string;
 }
 
 export const TOPICS = [
@@ -14,14 +14,14 @@ export const TOPICS = [
 export type TopicName = (typeof TOPICS)[number]["name"];
 
 export interface TopicItem {
-  id: number;
-  title: string;
-  points?: number | null;
-  user?: string | null;
-  time: number;
-  time_ago: string;
-  comments_count: number;
-  type: string;
-  url?: string;
-  domain?: string;
+  readonly id: number;
+  readonly title: string;
+  readonly points?: number | null;
+  readonly user?: string | null;
+  readonly time: number;
+  readonly time_ago: string;
+  readonly comments_count: number;
+  readonly type: string;
+  readonly url?: string;
+  readonly domain?: string;
 }

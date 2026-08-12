@@ -30,13 +30,14 @@ The favicon follows the same system: a solid, hard-edged terminal drawn in the s
 
 ## App and browser metadata
 
-Next.js file-based metadata owns the primary assets:
+Next.js metadata owns a versioned icon set so browser caches cannot retain superseded artwork:
 
-- `src/app/favicon.ico` provides 16 px, 32 px, and 48 px bitmap layers for browser and legacy fallback support.
-- `src/app/icon.svg` provides a resolution-independent browser and search icon.
-- `src/app/apple-icon.png` provides the 180 px Apple touch icon used by Safari and iOS home screens.
-- `public/safari-pinned-tab.svg` provides the monochrome Safari pinned-tab mask.
-- `public/android-chrome-192x192.png` and `public/android-chrome-512x512.png` provide installable web app icons; the 512 px asset is maskable.
+- `public/super-hn-terminal-v1.svg` provides the resolution-independent browser icon.
+- `public/super-hn-terminal-v1.ico` provides 16 px, 32 px, and 48 px bitmap layers for legacy fallback support.
+- `public/super-hn-terminal-v1-32.png` gives Safari an explicit small raster icon.
+- `public/super-hn-terminal-v1-apple.png` provides the 180 px Apple touch icon.
+- `public/super-hn-terminal-v1-mask.svg` provides the monochrome Safari pinned-tab mask.
+- `public/super-hn-terminal-v1-192.png` and `public/super-hn-terminal-v1-512.png` provide installable web app icons; the 512 px asset is maskable.
 
 Repository artwork is stored as lossless, opaque PNG. The README uses a 1800 × 600 E-ink banner set in the same Geist Pixel Square face as the application and a browser-captured high-resolution application screenshot; the SVG banner source is retained alongside the rendered image.
 

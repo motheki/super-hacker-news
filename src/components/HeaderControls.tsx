@@ -30,6 +30,17 @@ const persistTheme = (theme: Theme) => {
   }
 };
 
+const sharePage = async () => {
+  try {
+    await navigator.share({
+      title: document.title,
+      url: window.location.href,
+    });
+  } catch {
+    // Sharing can be unavailable or dismissed after capability detection.
+  }
+};
+
 export function ShareButton() {
   const [canShare, setCanShare] = useState(false);
 
@@ -38,17 +49,6 @@ export function ShareButton() {
   }, []);
 
   if (!canShare) return null;
-
-  const sharePage = async () => {
-    try {
-      await navigator.share({
-        title: document.title,
-        url: window.location.href,
-      });
-    } catch {
-      // Sharing can be unavailable or dismissed after capability detection.
-    }
-  };
 
   return (
     <button

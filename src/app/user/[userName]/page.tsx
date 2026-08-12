@@ -6,7 +6,9 @@ import { renderHnHtml } from "~/lib/html";
 import { isValidUserName } from "~/lib/route";
 import { SOCIAL_IMAGE_PATH } from "~/lib/site";
 
-type UserPageProps = { params: Promise<{ userName: string }> };
+type UserPageProps = Readonly<{
+  params: Readonly<Promise<Readonly<{ userName: string }>>>;
+}>;
 
 // Preserve the current screen until the cached profile is ready for the route fade.
 export const instant = false;
@@ -17,7 +19,7 @@ export const generateMetadata = async ({
   const { userName } = await params;
   if (!isValidUserName(userName)) return {};
   const user = await getUser(userName);
-  if (!user) return {};
+  if (user === null) return {};
 
   const title = user.id;
   const description = `Hacker News profile for ${user.id}, with ${user.karma} karma.`;
@@ -47,7 +49,7 @@ export default async function UserPage({ params }: UserPageProps) {
   if (!isValidUserName(userName)) notFound();
 
   const user = await getUser(userName);
-  if (!user) notFound();
+  if (user === null) notFound();
 
   return (
     <PageTransition transitionKey={user.id}>
@@ -83,7 +85,7 @@ export default async function UserPage({ params }: UserPageProps) {
           </a>
         </p>
 
-        {user.about && (
+        {user.about !== undefined && user.about.length > 0 && (
           <div className="eink-rich-text wrap-anywhere [&_p]:my-4">
             {renderHnHtml(user.about)}
           </div>

@@ -4,10 +4,10 @@ import { startTransition } from "react";
 
 export default function GlobalError({
   reset,
-}: {
-  error: Error;
+}: Readonly<{
+  error: Readonly<Error>;
   reset: () => void;
-}) {
+}>) {
   return (
     <html lang="en">
       <body>

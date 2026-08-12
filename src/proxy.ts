@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import {
   isTopicName,
   isValidUserName,
@@ -9,7 +9,14 @@ import {
 const FRAMEWORK_ROUTES = new Set(["opengraph-image"]);
 const notFound = () => new NextResponse("Not found", { status: 404 });
 
-export function proxy(request: NextRequest) {
+interface ProxyRequest {
+  readonly nextUrl: Readonly<{
+    pathname: string;
+    searchParams: Readonly<{ getAll: (name: string) => string[] }>;
+  }>;
+}
+
+export function proxy(request: ProxyRequest) {
   const segments = request.nextUrl.pathname.split("/").filter(Boolean);
 
   if (

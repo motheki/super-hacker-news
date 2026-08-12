@@ -5,10 +5,10 @@ import { PageTransition } from "~/components/PageTransition";
 
 export default function ErrorPage({
   reset,
-}: {
-  error: Error;
+}: Readonly<{
+  error: Readonly<Error>;
   reset: () => void;
-}) {
+}>) {
   return (
     <PageTransition>
       <section className="py-12 text-center">

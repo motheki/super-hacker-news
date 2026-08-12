@@ -13,6 +13,7 @@
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
+    "test": "bun test",
     "lint": "oxlint",
     "fmt": "oxfmt"
   },

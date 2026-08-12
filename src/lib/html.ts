@@ -1,11 +1,13 @@
 import "server-only";
 import parseHtml, {
+  Comment,
   domToReact,
   Element,
+  ProcessingInstruction,
+  Text,
   type DOMNode,
   type HTMLReactParserOptions,
 } from "html-react-parser";
-import type { Route } from "next";
 import { createElement } from "react";
 import sanitizeHtml from "sanitize-html";
 import { IntentPrefetchLink } from "~/components/IntentPrefetchLink";
@@ -17,7 +19,7 @@ const sanitizeOptions: sanitizeHtml.IOptions = {
   },
   allowedSchemes: ["http", "https", "mailto"],
   transformTags: {
-    a: (tagName, attributes) => ({
+    a: (tagName, attributes: Readonly<Record<string, string>>) => ({
       tagName,
       attribs: {
         ...attributes,
@@ -30,15 +32,28 @@ const sanitizeOptions: sanitizeHtml.IOptions = {
 };
 
 const parserOptions: HTMLReactParserOptions = {
-  replace(domNode) {
-    if (!(domNode instanceof Element) || domNode.name !== "a") return;
+  // oxlint-disable-next-line typescript/prefer-readonly-parameter-types -- Parser callbacks receive mutable third-party DOM classes.
+  replace(domNode: Readonly<DOMNode>) {
+    if (!(domNode instanceof Element) || domNode.name !== "a") return null;
     const href = domNode.attribs.href;
-    if (!href || !isInternalPath(href)) return;
+    if (href === undefined || !isInternalPath(href)) return null;
+
+    const children: DOMNode[] = [];
+    for (const child of domNode.children) {
+      if (
+        child instanceof Comment ||
+        child instanceof Element ||
+        child instanceof ProcessingInstruction ||
+        child instanceof Text
+      ) {
+        children.push(child);
+      }
+    }
 
     return createElement(
       IntentPrefetchLink,
-      { href: href as Route },
-      domToReact(domNode.children as DOMNode[], parserOptions),
+      { href },
+      domToReact(children, parserOptions),
     );
   },
 };

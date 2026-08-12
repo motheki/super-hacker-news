@@ -12,10 +12,12 @@ const ITEMS_PER_PAGE = 30;
 // Keep the current route visible until this cached destination is ready, then fade once.
 export const instant = false;
 
-type TopicPageProps = {
-  params: Promise<{ topicName: string }>;
-  searchParams: Promise<{ page?: string | string[] }>;
-};
+type TopicPageProps = Readonly<{
+  params: Readonly<Promise<Readonly<{ topicName: string }>>>;
+  searchParams: Readonly<
+    Promise<Readonly<{ page?: string | readonly string[] }>>
+  >;
+}>;
 
 export const generateStaticParams = () =>
   TOPICS.map(({ name: topicName }) => ({ topicName }));
@@ -27,7 +29,7 @@ export const generateMetadata = async ({
   const [{ topicName }, query] = await Promise.all([params, searchParams]);
   const topic = TOPICS.find((item) => item.name === topicName);
   const page = parsePage(query.page);
-  if (!topic || page === null) return {};
+  if (topic === undefined || page === null) return {};
 
   const canonical = `/${topic.name}${page > 1 ? `?page=${page}` : ""}`;
   return {
@@ -54,12 +56,12 @@ export default async function TopicPage({
   const topic = TOPICS.find((item) => item.name === topicName);
   const page = parsePage(query.page);
 
-  if (!topic || page === null) {
+  if (topic === undefined || page === null) {
     notFound();
   }
 
   const items = await getTopicItems(topic.value, page);
-  if (!items) {
+  if (items === null) {
     notFound();
   }
 

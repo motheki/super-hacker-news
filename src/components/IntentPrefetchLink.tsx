@@ -8,12 +8,10 @@ type IntentPrefetchLinkProps<RouteType> = Omit<
   "prefetch"
 >;
 
+// oxlint-disable-next-line typescript/prefer-readonly-parameter-types -- Next.js Link props contain framework-owned mutable event types.
 export function IntentPrefetchLink<RouteType>({
-  onFocus,
-  onMouseEnter,
-  onTouchStart,
   ...props
-}: IntentPrefetchLinkProps<RouteType>) {
+}: Readonly<IntentPrefetchLinkProps<RouteType>>) {
   const [prefetchOnIntent, setPrefetchOnIntent] = useState(false);
   const enableRuntimePrefetch = () => {
     setPrefetchOnIntent(true);
@@ -22,18 +20,9 @@ export function IntentPrefetchLink<RouteType>({
   return (
     <Link
       {...props}
-      onFocus={(event) => {
-        enableRuntimePrefetch();
-        onFocus?.(event);
-      }}
-      onMouseEnter={(event) => {
-        enableRuntimePrefetch();
-        onMouseEnter?.(event);
-      }}
-      onTouchStart={(event) => {
-        enableRuntimePrefetch();
-        onTouchStart?.(event);
-      }}
+      onFocusCapture={enableRuntimePrefetch}
+      onMouseOverCapture={enableRuntimePrefetch}
+      onTouchStartCapture={enableRuntimePrefetch}
       prefetch={prefetchOnIntent ? true : null}
     />
   );

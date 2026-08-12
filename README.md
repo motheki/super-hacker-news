@@ -46,7 +46,7 @@ See [Architecture and design](docs/architecture.md) for the current route map, d
 
 ## Browser icons
 
-The favicon is an opaque 1-bit pixel terminal drawn in the site text color (`#242927`) on the same `#e6ebe9` E-ink canvas as the light theme. Next.js App Router metadata files provide a scalable browser icon, a multi-resolution ICO fallback, and an Apple touch icon. The web app manifest supplies mask-safe 192 px and 512 px PNGs, while Safari pinned tabs use a dedicated monochrome mask.
+The favicon is an opaque 1-bit pixel terminal drawn in the site text color (`#242927`) on the same `#e6ebe9` E-ink canvas as the light theme. Explicit, versioned App Router metadata URLs prevent Safari from retaining earlier site artwork. The icon set includes SVG and multi-resolution ICO browser icons, a 32 px Safari raster icon, an Apple touch icon, mask-safe 192 px and 512 px web app icons, and a dedicated monochrome pinned-tab mask.
 
 ## Attribution
 

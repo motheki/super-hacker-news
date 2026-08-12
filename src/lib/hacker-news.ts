@@ -107,39 +107,46 @@ const storyIdsCacheLife = {
   expire: 86400,
 } as const;
 
-export function fetchTopicItems(topic: string, page: number) {
+export async function fetchTopicItems(topic: string, page: number) {
   "use cache";
   cacheLife(shortCacheLife);
   cacheTag("topics", `topic:${topic}:${page}`);
-  return fetchJson(
+  const items = await fetchJson(
     `https://api.hackerwebapp.com/${topic}?page=${page}.json`,
     isTopicItems,
   );
+  return items;
 }
 
-export function fetchPost(postId: number) {
+export async function fetchPost(postId: number) {
   "use cache";
   cacheLife(shortCacheLife);
   cacheTag("posts", `post:${postId}`);
-  return fetchJson(`https://api.hackerwebapp.com/item/${postId}`, isPost);
+  const post = await fetchJson(
+    `https://api.hackerwebapp.com/item/${postId}`,
+    isPost,
+  );
+  return post;
 }
 
-export function fetchUser(userName: string) {
+export async function fetchUser(userName: string) {
   "use cache";
   cacheLife(shortCacheLife);
   cacheTag("users", `user:${userName}`);
-  return fetchJson(
+  const user = await fetchJson(
     `https://api.hnpwa.com/v0/user/${encodeURIComponent(userName)}.json`,
     isUser,
   );
+  return user;
 }
 
-export function fetchBestStoryIds() {
+export async function fetchBestStoryIds() {
   "use cache";
   cacheLife(storyIdsCacheLife);
   cacheTag("stories", "stories:best");
-  return fetchJson(
+  const storyIds = await fetchJson(
     "https://hacker-news.firebaseio.com/v0/beststories.json",
     isNumberArray,
   );
+  return storyIds;
 }

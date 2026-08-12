@@ -10,12 +10,7 @@ import {
   SITE_URL,
   SOCIAL_IMAGE_PATH,
 } from "~/lib/site";
-import {
-  getThemeColor,
-  LEGACY_THEME_STORAGE_KEY,
-  THEME_STORAGE_KEY,
-  THEMES,
-} from "~/lib/theme";
+import { getThemeColor, THEME_STORAGE_KEY, THEMES } from "~/lib/theme";
 import "./globals.css";
 
 const geistPixel = Geist_Pixel({
@@ -34,6 +29,28 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
+  icons: {
+    icon: [
+      {
+        url: "/super-hn-terminal-v1-32.png",
+        sizes: "32x32",
+        type: "image/png",
+      },
+      {
+        url: "/super-hn-terminal-v1.svg",
+        sizes: "any",
+        type: "image/svg+xml",
+      },
+    ],
+    shortcut: "/super-hn-terminal-v1.ico",
+    apple: [
+      {
+        url: "/super-hn-terminal-v1-apple.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
+  },
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
@@ -60,7 +77,6 @@ export const viewport: Viewport = {
 const themeScript = `
 (() => {
   const key = ${JSON.stringify(THEME_STORAGE_KEY)};
-  const legacyKey = ${JSON.stringify(LEGACY_THEME_STORAGE_KEY)};
 	const lightThemeColor = ${JSON.stringify(getThemeColor(THEMES.LIGHT))};
 	const darkThemeColor = ${JSON.stringify(getThemeColor(THEMES.DARK))};
   const colorScheme = matchMedia("(prefers-color-scheme: dark)");
@@ -80,27 +96,25 @@ const themeScript = `
     const storedTheme = localStorage.getItem(key);
     if (storedTheme === "light" || storedTheme === "dark") {
       theme = storedTheme;
-    } else {
-      const legacyTheme = localStorage.getItem(legacyKey);
-      if (legacyTheme === "light" || legacyTheme === "dark") {
-        theme = legacyTheme;
-        localStorage.setItem(key, legacyTheme);
-      }
     }
-    localStorage.removeItem(legacyKey);
   } catch {}
   applyTheme(theme);
   colorScheme.addEventListener("change", updateFromSystem);
   window.addEventListener("pageshow", updateFromSystem);
 })();`;
 
+// oxlint-disable-next-line typescript/prefer-readonly-parameter-types -- Next.js supplies ReactNode with framework-owned mutable portal internals.
 export default function RootLayout({
   children,
-}: Readonly<{ children: ReactNode }>) {
+}: Readonly<{ children: Readonly<ReactNode> }>) {
   return (
     <html lang="en" className={geistPixel.variable} suppressHydrationWarning>
       <head>
-        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#242927" />
+        <link
+          rel="mask-icon"
+          href="/super-hn-terminal-v1-mask.svg"
+          color="#242927"
+        />
         <meta
           name="theme-color"
           content={getThemeColor(THEMES.LIGHT)}

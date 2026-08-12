@@ -1,6 +1,8 @@
-import type { SVGProps } from "react";
+interface IconProps {
+  readonly className?: string;
+}
 
-export const SunIcon = (props: SVGProps<SVGSVGElement>) => (
+export const SunIcon = (props: IconProps) => (
   <svg
     {...props}
     aria-hidden="true"

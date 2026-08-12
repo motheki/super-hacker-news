@@ -7,14 +7,16 @@ import type { TOPICS } from "~/lib/topic";
 type TopicName = (typeof TOPICS)[number]["name"];
 
 export interface TopicLink {
-  title: string;
-  href: `/${TopicName}`;
+  readonly title: string;
+  readonly href: `/${TopicName}`;
 }
 
 const linkClass =
   "eink-interactive inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded px-2 leading-none transition-colors focus-visible:outline-2 motion-reduce:transition-none";
 
-export function TopicNavigation({ links }: { links: readonly TopicLink[] }) {
+export function TopicNavigation({
+  links,
+}: Readonly<{ links: readonly TopicLink[] }>) {
   const pathname = usePathname();
 
   return links.map((link) => {

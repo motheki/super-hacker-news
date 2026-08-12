@@ -6,17 +6,16 @@ export const isTopicName = (value: string): value is TopicName =>
   TOPICS.some((topic) => topic.name === value);
 
 const parsePositiveInteger = (value: string) => {
-  if (!/^[1-9]\d*$/.test(value)) return null;
+  if (!/^[1-9]\d*$/u.test(value)) return null;
   const number = Number(value);
   return Number.isSafeInteger(number) ? number : null;
 };
 
-export const parsePage = (value: string | string[] | undefined) => {
-  if (value === undefined || (Array.isArray(value) && value.length === 0))
-    return 1;
-  if (Array.isArray(value))
-    return value.length === 1 ? parsePositiveInteger(value[0]) : null;
-  return parsePositiveInteger(value);
+export const parsePage = (value?: string | readonly string[]) => {
+  if (value === undefined) return 1;
+  if (typeof value === "string") return parsePositiveInteger(value);
+  if (value.length === 0) return 1;
+  return value.length === 1 ? parsePositiveInteger(value[0]) : null;
 };
 
 export const parsePostId = (value: string) => parsePositiveInteger(value);
