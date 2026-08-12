@@ -3,4 +3,9 @@ node_modules
 .vercel
 .pi-subagents
 .env
+.envrc
 *.tsbuildinfo
+.direnv
+.devenv
+.agents
+.config

@@ -4,46 +4,56 @@ import Script from "next/script";
 import type { ReactNode } from "react";
 import { Header } from "~/components/Header";
 import { JsonLd } from "~/components/JsonLd";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL_IMAGE_PATH } from "~/lib/site";
-import { getThemeColor, LEGACY_THEME_STORAGE_KEY, THEME_STORAGE_KEY, THEMES } from "~/lib/theme";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_URL,
+  SOCIAL_IMAGE_PATH,
+} from "~/lib/site";
+import {
+  getThemeColor,
+  LEGACY_THEME_STORAGE_KEY,
+  THEME_STORAGE_KEY,
+  THEMES,
+} from "~/lib/theme";
 import "./globals.css";
 
 const geistPixel = Geist_Pixel({
-	subsets: ["latin"],
-	variable: "--font-geist-pixel",
-	display: "swap",
-	adjustFontFallback: false,
-	fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "monospace"],
+  subsets: ["latin"],
+  variable: "--font-geist-pixel",
+  display: "swap",
+  adjustFontFallback: false,
+  fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "monospace"],
 });
 
 export const metadata: Metadata = {
-	metadataBase: new URL(SITE_URL),
-	applicationName: SITE_NAME,
-	title: {
-		default: SITE_NAME,
-		template: `%s | ${SITE_NAME}`,
-	},
-	description: SITE_DESCRIPTION,
-	openGraph: {
-		type: "website",
-		siteName: SITE_NAME,
-		title: SITE_NAME,
-		description: SITE_DESCRIPTION,
-		images: [SOCIAL_IMAGE_PATH],
-	},
-	twitter: {
-		card: "summary_large_image",
-		title: SITE_NAME,
-		description: SITE_DESCRIPTION,
-		images: [SOCIAL_IMAGE_PATH],
-	},
-	manifest: "/manifest.webmanifest",
+  metadataBase: new URL(SITE_URL),
+  applicationName: SITE_NAME,
+  title: {
+    default: SITE_NAME,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    images: [SOCIAL_IMAGE_PATH],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    images: [SOCIAL_IMAGE_PATH],
+  },
+  manifest: "/manifest.webmanifest",
 };
 
 export const viewport: Viewport = {
-	width: "device-width",
-	initialScale: 1,
-	colorScheme: "light dark",
+  width: "device-width",
+  initialScale: 1,
+  colorScheme: "light dark",
 };
 
 // This runs before paint so the persisted theme does not flash during hydration.
@@ -84,35 +94,37 @@ const themeScript = `
   window.addEventListener("pageshow", updateFromSystem);
 })();`;
 
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
-	return (
-		<html lang="en" className={geistPixel.variable} suppressHydrationWarning>
-			<head>
-				<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#242927" />
-				<meta
-					name="theme-color"
-					content={getThemeColor(THEMES.LIGHT)}
-					suppressHydrationWarning
-				/>
-				<Script id="theme-initializer" strategy="beforeInteractive">
-					{themeScript}
-				</Script>
-			</head>
-			<body className="min-h-dvh px-2 pb-4">
-				<JsonLd
-					value={{
-						"@context": "https://schema.org",
-						"@type": "WebSite",
-						name: SITE_NAME,
-						description: SITE_DESCRIPTION,
-						url: SITE_URL,
-					}}
-				/>
-				<div className="mx-auto max-w-3xl">
-					<Header />
-					<main>{children}</main>
-				</div>
-			</body>
-		</html>
-	);
+export default function RootLayout({
+  children,
+}: Readonly<{ children: ReactNode }>) {
+  return (
+    <html lang="en" className={geistPixel.variable} suppressHydrationWarning>
+      <head>
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#242927" />
+        <meta
+          name="theme-color"
+          content={getThemeColor(THEMES.LIGHT)}
+          suppressHydrationWarning
+        />
+        <Script id="theme-initializer" strategy="beforeInteractive">
+          {themeScript}
+        </Script>
+      </head>
+      <body className="min-h-dvh px-2 pb-4">
+        <JsonLd
+          value={{
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: SITE_NAME,
+            description: SITE_DESCRIPTION,
+            url: SITE_URL,
+          }}
+        />
+        <div className="mx-auto max-w-3xl">
+          <Header />
+          <main>{children}</main>
+        </div>
+      </body>
+    </html>
+  );
 }

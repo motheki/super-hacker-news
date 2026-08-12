@@ -1,6 +1,6 @@
 export const THEMES = {
-	LIGHT: "light",
-	DARK: "dark",
+  LIGHT: "light",
+  DARK: "dark",
 } as const;
 
 export type Theme = (typeof THEMES)[keyof typeof THEMES];
@@ -9,4 +9,5 @@ export const DEFAULT_THEME: Theme = THEMES.LIGHT;
 export const THEME_STORAGE_KEY = "super-hn.theme";
 export const LEGACY_THEME_STORAGE_KEY = "bhn.theme";
 
-export const getThemeColor = (theme: Theme) => (theme === THEMES.LIGHT ? "#e6ebe9" : "#000000");
+export const getThemeColor = (theme: Theme) =>
+  theme === THEMES.LIGHT ? "#e6ebe9" : "#000000";

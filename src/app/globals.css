@@ -2,185 +2,185 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-	--font-sans: var(--font-geist-pixel);
+  --font-sans: var(--font-geist-pixel);
 }
 
 :root {
-	--color-canvas: #e6ebe9;
-	--color-ink: #242927;
-	--color-ink-muted: #5f6864;
-	--color-ink-faint: #7c8581;
-	--color-link: #505a55;
-	--color-link-visited: #77807c;
-	--color-line: #858e8a;
-	--color-selection-soft: #d4dad7;
-	--color-selection-strong: #aeb7b3;
-	--color-selection-ink: #202523;
-	--duration-exit: 150ms;
-	--duration-enter: 210ms;
-	background: var(--color-canvas);
-	color: var(--color-ink);
-	color-scheme: light;
-	font-family: var(--font-geist-pixel), monospace;
-	scrollbar-gutter: stable;
+  --color-canvas: #e6ebe9;
+  --color-ink: #242927;
+  --color-ink-muted: #5f6864;
+  --color-ink-faint: #7c8581;
+  --color-link: #505a55;
+  --color-link-visited: #77807c;
+  --color-line: #858e8a;
+  --color-selection-soft: #d4dad7;
+  --color-selection-strong: #aeb7b3;
+  --color-selection-ink: #202523;
+  --duration-exit: 150ms;
+  --duration-enter: 210ms;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  color-scheme: light;
+  font-family: var(--font-geist-pixel), monospace;
+  scrollbar-gutter: stable;
 }
 
 :root.dark {
-	--color-canvas: #000;
-	--color-ink: #fff;
-	--color-ink-muted: #fff;
-	--color-ink-faint: #fff;
-	--color-link: #fff;
-	--color-link-visited: #fff;
-	--color-line: #fff;
-	--color-selection-soft: #fff;
-	--color-selection-strong: #fff;
-	--color-selection-ink: #000;
-	color-scheme: dark;
+  --color-canvas: #000;
+  --color-ink: #fff;
+  --color-ink-muted: #fff;
+  --color-ink-faint: #fff;
+  --color-link: #fff;
+  --color-link-visited: #fff;
+  --color-line: #fff;
+  --color-selection-soft: #fff;
+  --color-selection-strong: #fff;
+  --color-selection-ink: #000;
+  color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
-	:root:not([data-theme]) {
-		--color-canvas: #000;
-		--color-ink: #fff;
-		--color-ink-muted: #fff;
-		--color-ink-faint: #fff;
-		--color-link: #fff;
-		--color-link-visited: #fff;
-		--color-line: #fff;
-		--color-selection-soft: #fff;
-		--color-selection-strong: #fff;
-		--color-selection-ink: #000;
-		color-scheme: dark;
-	}
+  :root:not([data-theme]) {
+    --color-canvas: #000;
+    --color-ink: #fff;
+    --color-ink-muted: #fff;
+    --color-ink-faint: #fff;
+    --color-link: #fff;
+    --color-link-visited: #fff;
+    --color-line: #fff;
+    --color-selection-soft: #fff;
+    --color-selection-strong: #fff;
+    --color-selection-ink: #000;
+    color-scheme: dark;
+  }
 }
 
 body {
-	background: var(--color-canvas);
-	color: var(--color-ink);
+  background: var(--color-canvas);
+  color: var(--color-ink);
 }
 
 body,
 button {
-	font: inherit;
+  font: inherit;
 }
 
 button,
 a {
-	outline-offset: 3px;
+  outline-offset: 3px;
 }
 
 button:focus-visible,
 a:focus-visible {
-	outline: 2px dotted currentColor;
+  outline: 2px dotted currentColor;
 }
 
 ::selection {
-	background: var(--color-selection-strong);
-	color: var(--color-selection-ink);
+  background: var(--color-selection-strong);
+  color: var(--color-selection-ink);
 }
 
 .eink-muted {
-	color: var(--color-ink-muted);
+  color: var(--color-ink-muted);
 }
 
 .eink-faint {
-	color: var(--color-ink-faint);
+  color: var(--color-ink-faint);
 }
 
 .eink-link,
 .eink-rich-text a {
-	color: var(--color-link);
-	text-decoration-line: underline;
-	text-decoration-style: dotted;
-	text-decoration-thickness: 1px;
-	text-underline-offset: 0.2em;
+  color: var(--color-link);
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
 }
 
 .eink-link:visited,
 .eink-rich-text a:visited {
-	color: var(--color-link-visited);
+  color: var(--color-link-visited);
 }
 
 .eink-link:hover,
 .eink-rich-text a:hover {
-	color: var(--color-ink);
+  color: var(--color-ink);
 }
 
 .eink-story-link {
-	color: var(--color-link);
+  color: var(--color-link);
 }
 
 .eink-story-link:visited {
-	color: var(--color-link-visited);
+  color: var(--color-link-visited);
 }
 
 .eink-story-link:hover {
-	color: var(--color-ink);
-	text-decoration-line: underline;
-	text-decoration-style: dotted;
-	text-underline-offset: 0.2em;
+  color: var(--color-ink);
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 0.2em;
 }
 
 .eink-interactive:hover {
-	background: var(--color-selection-soft);
-	color: var(--color-selection-ink);
+  background: var(--color-selection-soft);
+  color: var(--color-selection-ink);
 }
 
 .eink-selected,
 .eink-selected:hover {
-	background: var(--color-selection-strong);
-	color: var(--color-selection-ink);
+  background: var(--color-selection-strong);
+  color: var(--color-selection-ink);
 }
 
 ::view-transition {
-	pointer-events: none;
+  pointer-events: none;
 }
 
 @keyframes fade {
-	from {
-		filter: blur(3px);
-		opacity: 0;
-	}
-	to {
-		filter: blur(0);
-		opacity: 1;
-	}
+  from {
+    filter: blur(3px);
+    opacity: 0;
+  }
+  to {
+    filter: blur(0);
+    opacity: 1;
+  }
 }
 
 ::view-transition-old(.fade-out) {
-	animation: var(--duration-exit) ease-in fade reverse;
+  animation: var(--duration-exit) ease-in fade reverse;
 }
 
 ::view-transition-new(.fade-in) {
-	animation: var(--duration-enter) ease-out var(--duration-exit) both fade;
+  animation: var(--duration-enter) ease-out var(--duration-exit) both fade;
 }
 
 ::view-transition-group(persistent-nav) {
-	animation: none;
-	z-index: 100;
+  animation: none;
+  z-index: 100;
 }
 
 ::view-transition-old(persistent-nav) {
-	display: none;
+  display: none;
 }
 
 ::view-transition-new(persistent-nav) {
-	animation: none;
+  animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	*,
-	*::before,
-	*::after {
-		scroll-behavior: auto !important;
-		transition-duration: 0s !important;
-	}
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+  }
 
-	::view-transition-old(*),
-	::view-transition-new(*),
-	::view-transition-group(*) {
-		animation-duration: 0s !important;
-		animation-delay: 0s !important;
-	}
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
 }

@@ -1,3 +1,6 @@
-import { defineOxfmtConfig } from "@pajecawav/tools";
+import { defineConfig } from "oxfmt";
 
-export default defineOxfmtConfig();
+export default defineConfig({
+  printWidth: 80,
+  sortTailwindcss: true,
+});

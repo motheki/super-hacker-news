@@ -1,47 +1,38 @@
 {
-	"name": "super-hacker-news",
-	"private": true,
-	"type": "module",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/motheki/super-hacker-news.git"
-	},
-	"homepage": "https://super-hacker-news.vercel.app",
-	"bugs": "https://github.com/motheki/super-hacker-news/issues",
-	"scripts": {
-		"analyze": "next experimental-analyze --output",
-		"build": "next build",
-		"dev": "next dev",
-		"start": "next start",
-		"preview": "next start",
-		"test": "bun test",
-		"lint": "oxlint --config ./oxlint.config.ts . && pt format --check",
-		"fmt": "pt format",
-		"clean": "rimraf .next .vercel node_modules/.cache",
-		"prepare": "pt prepare"
-	},
-	"dependencies": {
-		"html-react-parser": "^6.1.5",
-		"next": "^16.3.0",
-		"react": "^19.2.8",
-		"react-dom": "^19.2.8",
-		"sanitize-html": "^2.17.6",
-		"server-only": "^0.0.1"
-	},
-	"devDependencies": {
-		"@pajecawav/tools": "^0.0.7",
-		"@tailwindcss/postcss": "^4.3.3",
-		"@types/bun": "^1.3.14",
-		"@types/react": "^19.2.18",
-		"@types/react-dom": "^19.2.4",
-		"@types/sanitize-html": "^2.16.1",
-		"husky": "^9.1.7",
-		"lint-staged": "^17.3.0",
-		"oxfmt": "^0.59.0",
-		"oxlint": "^1.77.0",
-		"oxlint-tsgolint": "^7.0.2001",
-		"rimraf": "^6.1.3",
-		"tailwindcss": "^4.3.3",
-		"typescript": "7.0.2"
-	}
+  "name": "super-hacker-news",
+  "private": false,
+  "homepage": "https://superhn.vercel.app",
+  "bugs": "https://github.com/motheki/super-hacker-news/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/motheki/super-hacker-news.git"
+  },
+  "type": "module",
+  "scripts": {
+    "analyze": "next experimental-analyze --output",
+    "build": "next build",
+    "dev": "next dev",
+    "start": "next start",
+    "lint": "oxlint",
+    "fmt": "oxfmt"
+  },
+  "dependencies": {
+    "html-react-parser": "^6.1.5",
+    "next": "^16.3.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "sanitize-html": "^2.17.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/bun": "^1.3.14",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@types/sanitize-html": "^2.16.1",
+    "oxfmt": "^0.63.0",
+    "oxlint": "^1.77.0",
+    "oxlint-tsgolint": "^7.0.2001",
+    "tailwindcss": "^4.3.3",
+    "typescript": "7.0.2"
+  }
 }
