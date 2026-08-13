@@ -5,7 +5,7 @@ This document reflects the current Super HN application.
 ## Product surface
 
 - `/` redirects to `/top`.
-- `/top`, `/new`, `/ask`, and `/show` render 30-story feed pages with pagination.
+- `/top`, `/new`, `/ask`, and `/show` paginate through 30-story upstream feed batches while showing only the stories that fit in the initial viewport.
 - `/post/[postId]` renders a story, its metadata, and nested collapsible comments. When the ID belongs to a comment, the route follows its Hacker News parent chain and redirects to the root story with the matching comment anchor.
 - `/user/[userName]` renders Hacker News profile details and links to the original activity pages.
 - Invalid topic, page, post, and user paths are rejected before rendering.
@@ -24,7 +24,7 @@ Cache Components use `use cache`, explicit cache lifetimes, and resource-specifi
 
 ## E-ink visual system
 
-The light theme uses a paper canvas (`#e6ebe9`) with dark ink and muted gray hierarchy. The dark theme intentionally becomes pure black and white. Geist Pixel supplies the retro display character, while dotted rules, restrained hover fills, and compact spacing keep the interface readable without visual chrome.
+The light theme uses a paper canvas (`#e6ebe9`) with dark ink and a muted gray hierarchy. The dark theme closely inverts that relationship: the light E-ink canvas becomes the primary text and UI ink, while a deep gray-green derived from the light ink becomes the canvas. Muted text, faint metadata, links, visited links, rules, and selection fills retain distinct inverted weights. Geist Pixel supplies the retro display character, while dotted rules, restrained hover fills, and compact spacing keep the interface readable without visual chrome.
 
 The favicon follows the same system: a solid, hard-edged terminal drawn in the site ink color (`#242927`) on the paper canvas. Its geometry fills the 64-unit grid with a four-unit safety margin, so launcher icons remain prominent while every edge still aligns at 16 px output.
 
@@ -48,7 +48,7 @@ The generated web app manifest uses the light E-ink canvas for its theme and lau
 Run the standard checks before publishing:
 
 ```sh
-aube run lint
-aube run test
-aube run build
+bun run lint
+bun run test
+bun run build
 ```

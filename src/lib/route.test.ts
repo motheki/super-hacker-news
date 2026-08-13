@@ -3,6 +3,7 @@ import {
   isTopicName,
   isValidUserName,
   MAX_USER_NAME_LENGTH,
+  parseFeedOffset,
   parsePage,
   parsePostId,
 } from "./route";
@@ -24,6 +25,22 @@ describe("topic routes", () => {
     expect(parsePage("1e2")).toBeNull();
     expect(parsePage("0x10")).toBeNull();
     expect(parsePage("bad")).toBeNull();
+  });
+
+  test("parses one non-negative decimal feed offset", () => {
+    expect(parseFeedOffset()).toBe(0);
+    expect(parseFeedOffset([])).toBe(0);
+    expect(parseFeedOffset("0")).toBe(0);
+    expect(parseFeedOffset("12")).toBe(12);
+    expect(parseFeedOffset("29")).toBe(29);
+    expect(parseFeedOffset(["12"])).toBe(12);
+    expect(parseFeedOffset(["12", "13"])).toBeNull();
+    expect(parseFeedOffset("-1")).toBeNull();
+    expect(parseFeedOffset("1.5")).toBeNull();
+    expect(parseFeedOffset("01")).toBeNull();
+    expect(parseFeedOffset("30")).toBeNull();
+    expect(parseFeedOffset("31")).toBeNull();
+    expect(parseFeedOffset(String(Number.MAX_SAFE_INTEGER))).toBeNull();
   });
 });
 

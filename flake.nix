@@ -27,18 +27,21 @@
         "x86_64-darwin"
       ];
       perSystem =
-        {  pkgs, ... }:
+        { ... }:
         {
           devenv.shells.default = {
             name = "super-hacker-news";
-            packages = with pkgs; [
-              aube
-            ];
             languages = {
               javascript = {
                 enable = true;
                 lsp = {
                   enable = true;
+                };
+                bun = {
+                  enable = true;
+                  install = {
+                    enable = true;
+                  };
                 };
               };
             };

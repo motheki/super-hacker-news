@@ -23,19 +23,19 @@ Super HN is a fast, focused, and responsive interface for browsing Hacker News, 
 
 ## Development
 
-Install dependencies with [Aube](https://github.com/jdx/aube), then start the Next.js development server:
+Install dependencies with [Bun](https://bun.sh), then start the Next.js development server:
 
 ```sh
-aube install
-aube run dev
+bun install
+bun run dev
 ```
 
 Before submitting changes, run:
 
 ```sh
-aube run lint
-aube run test
-aube run build
+bun run lint
+bun run test
+bun run build
 ```
 
 ## Architecture

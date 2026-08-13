@@ -9,4 +9,4 @@ export const DEFAULT_THEME: Theme = THEMES.LIGHT;
 export const THEME_STORAGE_KEY = "super-hn.theme";
 
 export const getThemeColor = (theme: Theme) =>
-  theme === THEMES.LIGHT ? "#e6ebe9" : "#000000";
+  theme === THEMES.LIGHT ? "#e6ebe9" : "#202523";
