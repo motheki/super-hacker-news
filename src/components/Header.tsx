@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Suspense, ViewTransition } from "react";
 import { REPOSITORY_URL } from "~/lib/site";
 import { TOPICS } from "~/lib/topic";
-import { ShareButton, ThemeToggle } from "./HeaderControls";
+import { ShareButton } from "./HeaderControls";
 import { GitHubIcon } from "./icons/GitHubIcon";
 import { MagnifyingGlassIcon } from "./icons/MagnifyingGlassIcon";
 import { TopicNavigation, type TopicLink } from "./TopicNavigation";
@@ -63,7 +63,6 @@ export const Header = () => (
         <span className="sr-only">Search Hacker News</span>
         <MagnifyingGlassIcon className="size-6 shrink-0" />
       </a>
-      <ThemeToggle />
       <a
         className={`${iconClass} hidden sm:inline-flex`}
         title="Project source code"

@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Pixel } from "next/font/google";
-import Script from "next/script";
 import type { ReactNode } from "react";
 import { Header } from "~/components/Header";
 import { JsonLd } from "~/components/JsonLd";
@@ -10,7 +9,6 @@ import {
   SITE_URL,
   SOCIAL_IMAGE_PATH,
 } from "~/lib/site";
-import { getThemeColor, THEME_STORAGE_KEY, THEMES } from "~/lib/theme";
 import "./globals.css";
 
 const geistPixel = Geist_Pixel({
@@ -71,58 +69,24 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   colorScheme: "light dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#e6ebe9" },
+    { media: "(prefers-color-scheme: dark)", color: "#202523" },
+  ],
 };
-
-// This runs before paint so the persisted theme does not flash during hydration.
-const themeScript = `
-(() => {
-  const key = ${JSON.stringify(THEME_STORAGE_KEY)};
-	const lightThemeColor = ${JSON.stringify(getThemeColor(THEMES.LIGHT))};
-	const darkThemeColor = ${JSON.stringify(getThemeColor(THEMES.DARK))};
-  const colorScheme = matchMedia("(prefers-color-scheme: dark)");
-  const applyTheme = (theme) => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    document.documentElement.dataset.theme = theme;
-	document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? darkThemeColor : lightThemeColor);
-  };
-  const updateFromSystem = () => {
-    try {
-      if (localStorage.getItem(key) !== null) return;
-    } catch {}
-    applyTheme(colorScheme.matches ? "dark" : "light");
-  };
-  let theme = colorScheme.matches ? "dark" : "light";
-  try {
-    const storedTheme = localStorage.getItem(key);
-    if (storedTheme === "light" || storedTheme === "dark") {
-      theme = storedTheme;
-    }
-  } catch {}
-  applyTheme(theme);
-  colorScheme.addEventListener("change", updateFromSystem);
-  window.addEventListener("pageshow", updateFromSystem);
-})();`;
 
 // oxlint-disable-next-line typescript/prefer-readonly-parameter-types -- Next.js supplies ReactNode with framework-owned mutable portal internals.
 export default function RootLayout({
   children,
 }: Readonly<{ children: Readonly<ReactNode> }>) {
   return (
-    <html lang="en" className={geistPixel.variable} suppressHydrationWarning>
+    <html lang="en" className={geistPixel.variable}>
       <head>
         <link
           rel="mask-icon"
           href="/super-hn-terminal-v1-mask.svg"
           color="#242927"
         />
-        <meta
-          name="theme-color"
-          content={getThemeColor(THEMES.LIGHT)}
-          suppressHydrationWarning
-        />
-        <Script id="theme-initializer" strategy="beforeInteractive">
-          {themeScript}
-        </Script>
       </head>
       <body className="min-h-dvh px-2 pb-4">
         <JsonLd

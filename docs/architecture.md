@@ -12,7 +12,7 @@ This document reflects the current Super HN application.
 
 ## Rendering and navigation
 
-Routes are Next.js App Router Server Components by default. Only navigation state, sharing, theme controls, and collapsible comments are client-side islands. Route-level loading, error, global error, and not-found boundaries cover navigation and failure states.
+Routes are Next.js App Router Server Components by default. Only navigation state, sharing, and collapsible comments are client-side islands. Route-level loading, error, global error, and not-found boundaries cover navigation and failure states.
 
 Topic destinations are prefetched, likely story and user destinations warm on pointer or keyboard intent, and React View Transitions provide a short fade while keeping the topic navigation stable. Reduced-motion preferences disable transition timing.
 
@@ -24,7 +24,7 @@ Cache Components use `use cache`, explicit cache lifetimes, and resource-specifi
 
 ## E-ink visual system
 
-The light theme uses a paper canvas (`#e6ebe9`) with dark ink and a muted gray hierarchy. The dark theme closely inverts that relationship: the light E-ink canvas becomes the primary text and UI ink, while a deep gray-green derived from the light ink becomes the canvas. Muted text, faint metadata, links, visited links, rules, and selection fills retain distinct inverted weights. Geist Pixel supplies the retro display character, while dotted rules, restrained hover fills, and compact spacing keep the interface readable without visual chrome.
+The app automatically follows the system color-scheme preference. The light theme uses a paper canvas (`#e6ebe9`) with dark ink and a muted gray hierarchy. The dark theme closely inverts that relationship: the light E-ink canvas becomes the primary text and UI ink, while a deep gray-green derived from the light ink becomes the canvas. Muted text, faint metadata, links, visited links, rules, and selection fills retain distinct inverted weights. Geist Pixel supplies the retro display character, while dotted rules, restrained hover fills, and compact spacing keep the interface readable without visual chrome.
 
 The favicon follows the same system: a solid, hard-edged terminal drawn in the site ink color (`#242927`) on the paper canvas. Its geometry fills the 64-unit grid with a four-unit safety margin, so launcher icons remain prominent while every edge still aligns at 16 px output.
 

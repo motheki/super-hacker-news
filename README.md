@@ -13,7 +13,7 @@ Super HN is a fast, focused, and responsive interface for browsing Hacker News, 
 - Top, new, Ask HN, and Show HN feeds
 - Story pages with nested, collapsible comment threads
 - Hacker News user profiles with links to submissions, comments, and favorites
-- Light and dark themes that follow or override the system preference
+- Automatic light and dark themes that follow the system preference
 - Native sharing where supported, Hacker News search, and responsive navigation
 - Installable app metadata, crisp browser and home-screen icons, route-level loading states, and native view transitions
 
