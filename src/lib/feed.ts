@@ -1,5 +1,19 @@
 export const UPSTREAM_ITEMS_PER_PAGE = 30;
 
+export function getFeedContinuation(
+  page: number,
+  offset: number,
+  itemCount: number,
+) {
+  const absoluteOffset = offset + itemCount;
+  const nextPage = page + Math.floor(absoluteOffset / UPSTREAM_ITEMS_PER_PAGE);
+  const nextOffset = absoluteOffset % UPSTREAM_ITEMS_PER_PAGE;
+  return {
+    page: nextPage,
+    ...(nextOffset === 0 ? {} : { offset: nextOffset }),
+  };
+}
+
 export function getVisibleFeedCount(
   itemHeights: readonly number[],
   availableHeight: number,

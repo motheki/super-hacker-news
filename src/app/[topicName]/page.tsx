@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { ViewportFeed } from "~/components/ViewportFeed";
 import { PageTransition } from "~/components/PageTransition";
 import { getTopicItems } from "~/lib/data";
-import { parseFeedOffset, parsePage } from "~/lib/route";
+import { UPSTREAM_ITEMS_PER_PAGE } from "~/lib/feed";
+import { parseFeedOffset, parseFeedSize, parsePage } from "~/lib/route";
 import { SOCIAL_IMAGE_PATH } from "~/lib/site";
 import { TOPICS } from "~/lib/topic";
 
@@ -17,6 +18,7 @@ type TopicPageProps = Readonly<{
       Readonly<{
         offset?: string | readonly string[];
         page?: string | readonly string[];
+        size?: string | readonly string[];
       }>
     >
   >;
@@ -24,6 +26,17 @@ type TopicPageProps = Readonly<{
 
 export const generateStaticParams = () =>
   TOPICS.map(({ name: topicName }) => ({ topicName }));
+
+const getTopicWindow = async (topic: string, page: number, offset: number) => {
+  const currentItems = await getTopicItems(topic, page);
+  if (currentItems === null || offset === 0) return currentItems;
+
+  const nextItems = await getTopicItems(topic, page + 1);
+  return [
+    ...currentItems,
+    ...(nextItems ?? []).slice(0, UPSTREAM_ITEMS_PER_PAGE),
+  ];
+};
 
 export const generateMetadata = async ({
   params,
@@ -33,11 +46,20 @@ export const generateMetadata = async ({
   const topic = TOPICS.find((item) => item.name === topicName);
   const page = parsePage(query.page);
   const offset = parseFeedOffset(query.offset);
-  if (topic === undefined || page === null || offset === null) return {};
+  const size = parseFeedSize(query.size);
+  if (
+    topic === undefined ||
+    page === null ||
+    offset === null ||
+    size === null
+  ) {
+    return {};
+  }
 
   const queryString = new URLSearchParams();
   if (page > 1) queryString.set("page", String(page));
   if (offset > 0) queryString.set("offset", String(offset));
+  if (size !== undefined) queryString.set("size", String(size));
   const canonical = `/${topic.name}${queryString.size > 0 ? `?${queryString}` : ""}`;
   return {
     ...(topic.title === "Top" ? {} : { title: topic.title }),
@@ -63,24 +85,31 @@ export default async function TopicPage({
   const topic = TOPICS.find((item) => item.name === topicName);
   const page = parsePage(query.page);
   const offset = parseFeedOffset(query.offset);
+  const size = parseFeedSize(query.size);
 
-  if (topic === undefined || page === null || offset === null) {
+  if (
+    topic === undefined ||
+    page === null ||
+    offset === null ||
+    size === null
+  ) {
     notFound();
   }
 
-  const items = await getTopicItems(topic.value, page);
-  if (items === null) {
-    notFound();
-  }
+  const items = await getTopicWindow(topic.value, page, offset);
+  if (items === null) notFound();
 
   return (
-    <PageTransition transitionKey={`${topic.name}-${page}-${offset}`}>
+    <PageTransition
+      transitionKey={`${topic.name}-${page}-${offset}-${size ?? "auto"}`}
+    >
       <>
         <h1 className="sr-only">{topic.title}</h1>
         <ViewportFeed
           items={items}
           offset={offset}
           page={page}
+          size={size}
           topicName={topic.name}
         />
       </>

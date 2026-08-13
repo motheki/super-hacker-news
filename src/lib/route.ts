@@ -38,6 +38,19 @@ export const parseFeedOffset = (value?: string | readonly string[]) => {
   return offset !== null && offset < UPSTREAM_ITEMS_PER_PAGE ? offset : null;
 };
 
+export const parseFeedSize = (
+  value?: string | readonly string[],
+): number | null | undefined => {
+  if (value === undefined) return undefined;
+  if (typeof value === "string") {
+    const size = parsePositiveInteger(value);
+    return size !== null && size <= UPSTREAM_ITEMS_PER_PAGE ? size : null;
+  }
+  if (value.length === 0) return undefined;
+  const size = value.length === 1 ? parsePositiveInteger(value[0]) : null;
+  return size !== null && size <= UPSTREAM_ITEMS_PER_PAGE ? size : null;
+};
+
 export const parsePostId = (value: string) => parsePositiveInteger(value);
 
 export const isValidUserName = (value: string) =>

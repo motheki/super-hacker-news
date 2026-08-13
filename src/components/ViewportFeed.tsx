@@ -3,13 +3,18 @@
 import Link from "next/link";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { FeedItem } from "~/components/FeedItem";
-import { getVisibleFeedCount, UPSTREAM_ITEMS_PER_PAGE } from "~/lib/feed";
+import {
+  getFeedContinuation,
+  getVisibleFeedCount,
+  UPSTREAM_ITEMS_PER_PAGE,
+} from "~/lib/feed";
 import type { TopicItem, TopicName } from "~/lib/topic";
 
 interface ViewportFeedProps {
   readonly items: readonly TopicItem[];
   readonly offset: number;
   readonly page: number;
+  readonly size?: number;
   readonly topicName: TopicName;
 }
 
@@ -76,31 +81,40 @@ function useVisibleFeedCount(items: readonly TopicItem[]) {
 
 // oxlint-disable-next-line max-lines-per-function -- The cohesive feed render keeps SSR and hydrated variants aligned.
 export function ViewportFeed(props: Readonly<ViewportFeedProps>) {
-  const { items, offset, page, topicName } = props;
+  const { items, offset, page, size, topicName } = props;
   const remainingItems = useMemo(() => items.slice(offset), [items, offset]);
+  const fallbackSize = size ?? UPSTREAM_ITEMS_PER_PAGE;
+  const fallbackItems = useMemo(
+    () => remainingItems.slice(0, fallbackSize),
+    [fallbackSize, remainingItems],
+  );
   const { feedRef, footerRef, measurementRef, visibleCount } =
     useVisibleFeedCount(remainingItems);
+  const displayCount = size ?? visibleCount;
   const indexOffset = UPSTREAM_ITEMS_PER_PAGE * (page - 1) + offset;
-  const nextOffset = offset + visibleCount;
   const renderItem = (item: TopicItem, index: number) => (
     <FeedItem item={item} index={index + 1 + indexOffset} key={item.id} />
   );
-  const continuationQuery =
-    nextOffset < items.length
-      ? { page, offset: nextOffset }
-      : { page: page + 1 };
+  const continuationQuery = {
+    ...getFeedContinuation(page, offset, displayCount),
+    size: displayCount,
+  };
+  const fallbackContinuationQuery = {
+    ...getFeedContinuation(page, offset, fallbackSize),
+    size: fallbackSize,
+  };
 
   return (
     <>
       <div className="viewport-feed-fallback grid grid-cols-[max-content_1fr] gap-x-6 gap-y-4">
-        {remainingItems.map((item, index) => renderItem(item, index))}
+        {fallbackItems.map((item, index) => renderItem(item, index))}
       </div>
       <div
         ref={feedRef}
         className="viewport-feed-client grid-cols-[max-content_1fr] gap-x-6 gap-y-4"
       >
         {remainingItems
-          .slice(0, visibleCount)
+          .slice(0, displayCount)
           .map((item, index) => renderItem(item, index))}
       </div>
       <div
@@ -112,14 +126,6 @@ export function ViewportFeed(props: Readonly<ViewportFeedProps>) {
         {remainingItems.map((item, index) => renderItem(item, index))}
       </div>
       <div ref={footerRef} className="mt-4">
-        <p className="viewport-feed-client eink-muted mb-1 text-sm">
-          Showing {visibleCount} {visibleCount === 1 ? "story" : "stories"}.{" "}
-          “More stories” continues with the next stories.
-        </p>
-        <p className="viewport-feed-fallback eink-muted mb-1 text-sm">
-          Showing {remainingItems.length} stories. “More stories” continues with
-          the next feed page.
-        </p>
         <Link
           className="viewport-feed-client eink-link"
           href={{ pathname: `/${topicName}`, query: continuationQuery }}
@@ -129,7 +135,10 @@ export function ViewportFeed(props: Readonly<ViewportFeedProps>) {
         </Link>
         <Link
           className="viewport-feed-fallback eink-link"
-          href={{ pathname: `/${topicName}`, query: { page: page + 1 } }}
+          href={{
+            pathname: `/${topicName}`,
+            query: fallbackContinuationQuery,
+          }}
           prefetch={true}
         >
           More stories...

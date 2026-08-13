@@ -3,6 +3,7 @@ import {
   isTopicName,
   isValidUserName,
   parseFeedOffset,
+  parseFeedSize,
   parsePage,
   parsePostId,
 } from "~/lib/route";
@@ -33,7 +34,8 @@ export function proxy(request: ProxyRequest) {
     segments.length === 1 &&
     isTopicName(segments[0]) &&
     (parsePage(request.nextUrl.searchParams.getAll("page")) === null ||
-      parseFeedOffset(request.nextUrl.searchParams.getAll("offset")) === null)
+      parseFeedOffset(request.nextUrl.searchParams.getAll("offset")) === null ||
+      parseFeedSize(request.nextUrl.searchParams.getAll("size")) === null)
   ) {
     return notFound();
   }

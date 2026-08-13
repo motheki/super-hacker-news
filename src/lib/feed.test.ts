@@ -1,5 +1,17 @@
 import { describe, expect, test } from "bun:test";
-import { getVisibleFeedCount } from "./feed";
+import { getFeedContinuation, getVisibleFeedCount } from "./feed";
+
+describe("getFeedContinuation", () => {
+  test("continues within an upstream page", () => {
+    expect(getFeedContinuation(1, 0, 10)).toEqual({ page: 1, offset: 10 });
+    expect(getFeedContinuation(2, 10, 10)).toEqual({ page: 2, offset: 20 });
+  });
+
+  test("carries overflow into the next upstream page", () => {
+    expect(getFeedContinuation(1, 20, 10)).toEqual({ page: 2 });
+    expect(getFeedContinuation(1, 28, 10)).toEqual({ page: 2, offset: 8 });
+  });
+});
 
 describe("getVisibleFeedCount", () => {
   test("fits complete rows and their gaps within the available viewport", () => {

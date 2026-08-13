@@ -4,6 +4,7 @@ import {
   isValidUserName,
   MAX_USER_NAME_LENGTH,
   parseFeedOffset,
+  parseFeedSize,
   parsePage,
   parsePostId,
 } from "./route";
@@ -41,6 +42,19 @@ describe("topic routes", () => {
     expect(parseFeedOffset("30")).toBeNull();
     expect(parseFeedOffset("31")).toBeNull();
     expect(parseFeedOffset(String(Number.MAX_SAFE_INTEGER))).toBeNull();
+  });
+
+  test("parses an optional feed size within the upstream page limit", () => {
+    expect(parseFeedSize()).toBeUndefined();
+    expect(parseFeedSize([])).toBeUndefined();
+    expect(parseFeedSize("1")).toBe(1);
+    expect(parseFeedSize("12")).toBe(12);
+    expect(parseFeedSize("30")).toBe(30);
+    expect(parseFeedSize(["12"])).toBe(12);
+    expect(parseFeedSize(["12", "13"])).toBeNull();
+    expect(parseFeedSize("0")).toBeNull();
+    expect(parseFeedSize("31")).toBeNull();
+    expect(parseFeedSize("1.5")).toBeNull();
   });
 });
 
