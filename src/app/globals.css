@@ -49,20 +49,6 @@ button {
   font: inherit;
 }
 
-.viewport-feed-client {
-  display: none;
-}
-
-@media (scripting: enabled) {
-  .viewport-feed-fallback {
-    display: none;
-  }
-
-  .viewport-feed-client {
-    display: grid;
-  }
-}
-
 button,
 a {
   outline-offset: 3px;

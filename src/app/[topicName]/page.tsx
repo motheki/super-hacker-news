@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ViewportFeed } from "~/components/ViewportFeed";
+import { FeedItem } from "~/components/FeedItem";
 import { PageTransition } from "~/components/PageTransition";
 import { getTopicItems } from "~/lib/data";
-import { UPSTREAM_ITEMS_PER_PAGE } from "~/lib/feed";
-import { parseFeedOffset, parseFeedSize, parsePage } from "~/lib/route";
+import { parsePage } from "~/lib/route";
 import { SOCIAL_IMAGE_PATH } from "~/lib/site";
 import { TOPICS } from "~/lib/topic";
+
+const ITEMS_PER_PAGE = 30;
 
 // Keep the current route visible until this cached destination is ready, then fade once.
 export const instant = false;
@@ -14,29 +16,12 @@ export const instant = false;
 type TopicPageProps = Readonly<{
   params: Readonly<Promise<Readonly<{ topicName: string }>>>;
   searchParams: Readonly<
-    Promise<
-      Readonly<{
-        offset?: string | readonly string[];
-        page?: string | readonly string[];
-        size?: string | readonly string[];
-      }>
-    >
+    Promise<Readonly<{ page?: string | readonly string[] }>>
   >;
 }>;
 
 export const generateStaticParams = () =>
   TOPICS.map(({ name: topicName }) => ({ topicName }));
-
-const getTopicWindow = async (topic: string, page: number, offset: number) => {
-  const currentItems = await getTopicItems(topic, page);
-  if (currentItems === null || offset === 0) return currentItems;
-
-  const nextItems = await getTopicItems(topic, page + 1);
-  return [
-    ...currentItems,
-    ...(nextItems ?? []).slice(0, UPSTREAM_ITEMS_PER_PAGE),
-  ];
-};
 
 export const generateMetadata = async ({
   params,
@@ -45,22 +30,9 @@ export const generateMetadata = async ({
   const [{ topicName }, query] = await Promise.all([params, searchParams]);
   const topic = TOPICS.find((item) => item.name === topicName);
   const page = parsePage(query.page);
-  const offset = parseFeedOffset(query.offset);
-  const size = parseFeedSize(query.size);
-  if (
-    topic === undefined ||
-    page === null ||
-    offset === null ||
-    size === null
-  ) {
-    return {};
-  }
+  if (topic === undefined || page === null) return {};
 
-  const queryString = new URLSearchParams();
-  if (page > 1) queryString.set("page", String(page));
-  if (offset > 0) queryString.set("offset", String(offset));
-  if (size !== undefined) queryString.set("size", String(size));
-  const canonical = `/${topic.name}${queryString.size > 0 ? `?${queryString}` : ""}`;
+  const canonical = `/${topic.name}${page > 1 ? `?page=${page}` : ""}`;
   return {
     ...(topic.title === "Top" ? {} : { title: topic.title }),
     alternates: { canonical },
@@ -84,34 +56,34 @@ export default async function TopicPage({
   const [{ topicName }, query] = await Promise.all([params, searchParams]);
   const topic = TOPICS.find((item) => item.name === topicName);
   const page = parsePage(query.page);
-  const offset = parseFeedOffset(query.offset);
-  const size = parseFeedSize(query.size);
 
-  if (
-    topic === undefined ||
-    page === null ||
-    offset === null ||
-    size === null
-  ) {
+  if (topic === undefined || page === null) {
     notFound();
   }
 
-  const items = await getTopicWindow(topic.value, page, offset);
+  const items = await getTopicItems(topic.value, page);
   if (items === null) notFound();
 
   return (
-    <PageTransition
-      transitionKey={`${topic.name}-${page}-${offset}-${size ?? "auto"}`}
-    >
+    <PageTransition transitionKey={`${topic.name}-${page}`}>
       <>
         <h1 className="sr-only">{topic.title}</h1>
-        <ViewportFeed
-          items={items}
-          offset={offset}
-          page={page}
-          size={size}
-          topicName={topic.name}
-        />
+        <div className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-4">
+          {items.map((item, index) => (
+            <FeedItem
+              item={item}
+              index={index + 1 + ITEMS_PER_PAGE * (page - 1)}
+              key={item.id}
+            />
+          ))}
+        </div>
+        <Link
+          className="eink-link mt-4 block"
+          href={`/${topic.name}?page=${page + 1}`}
+          prefetch={true}
+        >
+          More...
+        </Link>
       </>
     </PageTransition>
   );

@@ -5,7 +5,7 @@ This document reflects the current Super HN application.
 ## Product surface
 
 - `/` redirects to `/top`.
-- `/top`, `/new`, `/ask`, and `/show` paginate through 30-story upstream feed batches while showing only the stories that fit in the initial viewport.
+- `/top`, `/new`, `/ask`, and `/show` render 30-story feed pages with pagination.
 - `/post/[postId]` renders a story, its metadata, and nested collapsible comments. When the ID belongs to a comment, the route follows its Hacker News parent chain and redirects to the root story with the matching comment anchor.
 - `/user/[userName]` renders Hacker News profile details and links to the original activity pages.
 - Invalid topic, page, post, and user paths are rejected before rendering.

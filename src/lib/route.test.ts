@@ -3,8 +3,6 @@ import {
   isTopicName,
   isValidUserName,
   MAX_USER_NAME_LENGTH,
-  parseFeedOffset,
-  parseFeedSize,
   parsePage,
   parsePostId,
 } from "./route";
@@ -26,35 +24,6 @@ describe("topic routes", () => {
     expect(parsePage("1e2")).toBeNull();
     expect(parsePage("0x10")).toBeNull();
     expect(parsePage("bad")).toBeNull();
-  });
-
-  test("parses one non-negative decimal feed offset", () => {
-    expect(parseFeedOffset()).toBe(0);
-    expect(parseFeedOffset([])).toBe(0);
-    expect(parseFeedOffset("0")).toBe(0);
-    expect(parseFeedOffset("12")).toBe(12);
-    expect(parseFeedOffset("29")).toBe(29);
-    expect(parseFeedOffset(["12"])).toBe(12);
-    expect(parseFeedOffset(["12", "13"])).toBeNull();
-    expect(parseFeedOffset("-1")).toBeNull();
-    expect(parseFeedOffset("1.5")).toBeNull();
-    expect(parseFeedOffset("01")).toBeNull();
-    expect(parseFeedOffset("30")).toBeNull();
-    expect(parseFeedOffset("31")).toBeNull();
-    expect(parseFeedOffset(String(Number.MAX_SAFE_INTEGER))).toBeNull();
-  });
-
-  test("parses an optional feed size within the upstream page limit", () => {
-    expect(parseFeedSize()).toBeUndefined();
-    expect(parseFeedSize([])).toBeUndefined();
-    expect(parseFeedSize("1")).toBe(1);
-    expect(parseFeedSize("12")).toBe(12);
-    expect(parseFeedSize("30")).toBe(30);
-    expect(parseFeedSize(["12"])).toBe(12);
-    expect(parseFeedSize(["12", "13"])).toBeNull();
-    expect(parseFeedSize("0")).toBeNull();
-    expect(parseFeedSize("31")).toBeNull();
-    expect(parseFeedSize("1.5")).toBeNull();
   });
 });
 

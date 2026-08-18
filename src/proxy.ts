@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import {
   isTopicName,
   isValidUserName,
-  parseFeedOffset,
-  parseFeedSize,
   parsePage,
   parsePostId,
 } from "~/lib/route";
@@ -33,9 +31,7 @@ export function proxy(request: ProxyRequest) {
   if (
     segments.length === 1 &&
     isTopicName(segments[0]) &&
-    (parsePage(request.nextUrl.searchParams.getAll("page")) === null ||
-      parseFeedOffset(request.nextUrl.searchParams.getAll("offset")) === null ||
-      parseFeedSize(request.nextUrl.searchParams.getAll("size")) === null)
+    parsePage(request.nextUrl.searchParams.getAll("page")) === null
   ) {
     return notFound();
   }
