@@ -3,13 +3,17 @@
 
   inputs = {
     nixpkgs = {
-      url = "github:nixos/nixpkgs/master";
+      url = "github:nixos/nixpkgs/nixpkgs-unstable";
     };
     flake-parts = {
-      url = "github:hercules-ci/flake-parts/main";
+      url = "github:hercules-ci/flake-parts";
+    };
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     devenv = {
-      url = "github:cachix/devenv/main";
+      url = "github:cachix/devenv";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -19,6 +23,7 @@
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         inputs.devenv.flakeModule
+        inputs.treefmt-nix.flakeModule
       ];
       systems = [
         "x86_64-linux"
@@ -29,8 +34,27 @@
       perSystem =
         { ... }:
         {
+          treefmt = {
+            enableDefaultExcludes = true;
+            programs = {
+              alejandra.enable = true;
+              deadnix.enable = true;
+              mdformat.enable = true;
+              oxfmt.enable = true;
+              taplo.enable = true;
+            };
+          };
           devenv.shells.default = {
             name = "super-hacker-news";
+            cachix = {
+              enable = true;
+              pull = [
+                "devenv"
+                "nixpkgs"
+                "flake-parts"
+                "cachix"
+              ];
+            };
             languages = {
               javascript = {
                 enable = true;
