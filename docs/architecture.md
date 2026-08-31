@@ -14,7 +14,7 @@ This document reflects the current Super HN application.
 
 Routes are Next.js App Router Server Components by default. Only navigation state, sharing, and collapsible comments are client-side islands. Route-level loading, error, global error, and not-found boundaries cover navigation and failure states.
 
-Topic destinations are prefetched, likely story and user destinations warm on pointer or keyboard intent, and React View Transitions provide a short fade while keeping the topic navigation stable. Reduced-motion preferences disable transition timing.
+Topic destinations are prefetched, and likely story and user destinations warm on pointer or keyboard intent.
 
 ## Data and caching
 

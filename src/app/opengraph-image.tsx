@@ -22,8 +22,8 @@ export default function OpenGraphImage() {
         width: "100%",
       }}
     >
-      <div style={{ fontSize: 104, fontWeight: 700 }}>{SITE_NAME}</div>
-      <div style={{ fontSize: 42, marginTop: 32 }}>{SITE_DESCRIPTION}</div>
+      <div style={{ fontSize: 106, fontWeight: 700 }}>{SITE_NAME}</div>
+      <div style={{ fontSize: 44, marginTop: 32 }}>{SITE_DESCRIPTION}</div>
     </div>,
     { ...size },
   );

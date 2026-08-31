@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Suspense, ViewTransition } from "react";
+import { Suspense } from "react";
 import { REPOSITORY_URL } from "~/lib/site";
 import { TOPICS } from "~/lib/topic";
 import { ShareButton } from "./HeaderControls";
@@ -31,24 +31,13 @@ const TopicNavigationFallback = () =>
   ));
 
 export const Header = () => (
-  <header
-    className="sticky top-0 z-10 mb-2 flex min-w-0 items-center bg-[var(--color-canvas)] py-2 sm:static"
-    style={{ viewTransitionName: "persistent-nav" }}
-  >
+  <header className="sticky top-0 z-10 mb-2 flex min-w-0 items-center bg-[var(--color-canvas)] py-2 sm:static">
     <nav
       aria-label="Topics"
       className="mr-auto flex min-w-0 items-center gap-0.5 sm:gap-2"
     >
-      <Suspense
-        fallback={
-          <ViewTransition exit="fade-out" default="none">
-            <TopicNavigationFallback />
-          </ViewTransition>
-        }
-      >
-        <ViewTransition enter="fade-in" default="none">
-          <TopicNavigation links={LINKS} />
-        </ViewTransition>
+      <Suspense fallback={<TopicNavigationFallback />}>
+        <TopicNavigation links={LINKS} />
       </Suspense>
     </nav>
 

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PageTransition } from "~/components/PageTransition";
 import { getUser } from "~/lib/data";
 import { renderHnHtml } from "~/lib/html";
 import { isValidUserName } from "~/lib/route";
@@ -10,7 +9,7 @@ type UserPageProps = Readonly<{
   params: Readonly<Promise<Readonly<{ userName: string }>>>;
 }>;
 
-// Preserve the current screen until the cached profile is ready for the route fade.
+// Preserve the current screen until the cached profile is ready.
 export const instant = false;
 
 export const generateMetadata = async ({
@@ -52,45 +51,43 @@ export default async function UserPage({ params }: UserPageProps) {
   if (user === null) notFound();
 
   return (
-    <PageTransition transitionKey={user.id}>
-      <section>
-        <h1 className="text-2xl">{user.id}</h1>
-        <div className="eink-muted grid grid-cols-[max-content_1fr] gap-x-2 text-sm">
-          <span>Created:</span>
-          <span>{user.created}</span>
-          <span>Karma:</span>
-          <span>{user.karma}</span>
+    <section>
+      <h1 className="text-2xl">{user.id}</h1>
+      <div className="eink-muted grid grid-cols-[max-content_1fr] gap-x-2 text-sm">
+        <span>Created:</span>
+        <span>{user.created}</span>
+        <span>Karma:</span>
+        <span>{user.karma}</span>
+      </div>
+
+      <p className="my-4">
+        <a
+          className="eink-link"
+          href={`https://news.ycombinator.com/submitted?id=${encodeURIComponent(user.id)}`}
+        >
+          submissions
+        </a>
+        {" / "}
+        <a
+          className="eink-link"
+          href={`https://news.ycombinator.com/threads?id=${encodeURIComponent(user.id)}`}
+        >
+          comments
+        </a>
+        {" / "}
+        <a
+          className="eink-link"
+          href={`https://news.ycombinator.com/favorites?id=${encodeURIComponent(user.id)}`}
+        >
+          favorites
+        </a>
+      </p>
+
+      {user.about !== undefined && user.about.length > 0 && (
+        <div className="eink-rich-text wrap-anywhere [&_p]:my-4">
+          {renderHnHtml(user.about)}
         </div>
-
-        <p className="my-4">
-          <a
-            className="eink-link"
-            href={`https://news.ycombinator.com/submitted?id=${encodeURIComponent(user.id)}`}
-          >
-            submissions
-          </a>
-          {" / "}
-          <a
-            className="eink-link"
-            href={`https://news.ycombinator.com/threads?id=${encodeURIComponent(user.id)}`}
-          >
-            comments
-          </a>
-          {" / "}
-          <a
-            className="eink-link"
-            href={`https://news.ycombinator.com/favorites?id=${encodeURIComponent(user.id)}`}
-          >
-            favorites
-          </a>
-        </p>
-
-        {user.about !== undefined && user.about.length > 0 && (
-          <div className="eink-rich-text wrap-anywhere [&_p]:my-4">
-            {renderHnHtml(user.about)}
-          </div>
-        )}
-      </section>
-    </PageTransition>
+      )}
+    </section>
   );
 }

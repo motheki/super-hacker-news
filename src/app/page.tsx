@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-
-export default function HomePage(): never {
-  redirect("/top");
+export default function HomePage() {
+  return null;
 }

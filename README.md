@@ -15,7 +15,7 @@ Super HN is a fast, focused, and responsive interface for browsing Hacker News, 
 - Hacker News user profiles with links to submissions, comments, and favorites
 - Automatic light and dark themes that follow the system preference
 - Native sharing where supported, Hacker News search, and responsive navigation
-- Installable app metadata, crisp browser and home-screen icons, route-level loading states, and native view transitions
+- Installable app metadata, crisp browser and home-screen icons, and route-level loading states
 
 ## Preview
 
@@ -40,7 +40,7 @@ bun run build
 
 ## Architecture
 
-The application uses the Next.js App Router and React Server Components by default. Route-level `loading.tsx`, `error.tsx`, and `not-found.tsx` boundaries handle navigation states. Public API reads use Cache Components with `use cache`, explicit `cacheLife` policies, and cache tags; Partial Prefetching reuses route shells while selected topic links resolve URL-specific data ahead of navigation. Client components are limited to interactive UI islands, and navigation uses React's View Transition primitives.
+The application uses the Next.js App Router and React Server Components by default. Route-level `loading.tsx`, `error.tsx`, and `not-found.tsx` boundaries handle navigation states. Public API reads use Cache Components with `use cache`, explicit `cacheLife` policies, and cache tags; Partial Prefetching reuses route shells while selected topic links resolve URL-specific data ahead of navigation. Client components are limited to interactive UI islands.
 
 See [Architecture and design](docs/architecture.md) for the current route map, data flow, caching strategy, E-ink theme, and icon support.
 

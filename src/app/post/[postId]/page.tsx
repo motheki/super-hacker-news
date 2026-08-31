@@ -3,7 +3,6 @@ import { notFound, redirect } from "next/navigation";
 import { Comment } from "~/components/Comment";
 import { IntentPrefetchLink } from "~/components/IntentPrefetchLink";
 import { JsonLd } from "~/components/JsonLd";
-import { PageTransition } from "~/components/PageTransition";
 import { getPost, getRootItemId } from "~/lib/data";
 import { renderHnHtml } from "~/lib/html";
 import { isSafeExternalUrl } from "~/lib/link";
@@ -147,13 +146,11 @@ export default async function PostPage({ params }: PostPageProps) {
 
   const externalUrl = isSafeExternalUrl(post.url) ? post.url : null;
   return (
-    <PageTransition transitionKey={post.id}>
-      <>
-        <PostStructuredData post={post} />
-        <PostTitle externalUrl={externalUrl} post={post} />
-        <PostDetails post={post} />
-        <PostComments post={post} />
-      </>
-    </PageTransition>
+    <>
+      <PostStructuredData post={post} />
+      <PostTitle externalUrl={externalUrl} post={post} />
+      <PostDetails post={post} />
+      <PostComments post={post} />
+    </>
   );
 }
