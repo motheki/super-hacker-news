@@ -17,6 +17,7 @@
 }
 
 :root {
+  --sticky-header-offset: 4rem;
   --color-canvas: #e6ebe9;
   --color-ink: #242927;
   --color-ink-muted: #5f6864;
@@ -32,6 +33,13 @@
   color-scheme: light;
   font-family: var(--font-geist-pixel), monospace;
   scrollbar-gutter: stable;
+  scroll-padding-top: var(--sticky-header-offset);
+}
+
+@media (min-width: 40rem) {
+  :root {
+    scroll-padding-top: 0;
+  }
 }
 
 @media (prefers-color-scheme: dark) {

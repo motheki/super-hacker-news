@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import { Suspense } from "react";
 import { Comment } from "~/components/Comment";
 import { IntentPrefetchLink } from "~/components/IntentPrefetchLink";
 import { JsonLd } from "~/components/JsonLd";
+import { RouteLoading } from "~/components/RouteLoading";
 import { getPost, getRootItemId } from "~/lib/data";
 import { renderHnHtml } from "~/lib/html";
 import { isSafeExternalUrl } from "~/lib/link";
@@ -13,9 +15,6 @@ import { SITE_URL, SOCIAL_IMAGE_PATH } from "~/lib/site";
 type PostPageProps = Readonly<{
   params: Readonly<Promise<Readonly<{ postId: string }>>>;
 }>;
-
-// Avoid an intermediate route fallback; intent prefetching warms likely destinations instead.
-export const instant = false;
 
 export const generateMetadata = async ({
   params,
@@ -131,7 +130,17 @@ const PostComments = ({ post }: Readonly<{ post: Post }>) => (
   </div>
 );
 
-export default async function PostPage({ params }: PostPageProps) {
+export default function PostPage(props: PostPageProps) {
+  return (
+    <div data-testid="post-shell">
+      <Suspense fallback={<RouteLoading label="discussion" />}>
+        <PostContent {...props} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function PostContent({ params }: PostPageProps) {
   const postId = parsePostId((await params).postId);
   if (postId === null) notFound();
 
@@ -146,11 +155,11 @@ export default async function PostPage({ params }: PostPageProps) {
 
   const externalUrl = isSafeExternalUrl(post.url) ? post.url : null;
   return (
-    <>
+    <div data-testid="post-content">
       <PostStructuredData post={post} />
       <PostTitle externalUrl={externalUrl} post={post} />
       <PostDetails post={post} />
       <PostComments post={post} />
-    </>
+    </div>
   );
 }

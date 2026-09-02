@@ -12,9 +12,11 @@ This document reflects the current Super HN application.
 
 ## Rendering and navigation
 
-Routes are Next.js App Router Server Components by default. Only navigation state, sharing, and collapsible comments are client-side islands. Route-level loading, error, global error, and not-found boundaries cover navigation and failure states.
+Routes are Next.js App Router Server Components by default. Only navigation state, sharing, and collapsible comments are client-side islands. URL-dependent work sits inside tight Suspense boundaries, producing Partial Prerendered route shells. Error, global error, and not-found boundaries cover failures.
 
-Topic destinations are prefetched, and likely story and user destinations warm on pointer or keyboard intent.
+Default link prefetching reuses the shared shell. Topic, story, and user destinations fetch their cached URL-specific content on pointer, keyboard, or touch intent. Pagination prefetches fully when its link enters the viewport near the end of a feed.
+
+New routes, pagination, reloads, and restored documents start at the top. In-session Back and Forward navigation restore positions saved by the application, avoiding browser timing differences. Explicit hashes take precedence; streamed comment targets are resolved after they enter the document.
 
 ## Data and caching
 
@@ -50,5 +52,7 @@ Run the standard checks before publishing:
 ```sh
 bun run lint
 bun run test
+bun run test:e2e
+bun run test:instant
 bun run build
 ```

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { RouteLoading } from "~/components/RouteLoading";
 import { getUser } from "~/lib/data";
 import { renderHnHtml } from "~/lib/html";
 import { isValidUserName } from "~/lib/route";
@@ -8,9 +10,6 @@ import { SOCIAL_IMAGE_PATH } from "~/lib/site";
 type UserPageProps = Readonly<{
   params: Readonly<Promise<Readonly<{ userName: string }>>>;
 }>;
-
-// Preserve the current screen until the cached profile is ready.
-export const instant = false;
 
 export const generateMetadata = async ({
   params,
@@ -43,7 +42,17 @@ export const generateMetadata = async ({
   };
 };
 
-export default async function UserPage({ params }: UserPageProps) {
+export default function UserPage(props: UserPageProps) {
+  return (
+    <div data-testid="user-shell">
+      <Suspense fallback={<RouteLoading label="profile" />}>
+        <UserContent {...props} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function UserContent({ params }: UserPageProps) {
   const { userName } = await params;
   if (!isValidUserName(userName)) notFound();
 
@@ -51,7 +60,7 @@ export default async function UserPage({ params }: UserPageProps) {
   if (user === null) notFound();
 
   return (
-    <section>
+    <section data-testid="user-content">
       <h1 className="text-2xl">{user.id}</h1>
       <div className="eink-muted grid grid-cols-[max-content_1fr] gap-x-2 text-sm">
         <span>Created:</span>

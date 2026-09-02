@@ -20,12 +20,7 @@ const iconClass = `${interactiveClass} size-9`;
 
 const TopicNavigationFallback = () =>
   LINKS.map((link) => (
-    <Link
-      className={topicLinkClass}
-      href={link.href}
-      key={link.href}
-      prefetch={true}
-    >
+    <Link className={topicLinkClass} href={link.href} key={link.href}>
       {link.title}
     </Link>
   ));

@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { IntentPrefetchLink } from "~/components/IntentPrefetchLink";
 import type { TOPICS } from "~/lib/topic";
 
 type TopicName = (typeof TOPICS)[number]["name"];
@@ -22,15 +22,14 @@ export function TopicNavigation({
   return links.map((link) => {
     const active = pathname === link.href;
     return (
-      <Link
+      <IntentPrefetchLink
         aria-current={active ? "page" : undefined}
         className={`${linkClass} ${active ? "eink-selected" : ""}`}
         href={link.href}
         key={link.href}
-        prefetch={true}
       >
         {link.title}
-      </Link>
+      </IntentPrefetchLink>
     );
   });
 }
