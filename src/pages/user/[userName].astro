@@ -1,0 +1,59 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { getUser } from "~/lib/data";
+import { sanitizeHnHtml } from "~/lib/html";
+import { isValidUserName } from "~/lib/route";
+
+const userName = Astro.params.userName ?? "";
+if (!isValidUserName(userName)) {
+  return Astro.rewrite("/404");
+}
+
+const user = await getUser(userName);
+if (user === null) {
+  return Astro.rewrite("/404");
+}
+
+const description = `Hacker News profile for ${user.id}, with ${user.karma} karma.`;
+const canonical = `/user/${encodeURIComponent(user.id)}`;
+const about = user.about === undefined ? undefined : sanitizeHnHtml(user.about);
+---
+
+<BaseLayout
+  canonical={canonical}
+  description={description}
+  openGraphType="profile"
+  title={user.id}
+>
+  <section data-testid="user-content">
+    <h1>{user.id}</h1>
+    <dl class="user-facts meta">
+      <dt>Created:</dt>
+      <dd>{user.created}</dd>
+      <dt>Karma:</dt>
+      <dd>{user.karma}</dd>
+    </dl>
+
+    <p class="user-links">
+      <a
+        class="text-link"
+        href={`https://news.ycombinator.com/submitted?id=${encodeURIComponent(user.id)}`}
+        >submissions</a
+      > / <a
+        class="text-link"
+        href={`https://news.ycombinator.com/threads?id=${encodeURIComponent(user.id)}`}
+        >comments</a
+      > / <a
+        class="text-link"
+        href={`https://news.ycombinator.com/favorites?id=${encodeURIComponent(user.id)}`}
+        >favorites</a
+      >
+    </p>
+
+    {
+      about !== undefined && about.length > 0 && (
+        <div class="rich-text user-about" set:html={about} />
+      )
+    }
+  </section>
+</BaseLayout>

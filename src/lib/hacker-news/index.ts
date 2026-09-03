@@ -1,5 +1,3 @@
-import "server-only";
-import { cacheLife, cacheTag } from "next/cache";
 import { aggregatedProvider } from "./aggregated";
 import { preferPrimary } from "./client";
 import {
@@ -16,10 +14,6 @@ function reportPostSelection(metric: PostSelectionMetric) {
 }
 
 export async function fetchTopicItems(topic: string, page: number) {
-  "use cache";
-  cacheLife("feed");
-  cacheTag("topics", `topic:${topic}:${page}`);
-
   return preferPrimary(
     "feed",
     () => aggregatedProvider.getTopics(topic, page),
@@ -28,10 +22,6 @@ export async function fetchTopicItems(topic: string, page: number) {
 }
 
 export async function fetchPost(postId: number) {
-  "use cache";
-  cacheLife("post");
-  cacheTag("posts", `post:${postId}`);
-
   return loadPost(postId, {
     getAggregated: () => aggregatedProvider.getPost(postId),
     getOfficialPost,
@@ -41,18 +31,10 @@ export async function fetchPost(postId: number) {
 }
 
 export async function fetchItemReference(itemId: number) {
-  "use cache";
-  cacheLife("item");
-  cacheTag("items", `item:${itemId}`);
-
   return getOfficialItemReference(itemId);
 }
 
 export async function fetchUser(userName: string) {
-  "use cache";
-  cacheLife("user");
-  cacheTag("users", `user:${userName}`);
-
   return preferPrimary(
     "user",
     () => aggregatedProvider.getUser(userName),
@@ -61,9 +43,5 @@ export async function fetchUser(userName: string) {
 }
 
 export async function fetchBestStoryIds() {
-  "use cache";
-  cacheLife("storyIds");
-  cacheTag("stories", "stories:best");
-
   return getOfficialBestStoryIds();
 }

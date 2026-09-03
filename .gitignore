@@ -1,6 +1,7 @@
 node_modules
-.next
-next-env.d.ts
+.astro
+.wrangler
+dist
 playwright-report
 test-results
 .vercel

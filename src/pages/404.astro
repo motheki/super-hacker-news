@@ -1,0 +1,14 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+
+Astro.response.status = 404;
+---
+
+<BaseLayout title="Not found">
+  <section class="message-page">
+    <h1>404 — Not found</h1>
+    <a class="text-link" data-astro-prefetch="tap" href="/top"
+      >Return to Super HN</a
+    >
+  </section>
+</BaseLayout>

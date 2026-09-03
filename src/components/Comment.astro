@@ -1,0 +1,79 @@
+---
+import { sanitizeHnHtml } from "~/lib/html";
+import type { Comment as CommentType } from "~/lib/post";
+
+interface Props {
+  readonly comment: CommentType;
+  readonly nextId?: number | undefined;
+  readonly parentId?: number | undefined;
+  readonly prevId?: number | undefined;
+  readonly rootId: number;
+}
+
+const { comment, nextId, parentId, prevId, rootId } = Astro.props;
+const navigation: { readonly id: number; readonly label: string }[] = [];
+if (rootId !== comment.id) navigation.push({ id: rootId, label: "root" });
+if (parentId !== undefined) navigation.push({ id: parentId, label: "parent" });
+if (prevId !== undefined) navigation.push({ id: prevId, label: "prev" });
+if (nextId !== undefined) navigation.push({ id: nextId, label: "next" });
+const commentCount = comment.comments_count ?? 0;
+const content =
+  comment.content === undefined ? undefined : sanitizeHnHtml(comment.content);
+---
+
+<article class="comment" id={`comment-${comment.id}`}>
+  <details open>
+    <summary class="comment-info" id={`comment-info-${comment.id}`}>
+      {
+        comment.user !== undefined && comment.user.length > 0 && (
+          <a
+            class="text-link"
+            data-astro-prefetch="tap"
+            href={`/user/${comment.user}`}
+          >
+            {comment.user}
+          </a>
+        )
+      }{" "}
+      <a class="text-link" href={`#comment-${comment.id}`}>{comment.time_ago}</a
+      >
+      {
+        navigation.map(({ id, label }) => (
+          <>
+            {" | "}
+            <a class="text-link" href={`#comment-${id}`}>
+              {label}
+            </a>
+          </>
+        ))
+      }
+      {" | "}
+      <span class="closed-label">[{commentCount + 1} more]</span>
+      <span class="open-label">[–]</span>
+    </summary>
+
+    <div class="comment-content">
+      {
+        content !== undefined && content.length > 0 && (
+          <div class="rich-text" set:html={content} />
+        )
+      }
+      {comment.dead === true && <div>dead</div>}
+      {comment.deleted === true && <div>deleted</div>}
+    </div>
+
+    <div class="replies">
+      {
+        comment.comments.map((reply, index) => (
+          <Astro.self
+            comment={reply}
+            nextId={comment.comments[index + 1]?.id}
+            parentId={comment.id}
+            prevId={comment.comments[index - 1]?.id}
+            rootId={rootId}
+          />
+        ))
+      }
+    </div>
+  </details>
+</article>

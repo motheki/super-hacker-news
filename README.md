@@ -1,36 +1,40 @@
 # Super HN
 
-Super HN is a fast, focused, and responsive interface for browsing Hacker News, built with the Next.js App Router.
+![Super HN computer mouse](docs/images/super-hn-mouse-banner.png)
 
-![Super HN E-ink terminal banner](docs/images/super-hn-banner.png)
+A small, server-rendered Hacker News reader built with Astro and deployed on Cloudflare Workers.
 
-- [Live application](https://superhn.vercel.app)
-- [Source repository](https://github.com/motheki/super-hacker-news)
-- [Issue tracker](https://github.com/motheki/super-hacker-news/issues)
+- [Live site](https://super-hn.trevor-opiyo.workers.dev)
+- [Issues](https://github.com/motheki/super-hacker-news/issues)
 
 ## Features
 
 - Top, new, Ask HN, and Show HN feeds
-- Story pages with nested, collapsible comment threads
-- Hacker News user profiles with links to submissions, comments, and favorites
-- Automatic light and dark themes that follow the system preference
-- Native sharing where supported, Hacker News search, and responsive navigation
-- Installable app metadata, crisp browser and home-screen icons, and route-level loading states
+- Complete nested comment trees with native disclosure controls
+- Comment permalinks and redirects to the containing discussion
+- Hacker News user profiles
+- Automatic system light and dark themes
+- Installable web app metadata and responsive icons
+- No React or Next.js browser runtime
 
-## Preview
+## Stack
 
-![Super HN showing the current top stories in its E-ink light theme](docs/images/super-hn-home.png)
+- Astro server rendering on Cloudflare Workers
+- Astro Fonts with self-hosted Quantico files sourced from Google Fonts
+- Cloudflare Cache API for short-lived page caching
+- Aggregated Hacker News APIs with the official API as the validated fallback
+- Bun, TypeScript 7, ESLint, Prettier, and Playwright
+
+Astro 7.2.10 and `@astrojs/cloudflare` 14.2.6 are pinned as a compatible pair. Astro 7.3.0's published asset pipeline omits an internal logger export required by its Worker build.
 
 ## Development
-
-Install dependencies with [Bun](https://bun.sh), then start the Next.js development server:
 
 ```sh
 bun install
 bun run dev
 ```
 
-Before submitting changes, run:
+Run every check:
 
 ```sh
 bun run format:check
@@ -38,24 +42,53 @@ bun run lint
 bun run typecheck
 bun run test
 bun run test:e2e
-bun run test:instant
 bun run build
 ```
+
+`bun run typecheck` uses Astro's TypeScript 6-compatible checker for `.astro` templates and the TypeScript 7 native compiler for TypeScript source. TypeScript 7 does not yet expose the programmatic API Astro's checker requires.
 
 Run the production route benchmark with `bun run benchmark`.
 
 ## Architecture
 
-The application uses the Next.js App Router, React Server Components, Suspense streaming, Cache Components, Partial Prefetching, typed routes, React Compiler, and TypeScript 7. Aggregated Hacker News APIs are the primary data source; the official API is the fallback. Server requests use bounded retries, timeouts, validation, resource-specific caches, and structured metrics. Next links own route prefetching and navigation. The browser owns scrolling and comment disclosure. Client components are limited to browser-only controls.
+```text
+Browser
+  -> Astro routes and components
+    -> Hacker News service
+      -> aggregated APIs
+      -> official API fallback
+  -> Cloudflare edge cache
+```
 
-## Browser icons
+Astro renders feeds, posts, comments, profiles, metadata, and errors on the server. The browser receives compressed HTML, self-hosted fonts, a small opt-in prefetch helper, and no component framework. Native links own navigation and scrolling; native `<details>` elements own comment collapsing.
 
-The favicon is an opaque 1-bit pixel terminal drawn in the site text color (`#242927`) on the same `#e6ebe9` E-ink canvas as the light theme. Explicit, versioned App Router metadata URLs prevent Safari from retaining earlier site artwork. The icon set includes SVG and multi-resolution ICO browser icons, a 32 px Safari raster icon, an Apple touch icon, mask-safe 192 px and 512 px web app icons, and a dedicated monochrome pinned-tab mask.
+Feeds cache for 30 seconds, posts for 15 seconds, profiles for 15 minutes, and the sitemap for one hour. Upstream requests have separate short-lived Cloudflare caches, timeouts, bounded retries, schema validation, structured metrics, and official-API fallback. A post is accepted only when its reachable comment tree is complete.
+
+Static assets receive long immutable caching where safe. Dynamic HTML uses stale-while-revalidate caching so current Hacker News data remains recent without making every visitor wait for upstream APIs.
+
+## Deployment
+
+Authenticate once with `wrangler login`, then deploy:
+
+```sh
+bun run deploy
+```
+
+Wrangler builds the Astro Worker, uploads static assets, provisions its cache/session binding, and deploys `super-hn` to Cloudflare.
+
+## Brand
+
+The source logo is [`src/assets/super-hn-mouse.png`](src/assets/super-hn-mouse.png). Derived favicons, application icons, the social image, and this README banner use the same computer-mouse mark and four-color palette:
+
+- dark background `#323232`
+- dark text and UI `#FFFFFF`
+- light background `#E2E5DE`
+- light text and UI `#020202`
 
 ## Attribution
 
-Super HN is based on [Better HN (Better Hacker News)](https://github.com/pajecawav/better-hn) by [pajecawav](https://github.com/pajecawav). The original project's copyright notice and MIT license are preserved in this repository.
+Super HN is based on [Better HN](https://github.com/pajecawav/better-hn) by [pajecawav](https://github.com/pajecawav). Its copyright notice and MIT license remain in this repository.
 
 ## License
 
-Super HN is distributed under the [MIT License](LICENSE), inherited from the original [Better HN license](https://github.com/pajecawav/better-hn/blob/master/LICENSE).
+[MIT](LICENSE)

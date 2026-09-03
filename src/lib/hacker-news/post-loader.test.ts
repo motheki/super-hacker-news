@@ -30,7 +30,7 @@ const createRoot = (descendants: number): OfficialItem => ({
 });
 
 describe("loadPost", () => {
-  test("uses the aggregate only at exact parity", async () => {
+  test("uses the aggregate at exact parity", async () => {
     const aggregate = createPost(3);
     let officialLoads = 0;
 
@@ -46,6 +46,26 @@ describe("loadPost", () => {
 
     expect(post).toBe(aggregate);
     expect(officialLoads).toBe(0);
+  });
+
+  test("uses the aggregate when it is ahead of the official count", async () => {
+    const aggregate = createPost(4);
+    let officialLoads = 0;
+    const metrics: PostSelectionMetric[] = [];
+
+    const post = await loadPost(POST_ID, {
+      getAggregated: () => Promise.resolve(aggregate),
+      getOfficialPost: () => {
+        officialLoads += 1;
+        return Promise.resolve(createPost(3));
+      },
+      getOfficialRoot: () => Promise.resolve(createRoot(3)),
+      report: (metric) => metrics.push(metric),
+    });
+
+    expect(post).toBe(aggregate);
+    expect(officialLoads).toBe(0);
+    expect(metrics[0]?.reason).toBe("aggregate-ahead");
   });
 
   test("uses the official tree for every mismatch", async () => {
@@ -101,14 +121,15 @@ describe("loadPost", () => {
   test("does not return a known-incomplete aggregate", async () => {
     const metrics: PostSelectionMetric[] = [];
 
-    await expect(
-      loadPost(POST_ID, {
-        getAggregated: () => Promise.resolve(createPost(0)),
-        getOfficialPost: () => Promise.reject(new Error("incomplete")),
-        getOfficialRoot: () => Promise.resolve(createRoot(3)),
-        report: (metric) => metrics.push(metric),
-      }),
-    ).rejects.toThrow("incomplete");
+    const result = loadPost(POST_ID, {
+      getAggregated: () => Promise.resolve(createPost(0)),
+      getOfficialPost: () => Promise.reject(new Error("incomplete")),
+      getOfficialRoot: () => Promise.resolve(createRoot(3)),
+      report: (metric) => metrics.push(metric),
+    });
+
+    expect(result).rejects.toThrow("incomplete");
+    await result.catch(() => undefined);
 
     expect(metrics[0]).toMatchObject({
       reason: "official-incomplete",

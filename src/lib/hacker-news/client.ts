@@ -17,6 +17,7 @@ export interface UpstreamMetric {
 }
 
 interface FetchJsonOptions {
+  readonly cacheTtlSeconds?: number;
   readonly fetcher?: Fetcher;
   readonly operation: string;
   readonly provider: string;
@@ -24,6 +25,13 @@ interface FetchJsonOptions {
   readonly retryCount?: number;
   readonly sleep?: Sleep;
   readonly timeoutMs?: number;
+}
+
+interface CloudflareRequestInit extends RequestInit {
+  readonly cf?: {
+    readonly cacheEverything: boolean;
+    readonly cacheTtl: number;
+  };
 }
 
 const HTTP_NOT_FOUND = 404;
@@ -79,6 +87,17 @@ export async function fetchJson<T>(
   const sleep = options.sleep ?? wait;
   const timeoutMs = options.timeoutMs ?? REQUEST_TIMEOUT_MS;
   const attempts = retryCount + 1;
+  const requestInit: CloudflareRequestInit = {
+    headers: { accept: "application/json" },
+    ...(options.cacheTtlSeconds === undefined
+      ? {}
+      : {
+          cf: {
+            cacheEverything: true,
+            cacheTtl: options.cacheTtlSeconds,
+          },
+        }),
+  };
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     const start = performance.now();
@@ -86,7 +105,7 @@ export async function fetchJson<T>(
 
     try {
       response = await fetcher(url, {
-        headers: { accept: "application/json" },
+        ...requestInit,
         signal: AbortSignal.timeout(timeoutMs),
       });
     } catch (error) {

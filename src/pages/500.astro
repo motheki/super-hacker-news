@@ -1,0 +1,13 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+
+Astro.response.status = 500;
+---
+
+<BaseLayout title="Error">
+  <section class="message-page">
+    <h1>Something went wrong</h1>
+    <p>The application could not finish loading.</p>
+    <a class="text-link" href="">Try again</a>
+  </section>
+</BaseLayout>

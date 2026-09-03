@@ -1,0 +1,66 @@
+---
+import { isSafeExternalUrl } from "~/lib/link";
+import type { TopicItem } from "~/lib/topic";
+
+interface Props {
+  readonly index: number;
+  readonly item: TopicItem;
+}
+
+const { index, item } = Astro.props;
+const externalUrl = isSafeExternalUrl(item.url) ? item.url : null;
+const storyUrl = externalUrl ?? `/post/${item.id}`;
+---
+
+<span aria-hidden="true" class="feed-index">{index}</span>
+<article class="feed-item">
+  <h2>
+    <a
+      class="story-link"
+      data-astro-prefetch={externalUrl === null ? "tap" : undefined}
+      href={storyUrl}
+      rel={externalUrl === null ? undefined : "noreferrer noopener"}
+    >
+      {item.title}
+      {
+        item.domain !== undefined && item.domain.length > 0 && (
+          <span class="faint domain"> ({item.domain})</span>
+        )
+      }
+    </a>
+  </h2>
+
+  {
+    item.type === "job" ? (
+      <p class="meta">{item.time_ago}</p>
+    ) : (
+      <p class="meta">
+        {item.points} points
+        {item.user !== undefined &&
+          item.user !== null &&
+          item.user.length > 0 && (
+            <>
+              {" by "}
+              <a
+                class="text-link"
+                data-astro-prefetch="tap"
+                href={`/user/${item.user}`}
+              >
+                {item.user}
+              </a>
+            </>
+          )}{" "}
+        {item.time_ago}
+        {" | "}
+        <a
+          class="text-link"
+          data-astro-prefetch="tap"
+          href={`/post/${item.id}`}
+        >
+          {item.comments_count}&nbsp;
+          {item.comments_count === 1 ? "comment" : "comments"}
+        </a>
+      </p>
+    )
+  }
+</article>

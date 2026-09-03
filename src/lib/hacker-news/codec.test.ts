@@ -71,7 +71,7 @@ describe("post codecs", () => {
     expect(post === null ? false : isPostComplete(post, null)).toBeTrue();
   });
 
-  test("rejects an aggregate ahead of its official snapshot", () => {
+  test("accepts an aggregate ahead of its official snapshot", () => {
     const post = parseAggregatedPost({
       id: 1,
       title: "Story",
@@ -86,7 +86,7 @@ describe("post codecs", () => {
       })),
     });
 
-    expect(post === null ? true : isPostComplete(post, 4)).toBeFalse();
+    expect(post === null ? false : isPostComplete(post, 4)).toBeTrue();
   });
 
   test("validates and counts aggregated comments in one pass", () => {

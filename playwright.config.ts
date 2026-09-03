@@ -12,7 +12,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "bun run dev",
+    command: "ASTRO_PREVIEW_BACKGROUND=0 astro preview --port 3000",
     reuseExistingServer: process.env.CI === undefined,
     url: APP_URL,
   },

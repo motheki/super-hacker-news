@@ -1,6 +1,3 @@
-import "server-only";
-import { cacheLife, cacheTag } from "next/cache";
-import { cache } from "react";
 import {
   fetchBestStoryIds,
   fetchItemReference,
@@ -13,18 +10,12 @@ import { resolveRootItemId } from "~/lib/item";
 export const getTopicItems = (topic: string, page: number) =>
   fetchTopicItems(topic, page);
 
-export const getPost = cache(fetchPost);
+export const getPost = (postId: number) => fetchPost(postId);
 
-async function loadRootItemId(itemId: number) {
-  "use cache";
-  cacheLife("root");
-  cacheTag("roots", `root:${itemId}`);
-
+export function getRootItemId(itemId: number) {
   return resolveRootItemId(itemId, fetchItemReference);
 }
 
-export const getRootItemId = cache(loadRootItemId);
-
-export const getUser = cache(fetchUser);
+export const getUser = (userName: string) => fetchUser(userName);
 
 export const getBestStoryIds = () => fetchBestStoryIds();

@@ -1,13 +1,12 @@
 {
+  "extends": "astro/tsconfigs/strictest",
   "compilerOptions": {
     "target": "ES2023",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "incremental": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
     "module": "ESNext",
     "moduleDetection": "force",
     "moduleResolution": "Bundler",
@@ -17,26 +16,22 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true,
+    "skipLibCheck": false,
     "strict": true,
     "verbatimModuleSyntax": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "paths": {
       "~/*": ["./src/*"]
     },
-    "types": ["bun", "react/canary"]
+    "types": ["bun"]
   },
   "include": [
-    "next-env.d.ts",
-    ".next/types/**/*.ts",
+    ".astro/types.d.ts",
+    "worker-configuration.d.ts",
+    "scripts/**/*.ts",
+    "src/**/*.astro",
     "src/**/*.ts",
-    "src/**/*.tsx",
-    "*.ts",
-    ".next/dev/types/**/*.ts"
+    "tests/**/*.ts",
+    "*.ts"
   ],
   "exclude": ["node_modules", ".direnv", ".devenv", ".config"]
 }

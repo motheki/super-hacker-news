@@ -1,0 +1,108 @@
+---
+import Comment from "~/components/Comment.astro";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { getPost, getRootItemId } from "~/lib/data";
+import { sanitizeHnHtml } from "~/lib/html";
+import { isSafeExternalUrl } from "~/lib/link";
+import { parsePostId } from "~/lib/route";
+import { SITE_URL } from "~/lib/site";
+
+const postId = parsePostId(Astro.params.postId ?? "");
+if (postId === null) {
+  return Astro.rewrite("/404");
+}
+
+const post = await getPost(postId);
+if (post === null) {
+  const rootItemId = await getRootItemId(postId);
+  if (rootItemId !== null && rootItemId !== postId) {
+    return Astro.redirect(`/post/${rootItemId}#comment-${postId}`, 302);
+  }
+
+  return Astro.rewrite("/404");
+}
+
+const externalUrl = isSafeExternalUrl(post.url) ? post.url : null;
+const content =
+  post.content === undefined ? undefined : sanitizeHnHtml(post.content);
+const canonical = `/post/${post.id}`;
+const description = `${post.points} points and ${post.comments_count} comments on Hacker News.`;
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "DiscussionForumPosting",
+  author: {
+    "@type": "Person",
+    name: post.user,
+    url: `${SITE_URL}/user/${post.user}`,
+  },
+  headline: post.title,
+  interactionStatistic: {
+    "@type": "InteractionCounter",
+    interactionType: "https://schema.org/CommentAction",
+    userInteractionCount: post.comments_count,
+  },
+  url: `${SITE_URL}${canonical}`,
+};
+---
+
+<BaseLayout
+  canonical={canonical}
+  description={description}
+  openGraphType="article"
+  structuredData={structuredData}
+  title={post.title}
+>
+  <article data-testid="post-content">
+    <h1 class="post-title">
+      {
+        externalUrl === null ? (
+          <>
+            {post.title}
+            {post.domain !== undefined && post.domain.length > 0 && (
+              <span class="faint domain"> ({post.domain})</span>
+            )}
+          </>
+        ) : (
+          <a class="story-link" href={externalUrl} rel="noreferrer noopener">
+            {post.title}
+            {post.domain !== undefined && post.domain.length > 0 && (
+              <span class="faint domain"> ({post.domain})</span>
+            )}
+          </a>
+        )
+      }
+    </h1>
+
+    <p class="meta">
+      {post.points} points by{" "}
+      <a
+        class="text-link"
+        data-astro-prefetch="tap"
+        href={`/user/${post.user}`}
+      >
+        {post.user}
+      </a>{" "}
+      {post.time_ago} | {post.comments_count}{" "}
+      {post.comments_count === 1 ? "comment" : "comments"}
+    </p>
+
+    {
+      content !== undefined && content.length > 0 && (
+        <div class="post-body rich-text" set:html={content} />
+      )
+    }
+  </article>
+
+  <section aria-label="Comments" id="comments">
+    {
+      post.comments.map((comment, index) => (
+        <Comment
+          comment={comment}
+          nextId={post.comments[index + 1]?.id}
+          prevId={post.comments[index - 1]?.id}
+          rootId={comment.id}
+        />
+      ))
+    }
+  </section>
+</BaseLayout>

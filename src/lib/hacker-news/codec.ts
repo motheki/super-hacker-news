@@ -146,8 +146,8 @@ export function parseAggregatedPost(value: unknown): Post | null {
 }
 
 export function isPostComplete(post: Post, officialCount: number | null) {
-  // Exact parity prevents a transient empty tree from entering the post cache.
-  return officialCount === null || post.comments_count === officialCount;
+  // Aggregates may lead HN's eventually consistent descendant counter.
+  return officialCount === null || post.comments_count >= officialCount;
 }
 
 export function parseAggregatedTopics(value: unknown): TopicItem[] | null {
@@ -312,7 +312,7 @@ export function toOfficialTopic(
     id: item.id,
     title: item.title,
     points: item.score ?? 0,
-    user: item.by,
+    ...(item.by === undefined ? {} : { user: item.by }),
     time: item.time,
     time_ago: formatAge(item.time, now),
     comments_count: item.descendants ?? 0,

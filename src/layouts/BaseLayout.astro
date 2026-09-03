@@ -1,0 +1,93 @@
+---
+import { Font } from "astro:assets";
+import Header from "~/components/Header.astro";
+import {
+  REPOSITORY_URL,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_URL,
+  SOCIAL_IMAGE_PATH,
+} from "~/lib/site";
+import "~/styles/global.css";
+
+interface Props {
+  readonly canonical?: string | undefined;
+  readonly description?: string | undefined;
+  readonly openGraphType?: "article" | "profile" | "website" | undefined;
+  readonly structuredData?: unknown;
+  readonly title?: string | undefined;
+}
+
+const {
+  canonical = Astro.url.pathname,
+  description = SITE_DESCRIPTION,
+  openGraphType = "website",
+  structuredData,
+  title,
+} = Astro.props;
+const pageTitle = title === undefined ? SITE_NAME : `${title} | ${SITE_NAME}`;
+const canonicalUrl = new URL(canonical, SITE_URL);
+const socialImageUrl = new URL(SOCIAL_IMAGE_PATH, SITE_URL);
+const websiteData = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  description: SITE_DESCRIPTION,
+  name: SITE_NAME,
+  url: SITE_URL,
+};
+const jsonLd = JSON.stringify(structuredData ?? websiteData).replaceAll(
+  "<",
+  "\\u003c",
+);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="theme-color"
+      content="#E2E5DE"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#323232"
+      media="(prefers-color-scheme: dark)"
+    />
+    <meta name="description" content={description} />
+    <meta name="application-name" content={SITE_NAME} />
+    <meta property="og:type" content={openGraphType} />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={socialImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImageUrl} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <Font
+      cssVariable="--font-quantico"
+      preload={[{ subset: "latin", style: "normal", weight: 400 }]}
+    />
+    <title>{pageTitle}</title>
+    <script is:inline type="application/ld+json" set:html={jsonLd} />
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <div class="site-shell">
+      <Header currentPath={Astro.url.pathname} repositoryUrl={REPOSITORY_URL} />
+      <main id="content">
+        <slot />
+      </main>
+    </div>
+  </body>
+</html>

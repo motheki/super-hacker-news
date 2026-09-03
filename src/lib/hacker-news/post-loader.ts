@@ -4,7 +4,11 @@ import { isPostComplete } from "./codec";
 
 type PostProvider = "hackerwebapp" | "none" | "official";
 type SelectionReason =
-  "exact" | "mismatch" | "official-incomplete" | "official-unavailable";
+  | "aggregate-ahead"
+  | "exact"
+  | "mismatch"
+  | "official-incomplete"
+  | "official-unavailable";
 
 export interface PostSelectionMetric {
   readonly aggregatedCount: number | null;
@@ -44,7 +48,7 @@ export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
   const aggregatedCount = aggregated?.comments_count ?? null;
   const officialCount = root?.descendants ?? null;
 
-  const report = (reason: SelectionReason, selectedProvider: PostProvider) =>
+  const report = (reason: SelectionReason, selectedProvider: PostProvider) => {
     loaders.report({
       aggregatedCount,
       durationMs: durationSince(start),
@@ -53,9 +57,15 @@ export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
       reason,
       selectedProvider,
     });
+  };
 
   if (aggregated !== null && isPostComplete(aggregated, officialCount)) {
-    const reason = officialCount === null ? "official-unavailable" : "exact";
+    const reason =
+      officialCount === null
+        ? "official-unavailable"
+        : aggregatedCount === officialCount
+          ? "exact"
+          : "aggregate-ahead";
     report(reason, "hackerwebapp");
     return aggregated;
   }

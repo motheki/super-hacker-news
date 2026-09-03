@@ -54,9 +54,14 @@ function average(values: readonly number[]) {
 }
 
 async function run() {
-  const server = spawn("bun", ["run", "start", "--port", String(APP_PORT)], {
-    stdio: "ignore",
-  });
+  const server = spawn(
+    "bun",
+    ["run", "preview", "--", "--port", String(APP_PORT)],
+    {
+      env: { ...process.env, ASTRO_PREVIEW_BACKGROUND: "0" },
+      stdio: "ignore",
+    },
+  );
 
   try {
     await waitForServer();

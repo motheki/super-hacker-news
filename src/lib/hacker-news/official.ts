@@ -1,5 +1,3 @@
-import "server-only";
-import { cacheLife, cacheTag } from "next/cache";
 import type { HackerNewsItemReference } from "~/lib/item";
 import type { Post } from "~/lib/post";
 import type { TopicItem } from "~/lib/topic";
@@ -20,7 +18,9 @@ import { loadDescendants } from "./tree";
 const OFFICIAL_API = "https://hacker-news.firebaseio.com/v0";
 const ITEMS_PER_PAGE = 30;
 const ITEM_BATCH_SIZE = 30;
-const CACHE_POST = "post";
+const FEED_CACHE_SECONDS = 30;
+const ITEM_CACHE_SECONDS = 15;
+const USER_CACHE_SECONDS = 3_600;
 
 const FEED_NAMES: Readonly<Record<string, string>> = {
   ask: "askstories",
@@ -34,11 +34,8 @@ function nowSeconds() {
 }
 
 async function getOfficialItem(itemId: number) {
-  "use cache";
-  cacheLife(CACHE_POST);
-  cacheTag("post-items", `post-item:${itemId}`);
-
   return fetchJson(`${OFFICIAL_API}/item/${itemId}.json`, parseOfficialItem, {
+    cacheTtlSeconds: ITEM_CACHE_SECONDS,
     operation: "item",
     provider: "official",
   });
@@ -49,6 +46,7 @@ async function getOfficialFeedIds(topic: string) {
   if (feed === undefined) return null;
 
   return fetchJson(`${OFFICIAL_API}/${feed}.json`, parseNumberArray, {
+    cacheTtlSeconds: FEED_CACHE_SECONDS,
     operation: "feed-ids",
     provider: "official",
   });
@@ -118,7 +116,11 @@ async function getUser(userName: string): Promise<User | null> {
   const user = await fetchJson(
     `${OFFICIAL_API}/user/${encodeURIComponent(userName)}.json`,
     parseOfficialUser,
-    { operation: "user", provider: "official" },
+    {
+      cacheTtlSeconds: USER_CACHE_SECONDS,
+      operation: "user",
+      provider: "official",
+    },
   );
 
   return user === null ? null : toOfficialUser(user, nowSeconds());
@@ -139,6 +141,7 @@ export async function getOfficialItemReference(
 
 export function getOfficialBestStoryIds() {
   return fetchJson(`${OFFICIAL_API}/beststories.json`, parseNumberArray, {
+    cacheTtlSeconds: FEED_CACHE_SECONDS,
     operation: "best-story-ids",
     provider: "official",
   });

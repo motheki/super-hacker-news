@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true
+  },
+  "include": [
+    "astro.config.ts",
+    "eslint.config.ts",
+    "playwright.config.ts",
+    "scripts/**/*.ts",
+    "src/**/*.ts",
+    "tests/**/*.ts"
+  ],
+  "exclude": [
+    ".astro",
+    ".devenv",
+    ".direnv",
+    ".wrangler",
+    "dist",
+    "node_modules"
+  ]
+}

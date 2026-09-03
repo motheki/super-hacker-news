@@ -1,49 +1,40 @@
-import babelParser from "@babel/eslint-parser";
-import babelTypeScript from "@babel/preset-typescript";
 import eslint from "@eslint/js";
-import nextPlugin from "@next/eslint-plugin-next";
 import { defineConfig, globalIgnores } from "eslint/config";
 import prettier from "eslint-config-prettier/flat";
-import jsxA11y from "eslint-plugin-jsx-a11y";
-import reactHooks from "eslint-plugin-react-hooks";
+import astro from "eslint-plugin-astro";
 import globals from "globals";
+import tseslint from "typescript-eslint";
 
-const sourceFiles = ["**/*.{ts,tsx}"];
+const typeScriptFiles = ["**/*.ts"];
 
 export default defineConfig([
   eslint.configs.recommended,
+  ...astro.configs["flat/recommended"],
+  ...tseslint.configs.recommendedTypeChecked.map((config) => ({
+    ...config,
+    files: typeScriptFiles,
+  })),
   {
-    files: sourceFiles,
+    files: typeScriptFiles,
     languageOptions: {
       globals: {
         ...globals.browser,
         ...globals.node,
       },
-      parser: babelParser,
+      parser: tseslint.parser,
       parserOptions: {
-        babelOptions: {
-          babelrc: false,
-          configFile: false,
-          presets: [[babelTypeScript, { allExtensions: true, isTSX: true }]],
-        },
-        requireConfigFile: false,
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
-    rules: {
-      "no-undef": "off",
-      "no-unused-vars": "off",
-    },
   },
-  reactHooks.configs.flat["recommended-latest"],
-  jsxA11y.flatConfigs.recommended,
-  nextPlugin.configs["core-web-vitals"],
   prettier,
   globalIgnores([
-    ".next/**",
+    ".astro/**",
     ".devenv/**",
     ".direnv/**",
-    "build/**",
-    "next-env.d.ts",
-    "out/**",
+    ".wrangler/**",
+    "dist/**",
+    "worker-configuration.d.ts",
   ]),
 ]);

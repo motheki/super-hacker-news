@@ -18,7 +18,7 @@ test("omits search and share controls", async ({ page }) => {
   ).toBeAttached();
 });
 
-test("uses Next navigation without custom scroll state", async ({ page }) => {
+test("uses native navigation without custom scroll state", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveURL(new RegExp(`${TOP_PATH}$`, "u"));
   await expect(page.getByRole("link", { name: "More..." })).toBeVisible();
@@ -35,6 +35,49 @@ test("uses Next navigation without custom scroll state", async ({ page }) => {
 
   await page.goBack();
   await expect(page).toHaveURL(new RegExp(`${TOP_PATH}$`, "u"));
+});
+
+test("ships no framework runtime", async ({ page }) => {
+  const response = await page.goto(TOP_PATH);
+  const html = await response?.text();
+  const scripts = await page.locator("script[src]").count();
+
+  expect(html?.length).toBeLessThan(80_000);
+  expect(html).not.toContain("__next");
+  expect(html).not.toContain("react");
+  expect(scripts).toBeLessThanOrEqual(1);
+});
+
+test("uses the reference palette and Quantico", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.goto(TOP_PATH);
+
+  const light = await page.evaluate(() => {
+    const style = getComputedStyle(document.documentElement);
+    return {
+      background: style.backgroundColor,
+      color: style.color,
+      font: style.fontFamily,
+    };
+  });
+  expect(light).toMatchObject({
+    background: "rgb(226, 229, 222)",
+    color: "rgb(2, 2, 2)",
+  });
+  expect(light.font).toContain("Quantico");
+
+  await page.emulateMedia({ colorScheme: "dark" });
+  const dark = await page.evaluate(() => {
+    const style = getComputedStyle(document.documentElement);
+    return {
+      background: style.backgroundColor,
+      color: style.color,
+    };
+  });
+  expect(dark).toEqual({
+    background: "rgb(50, 50, 50)",
+    color: "rgb(255, 255, 255)",
+  });
 });
 
 test("uses native disclosure for comment threads", async ({ page }) => {
