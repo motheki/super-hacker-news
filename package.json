@@ -10,6 +10,7 @@
   "type": "module",
   "scripts": {
     "analyze": "next experimental-analyze --output",
+    "benchmark": "bun run build && bun run scripts/benchmark.ts",
     "prebuild": "bun -e \"import { rmSync } from 'node:fs'; rmSync('.next/dev', { recursive: true, force: true })\"",
     "build": "next build",
     "dev": "next dev",

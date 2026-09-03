@@ -78,7 +78,6 @@ async function TopicFeed({ params, searchParams }: PageProps<"/[topicName]">) {
       <Link
         className="eink-link mt-4 block"
         href={`/${topic.name}?page=${page + 1}`}
-        prefetch={true}
       >
         More...
       </Link>

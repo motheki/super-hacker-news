@@ -42,9 +42,11 @@ bun run test:instant
 bun run build
 ```
 
+Run the production route benchmark with `bun run benchmark`.
+
 ## Architecture
 
-The application uses the Next.js App Router, React Server Components, Suspense streaming, Cache Components, Partial Prefetching, typed routes, React Compiler, and TypeScript 7. Next links own route prefetching and navigation. The browser owns scrolling and comment disclosure. Client components are limited to browser-only controls.
+The application uses the Next.js App Router, React Server Components, Suspense streaming, Cache Components, Partial Prefetching, typed routes, React Compiler, and TypeScript 7. Aggregated Hacker News APIs are the primary data source; the official API is the fallback. Server requests use bounded retries, timeouts, validation, resource-specific caches, and structured metrics. Next links own route prefetching and navigation. The browser owns scrolling and comment disclosure. Client components are limited to browser-only controls.
 
 ## Browser icons
 

@@ -7,7 +7,6 @@ import type { Comment as CommentType } from "~/lib/post";
 interface CommentProps {
   readonly comment: CommentType;
   readonly rootId: number;
-  readonly key?: number;
   readonly parentId?: number;
   readonly prevId?: number;
   readonly nextId?: number;

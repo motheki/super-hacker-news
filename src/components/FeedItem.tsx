@@ -5,7 +5,6 @@ import type { TopicItem } from "~/lib/topic";
 interface FeedItemProps {
   readonly item: TopicItem;
   readonly index: number;
-  readonly key?: number;
 }
 
 const titleClass = "eink-story-link wrap-anywhere";

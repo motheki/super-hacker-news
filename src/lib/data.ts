@@ -1,4 +1,5 @@
 import "server-only";
+import { cacheLife, cacheTag } from "next/cache";
 import { cache } from "react";
 import {
   fetchBestStoryIds,
@@ -7,37 +8,22 @@ import {
   fetchTopicItems,
   fetchUser,
 } from "~/lib/hacker-news";
-import type { Comment, Post } from "~/lib/post";
 import { resolveRootItemId } from "~/lib/item";
 
 export const getTopicItems = (topic: string, page: number) =>
   fetchTopicItems(topic, page);
 
-const countComments = (comments: readonly Comment[]) =>
-  comments.reduce(
-    (total, comment) => total + 1 + (comment.comments_count ?? 0),
-    0,
-  );
+export const getPost = cache(fetchPost);
 
-const withCommentCounts = (comment: Readonly<Comment>): Comment => {
-  const comments = comment.comments.map(withCommentCounts);
-  return { ...comment, comments, comments_count: countComments(comments) };
-};
+async function loadRootItemId(itemId: number) {
+  "use cache";
+  cacheLife("root");
+  cacheTag("roots", `root:${itemId}`);
 
-const normalizePost = (post: Readonly<Post>): Post => {
-  const comments = post.comments.map(withCommentCounts);
-  return { ...post, comments, comments_count: countComments(comments) };
-};
+  return resolveRootItemId(itemId, fetchItemReference);
+}
 
-const loadPost = async (postId: number) => {
-  const post = await fetchPost(postId);
-  return post ? normalizePost(post) : null;
-};
-
-export const getPost = cache(loadPost);
-
-export const getRootItemId = (itemId: number) =>
-  resolveRootItemId(itemId, fetchItemReference);
+export const getRootItemId = cache(loadRootItemId);
 
 export const getUser = cache(fetchUser);
 

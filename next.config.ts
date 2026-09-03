@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
-const NEWS_CACHE = { stale: 60, revalidate: 60, expire: 3_600 } as const;
+const FEED_CACHE = { stale: 30, revalidate: 60, expire: 600 } as const;
+const POST_CACHE = { stale: 60, revalidate: 180, expire: 3_600 } as const;
+const USER_CACHE = { stale: 900, revalidate: 3_600, expire: 86_400 } as const;
+const ITEM_CACHE = {
+  stale: 86_400,
+  revalidate: 604_800,
+  expire: 31_536_000,
+} as const;
+const ROOT_CACHE = ITEM_CACHE;
 const STORY_IDS_CACHE = {
   stale: 3_600,
   revalidate: 3_600,
@@ -12,8 +20,12 @@ const nextConfig: NextConfig = {
   agentRules: false,
   cacheComponents: true,
   cacheLife: {
-    news: NEWS_CACHE,
+    feed: FEED_CACHE,
+    item: ITEM_CACHE,
+    post: POST_CACHE,
+    root: ROOT_CACHE,
     storyIds: STORY_IDS_CACHE,
+    user: USER_CACHE,
   },
   reactCompiler: true,
   partialPrefetching: true,
@@ -24,7 +36,7 @@ const nextConfig: NextConfig = {
     inlineCss: true,
     prefetchInlining: true,
     staleTimes: {
-      dynamic: NEWS_CACHE.stale,
+      dynamic: FEED_CACHE.stale,
     },
     turbopackRustReactCompiler: true,
     useTypeScriptCli: true,
