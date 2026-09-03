@@ -9,11 +9,7 @@ import {
   getOfficialPostSummary,
   officialProvider,
 } from "./official";
-import {
-  loadCompletePost,
-  loadPost,
-  type PostSelectionMetric,
-} from "./post-loader";
+import { loadPost, type PostSelectionMetric } from "./post-loader";
 
 function reportPostSelection(metric: PostSelectionMetric) {
   console.info(JSON.stringify({ event: "hn.post_selection", ...metric }));
@@ -35,16 +31,6 @@ export async function fetchPost(postId: number) {
     getOfficialSummary: getOfficialPostSummary,
     getSecondary: () => getAlgoliaPost(postId),
     report: reportPostSelection,
-  });
-}
-
-export function fetchCompletePost(postId: number) {
-  return loadCompletePost({
-    getFallback: () => fetchPost(postId),
-    getOfficial: async () => {
-      const root = await getOfficialPostRoot(postId);
-      return root === null ? null : getOfficialPost(root);
-    },
   });
 }
 

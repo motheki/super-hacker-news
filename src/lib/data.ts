@@ -1,7 +1,7 @@
 import {
   fetchBestStoryIds,
-  fetchCompletePost,
   fetchItemReference,
+  fetchPost,
   fetchTopicItems,
   fetchUser,
 } from "~/lib/hacker-news";
@@ -10,12 +10,12 @@ import { resolvePostTarget } from "~/lib/post-target";
 
 interface PostFallback {
   readonly loadItem: typeof fetchItemReference;
-  readonly loadPost: typeof fetchCompletePost;
+  readonly loadPost: typeof fetchPost;
 }
 
 const POST_FALLBACK: PostFallback = {
   loadItem: fetchItemReference,
-  loadPost: fetchCompletePost,
+  loadPost: fetchPost,
 };
 
 function getClient(binding?: ServiceBinding) {

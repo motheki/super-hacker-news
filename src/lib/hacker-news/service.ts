@@ -9,7 +9,6 @@ import {
 } from "./codec";
 
 const SERVICE_ORIGIN = "https://hn-data.internal";
-const STALE_HEADER = "x-super-hn-stale";
 
 export interface ServiceBinding {
   fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
@@ -43,11 +42,7 @@ export class HnDataClient {
     this.#binding = binding;
   }
 
-  async #get<T>(
-    path: string,
-    parse: (value: unknown) => T | null,
-    isCurrent: (response: Response) => boolean = () => true,
-  ) {
+  async #get<T>(path: string, parse: (value: unknown) => T | null) {
     const start = performance.now();
     try {
       const response = await this.#binding.fetch(`${SERVICE_ORIGIN}${path}`, {
@@ -64,17 +59,6 @@ export class HnDataClient {
         );
         return null;
       }
-      if (!isCurrent(response)) {
-        console.info(
-          JSON.stringify({
-            event: "hn.service_stale",
-            durationMs: Math.round((performance.now() - start) * 10) / 10,
-            operation: path.split("/")[1] ?? "unknown",
-          }),
-        );
-        return null;
-      }
-
       return parse(await response.json());
     } catch (error) {
       console.warn(
@@ -94,11 +78,7 @@ export class HnDataClient {
   }
 
   getTarget(itemId: number): Promise<ServiceTarget | null> {
-    return this.#get(
-      `/target/${itemId}`,
-      parseTarget,
-      (response) => response.headers.get(STALE_HEADER) !== "1",
-    );
+    return this.#get(`/target/${itemId}`, parseTarget);
   }
 
   getTopics(topic: string, page: number): Promise<TopicItem[] | null> {
