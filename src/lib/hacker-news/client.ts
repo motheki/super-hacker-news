@@ -54,7 +54,7 @@ function reportMetric(metric: UpstreamMetric) {
     return;
   }
 
-  console.info("hn.upstream", metric);
+  console.info(JSON.stringify({ event: "hn.upstream", ...metric }));
 }
 
 function durationSince(start: number) {
@@ -188,6 +188,6 @@ export async function preferPrimary<T>(
     reason = `primary-failure: ${toError(error).message}`;
   }
 
-  console.warn("hn.fallback", { operation, reason });
+  console.warn(JSON.stringify({ event: "hn.fallback", operation, reason }));
   return official();
 }

@@ -12,7 +12,7 @@ import {
 import { loadPost, type PostSelectionMetric } from "./post-loader";
 
 function reportPostSelection(metric: PostSelectionMetric) {
-  console.info("hn.post_selection", metric);
+  console.info(JSON.stringify({ event: "hn.post_selection", ...metric }));
 }
 
 export async function fetchTopicItems(topic: string, page: number) {

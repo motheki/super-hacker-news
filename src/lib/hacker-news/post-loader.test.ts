@@ -49,6 +49,25 @@ describe("loadPost", () => {
     expect(officialLoads).toBe(0);
   });
 
+  test("does not wait for the secondary when the primary is complete", async () => {
+    const aggregate = createPost(3);
+    let secondaryLoads = 0;
+
+    const post = await loadPost(POST_ID, {
+      getAggregated: () => Promise.resolve(aggregate),
+      getSecondary: () => {
+        secondaryLoads += 1;
+        return Promise.resolve(createPost(4));
+      },
+      getOfficialPost: () => Promise.resolve(createPost(3)),
+      getOfficialRoot: () => Promise.resolve(createRoot(3)),
+      report: () => undefined,
+    });
+
+    expect(post).toBe(aggregate);
+    expect(secondaryLoads).toBe(0);
+  });
+
   test("uses the aggregate when it is ahead of the official count", async () => {
     const aggregate = createPost(4);
     let officialLoads = 0;

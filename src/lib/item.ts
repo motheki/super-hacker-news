@@ -9,6 +9,8 @@ type ItemLoader = (itemId: number) => Promise<HackerNewsItemReference | null>;
 const ROOT_ITEM_TYPES: ReadonlySet<string> = new Set(["job", "poll", "story"]);
 const MAX_PARENT_DEPTH = 64;
 
+export const isRootItemType = (type: string) => ROOT_ITEM_TYPES.has(type);
+
 export async function resolveRootItemId(
   itemId: number,
   loadItem: ItemLoader,
@@ -22,7 +24,7 @@ export async function resolveRootItemId(
 
     const item = await loadItem(currentId);
     if (item === null || item.id !== currentId) return null;
-    if (ROOT_ITEM_TYPES.has(item.type)) return item.id;
+    if (isRootItemType(item.type)) return item.id;
     if (item.parent === undefined) return null;
 
     currentId = item.parent;

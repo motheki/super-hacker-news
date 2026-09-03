@@ -20,9 +20,10 @@ A small, server-rendered Hacker News reader built with Astro and deployed on Clo
 ## Stack
 
 - Astro server rendering on Cloudflare Workers
+- A private Cloudflare service binding backed by D1, Queues, and Cron Triggers
 - Astro Fonts with self-hosted Quantico files sourced from Google Fonts
 - Astro route caching backed by Cloudflare's CDN cache
-- HackerWeb and Algolia bulk trees with a bounded official API fallback
+- Official Hacker News data with HackerWeb and Algolia outage fallbacks
 - Bun, TypeScript 7, ESLint, Prettier, and Playwright
 
 Astro 7.2.10 and `@astrojs/cloudflare` 14.2.6 are pinned as a compatible pair. Astro 7.3.0's published asset pipeline omits an internal logger export required by its Worker build.
@@ -54,9 +55,11 @@ Run the production route benchmark with `bun run benchmark`.
 ```text
 Browser
   -> Astro routes and components
-    -> Hacker News service
-      -> HackerWeb + Algolia bulk trees
-      -> bounded official API fallback
+    -> private HN data Worker
+      -> D1 materialized feeds, posts, and profiles
+      -> Queue comment-tree hydration
+      -> scheduled official HN synchronization
+    -> HackerWeb + Algolia fallback
   -> Astro route cache on Cloudflare
 ```
 
@@ -64,19 +67,28 @@ Astro renders feeds, posts, comments, profiles, metadata, and errors on the serv
 
 Feeds cache at Cloudflare's edge for one minute, profiles for 15 minutes, and the sitemap for one hour. Active posts cache for 15 seconds, settled posts for one minute, and posts older than 30 days for five minutes. Their background revalidation windows are one minute, five minutes, and one hour respectively. Successful HTML also receives a 15-second browser cache. Upstream requests have separate short-lived Cloudflare caches, timeouts, bounded retries, schema validation, and structured metrics.
 
-Post requests validate HackerWeb and Algolia trees in parallel and select the superset, or the larger valid tree when sources diverge. The official Hacker News root supplies metadata and a freshness signal. Per-comment official reconstruction is limited to small discussions so one Worker request cannot exceed Cloudflare's subrequest budget. A valid bulk tree remains available when another provider lags or fails.
+The data Worker polls official feed and update indexes each minute. D1 stores validated source items and normalized output. Queue consumers hydrate comments outside page requests, then materialize complete post trees. The Astro Worker reads those trees through a private service binding, so readers do not wait for a fan-out of Hacker News requests.
+
+Cold, warming, or unavailable service reads fall back to the previous validated provider chain. HackerWeb is checked against the official descendant count first. Algolia runs only when HackerWeb is missing or behind. Small mismatches can still use bounded official reconstruction; large discussions never risk exhausting one page request's subrequest budget.
 
 Static assets receive long immutable caching where safe. Dynamic HTML uses stale-while-revalidate caching so current Hacker News data remains recent without making every visitor wait for upstream APIs.
 
 ## Deployment
 
-Authenticate once with `wrangler login`, then deploy:
+The deployment needs a D1 database named `super-hn-data` and a Queue named `super-hn-hydrate`. Their bindings live in `workers/hn-data/wrangler.jsonc`. Authenticate once with `wrangler login`, then deploy both Workers in dependency order:
 
 ```sh
 bun run deploy
 ```
 
-Wrangler builds the Astro Worker, uploads static assets, configures its CDN cache, and deploys `super-hn` to Cloudflare. Astro sessions are disabled because the application stores no visitor state.
+`bun run deploy` validates the data Worker, applies D1 migrations, deploys `super-hn-data`, builds the Astro application, and deploys `super-hn`. Pushing `master` also deploys the Astro Worker through Cloudflare's Git integration. Astro sessions remain disabled because visitor state is not stored.
+
+The data service can be validated independently:
+
+```sh
+bun run check:data
+bunx wrangler d1 migrations apply DB --local -c workers/hn-data/wrangler.jsonc
+```
 
 ## Brand
 

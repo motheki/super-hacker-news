@@ -1,47 +1,11 @@
 ---
-import FeedItem from "~/components/FeedItem.astro";
-import BaseLayout from "~/layouts/BaseLayout.astro";
-import { getTopicItems } from "~/lib/data";
-import { parsePage } from "~/lib/route";
-import { TOPICS } from "~/lib/topic";
+import TopicPage from "~/components/TopicPage.astro";
+import { isTopicName } from "~/lib/route";
 
-const ITEMS_PER_PAGE = 30;
 const topicName = Astro.params.topicName ?? "";
-const topic = TOPICS.find((item) => item.name === topicName);
-const page = parsePage(Astro.url.searchParams.get("page") ?? undefined);
-
-if (topic === undefined || page === null) {
+if (!isTopicName(topicName)) {
   return Astro.rewrite("/404");
 }
-
-const items = await getTopicItems(topic.value, page);
-if (items === null) {
-  return Astro.rewrite("/404");
-}
-
-const canonical = `/${topic.name}${page > 1 ? `?page=${page}` : ""}`;
-const title = topic.name === "top" ? undefined : topic.title;
 ---
 
-<BaseLayout canonical={canonical} title={title}>
-  <section data-testid="topic-shell">
-    <h1 class="visually-hidden">{topic.title}</h1>
-    <div class="feed" data-testid={`topic-content-${topic.name}`}>
-      {
-        items.map((item, index) => (
-          <FeedItem
-            index={index + 1 + ITEMS_PER_PAGE * (page - 1)}
-            item={item}
-          />
-        ))
-      }
-    </div>
-    <a
-      class="more-link text-link"
-      data-astro-prefetch="tap"
-      href={`/${topic.name}?page=${page + 1}`}
-    >
-      More...
-    </a>
-  </section>
-</BaseLayout>
+<TopicPage page={1} topicName={topicName} />

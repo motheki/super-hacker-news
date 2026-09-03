@@ -1,6 +1,7 @@
 node_modules
 .astro
 .wrangler
+workers/hn-data/worker-configuration.d.ts
 dist
 playwright-report
 test-results

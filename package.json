@@ -10,8 +10,11 @@
   "type": "module",
   "scripts": {
     "benchmark": "bun run build && bun run scripts/benchmark.ts",
-    "build": "wrangler types --include-runtime false && astro check && astro build",
-    "deploy": "bun run build && wrangler deploy",
+    "build": "bun run check:data && bun run build:app",
+    "build:app": "wrangler types --include-runtime false && astro check && astro build",
+    "check:data": "bun run types:data && ./node_modules/@typescript/native/bin/tsc --noEmit --project workers/hn-data/tsconfig.json && wrangler deploy -c workers/hn-data/wrangler.jsonc --dry-run",
+    "deploy": "bun run deploy:data && bun run build:app && wrangler deploy",
+    "deploy:data": "bun run check:data && wrangler d1 migrations apply DB --remote -c workers/hn-data/wrangler.jsonc && wrangler deploy -c workers/hn-data/wrangler.jsonc",
     "dev": "wrangler types --include-runtime false && astro dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -21,7 +24,8 @@
     "start": "astro preview",
     "test": "bun test",
     "test:e2e": "bun run build && playwright test",
-    "typecheck": "wrangler types --include-runtime false && astro check && ./node_modules/@typescript/native/bin/tsc --noEmit --project tsconfig.native.json"
+    "typecheck": "wrangler types --include-runtime false && bun run types:data && astro check && ./node_modules/@typescript/native/bin/tsc --noEmit --project tsconfig.native.json && ./node_modules/@typescript/native/bin/tsc --noEmit --project workers/hn-data/tsconfig.json",
+    "types:data": "wrangler types workers/hn-data/worker-configuration.d.ts -c workers/hn-data/wrangler.jsonc --env-interface HnDataEnv"
   },
   "dependencies": {
     "@astrojs/cloudflare": "14.2.6",
@@ -32,9 +36,9 @@
     "@astrojs/check": "^0.9.10",
     "@eslint/js": "^9.39.4",
     "@playwright/test": "^1.62.1",
-    "@typescript/native": "npm:typescript@7.0.2",
     "@types/bun": "^1.4.0",
     "@types/sanitize-html": "^2.16.1",
+    "@typescript/native": "npm:typescript@7.0.2",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-astro": "^3.1.0",

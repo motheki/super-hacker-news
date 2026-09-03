@@ -1,0 +1,16 @@
+---
+import TopicPage from "~/components/TopicPage.astro";
+import { isTopicName, parsePage } from "~/lib/route";
+
+const topicName = Astro.params.topicName ?? "";
+const page = parsePage(Astro.params.page);
+
+if (!isTopicName(topicName) || page === null) {
+  return Astro.rewrite("/404");
+}
+if (page === 1) {
+  return Astro.redirect(`/${topicName}`, 308);
+}
+---
+
+<TopicPage page={page} topicName={topicName} />

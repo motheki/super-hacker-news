@@ -2,26 +2,26 @@
 import Comment from "~/components/Comment.astro";
 import BaseLayout from "~/layouts/BaseLayout.astro";
 import { getPostCache } from "~/lib/cache";
-import { getPost, getRootItemId } from "~/lib/data";
+import { getPostTarget } from "~/lib/data";
 import { sanitizeHnHtml } from "~/lib/html";
 import { isSafeExternalUrl } from "~/lib/link";
 import { parsePostId } from "~/lib/route";
 import { SITE_URL } from "~/lib/site";
+import { env } from "cloudflare:workers";
 
 const postId = parsePostId(Astro.params.postId ?? "");
 if (postId === null) {
   return Astro.rewrite("/404");
 }
 
-const post = await getPost(postId);
-if (post === null) {
-  const rootItemId = await getRootItemId(postId);
-  if (rootItemId !== null && rootItemId !== postId) {
-    return Astro.redirect(`/post/${rootItemId}#comment-${postId}`, 302);
-  }
-
+const target = await getPostTarget(postId, env.HN_DATA);
+if (target.kind === "redirect") {
+  return Astro.redirect(`/post/${target.rootId}#comment-${postId}`, 302);
+}
+if (target.kind === "missing") {
   return Astro.rewrite("/404");
 }
+const { post } = target;
 
 Astro.cache.set(getPostCache(post.time, Math.floor(Date.now() / 1_000)));
 

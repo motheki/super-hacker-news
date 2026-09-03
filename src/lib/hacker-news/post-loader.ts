@@ -96,23 +96,17 @@ function selectBulk(primary: Post | null, secondary: Post | null) {
 export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
   const start = performance.now();
 
-  // Use one official root snapshot to verify and, if needed, build the post.
-  const [aggregatedResult, secondaryResult, rootResult] =
-    await Promise.allSettled([
-      loaders.getAggregated(),
-      loaders.getSecondary(),
-      loaders.getOfficialRoot(),
-    ]);
+  // Verify the primary first. The slower secondary is only a repair path.
+  const [aggregatedResult, rootResult] = await Promise.allSettled([
+    loaders.getAggregated(),
+    loaders.getOfficialRoot(),
+  ]);
   const aggregated =
     aggregatedResult.status === "fulfilled" ? aggregatedResult.value : null;
   const root = rootResult.status === "fulfilled" ? rootResult.value : null;
-  const secondary =
-    secondaryResult.status === "fulfilled" ? secondaryResult.value : null;
-  const selection = selectBulk(aggregated, secondary);
-  const bulk = selection.post;
   const aggregatedCount = aggregated?.comments_count ?? null;
-  const secondaryCount = secondary?.comments_count ?? null;
   const officialCount = root?.descendants ?? null;
+  let secondaryCount: number | null = null;
 
   const report = (reason: SelectionReason, selectedProvider: PostProvider) => {
     loaders.report({
@@ -125,6 +119,27 @@ export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
       selectedProvider,
     });
   };
+
+  if (aggregated !== null && isPostComplete(aggregated, officialCount)) {
+    const reason =
+      officialCount === null
+        ? "official-unavailable"
+        : aggregated.comments_count === officialCount
+          ? "exact"
+          : "aggregate-ahead";
+    report(reason, "hackerwebapp");
+    return aggregated;
+  }
+
+  const secondaryResult = await Promise.allSettled([loaders.getSecondary()]);
+  const secondary =
+    secondaryResult[0]?.status === "fulfilled"
+      ? secondaryResult[0].value
+      : null;
+  secondaryCount = secondary?.comments_count ?? null;
+
+  const selection = selectBulk(aggregated, secondary);
+  const bulk = selection.post;
 
   if (bulk !== null && isPostComplete(bulk, officialCount)) {
     const reason =
@@ -149,8 +164,8 @@ export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
       throw toError(aggregatedResult.reason);
     }
 
-    if (secondaryResult.status === "rejected") {
-      throw toError(secondaryResult.reason);
+    if (secondaryResult[0]?.status === "rejected") {
+      throw toError(secondaryResult[0].reason);
     }
 
     report("official-unavailable", "none");

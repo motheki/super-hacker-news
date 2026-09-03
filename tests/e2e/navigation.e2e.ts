@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 const TOP_PATH = "/top";
 const NEW_PATH = "/new";
 const KNOWN_POST_PATH = "/post/8863";
+const KNOWN_COMMENT_ID = 11_003;
 const ACTIVE_POST_PATH = "/post/49522137";
 const MIN_SCROLL_Y = 400;
 const HTML_CACHE_CONTROL = "public, max-age=15";
@@ -51,6 +52,16 @@ test("uses native navigation without custom scroll state", async ({ page }) => {
 
   await page.goBack();
   await expect(page).toHaveURL(new RegExp(`${TOP_PATH}$`, "u"));
+});
+
+test("opens the second feed page without losing pagination", async ({
+  page,
+}) => {
+  await page.goto(TOP_PATH);
+  await page.getByRole("link", { name: "More..." }).click();
+
+  await expect(page).toHaveURL(/\/top\/2$/u);
+  await expect(page.locator(".feed-index").first()).toHaveText("31");
 });
 
 test("ships no framework runtime", async ({ page }) => {
@@ -124,4 +135,15 @@ test("preserves comment anchors", async ({ page }) => {
 
   await expect(page).toHaveURL(/#comments$/u);
   await expect(page.locator("#comments")).toBeVisible();
+});
+
+test("redirects comment routes to their containing discussion", async ({
+  page,
+}) => {
+  await page.goto(`/post/${KNOWN_COMMENT_ID}`);
+
+  await expect(page).toHaveURL(
+    new RegExp(`${KNOWN_POST_PATH}#comment-${KNOWN_COMMENT_ID}$`, "u"),
+  );
+  await expect(page.locator(`#comment-${KNOWN_COMMENT_ID}`)).toBeVisible();
 });
