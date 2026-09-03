@@ -2,9 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { REPOSITORY_URL } from "~/lib/site";
 import { TOPICS } from "~/lib/topic";
-import { ShareButton } from "./HeaderControls";
 import { GitHubIcon } from "./icons/GitHubIcon";
-import { MagnifyingGlassIcon } from "./icons/MagnifyingGlassIcon";
 import { TopicNavigation } from "./TopicNavigation";
 
 const interactiveClass =
@@ -31,16 +29,6 @@ export const Header = () => (
     </nav>
 
     <div className="ml-1 flex shrink-0 items-center gap-0.5 sm:gap-1">
-      <ShareButton />
-      <a
-        className={iconClass}
-        title="Search Hacker News"
-        href="https://hn.algolia.com"
-        rel="noreferrer noopener"
-      >
-        <span className="sr-only">Search Hacker News</span>
-        <MagnifyingGlassIcon className="size-6 shrink-0" />
-      </a>
       <a
         className={`${iconClass} hidden sm:inline-flex`}
         title="Project source code"

@@ -5,6 +5,18 @@ const NEW_PATH = "/new";
 const KNOWN_POST_PATH = "/post/8863";
 const MIN_SCROLL_Y = 400;
 
+test("omits search and share controls", async ({ page }) => {
+  await page.goto(TOP_PATH);
+
+  await expect(
+    page.getByRole("link", { name: "Search Hacker News" }),
+  ).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Share page" })).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Project source code" }),
+  ).toBeAttached();
+});
+
 test("uses Next navigation without custom scroll state", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveURL(new RegExp(`${TOP_PATH}$`, "u"));
