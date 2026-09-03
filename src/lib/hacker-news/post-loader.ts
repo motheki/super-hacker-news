@@ -29,10 +29,12 @@ interface PostLoaders {
   readonly getOfficialRoot: () => Promise<OfficialItem | null>;
   readonly getOfficialSummary?: (root: OfficialItem) => Post | null;
   readonly getSecondary: () => Promise<Post | null>;
+  readonly hedgeDelayMs?: number;
   readonly report: (metric: PostSelectionMetric) => void;
 }
 
 const OFFICIAL_COMMENT_BUDGET = 20;
+const SECONDARY_HEDGE_DELAY_MS = 250;
 
 function toError(error: unknown) {
   return error instanceof Error ? error : new Error(String(error));
@@ -40,6 +42,14 @@ function toError(error: unknown) {
 
 function durationSince(start: number) {
   return Math.round((performance.now() - start) * 10) / 10;
+}
+
+async function settle<T>(load: () => Promise<T>) {
+  try {
+    return { status: "fulfilled", value: await load() } as const;
+  } catch (reason) {
+    return { reason, status: "rejected" } as const;
+  }
 }
 
 function commentIds(post: Post) {
@@ -95,12 +105,22 @@ function selectBulk(primary: Post | null, secondary: Post | null) {
 
 export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
   const start = performance.now();
+  let secondaryTask: ReturnType<typeof settle<Post | null>> | undefined;
+  const getSecondaryResult = () => {
+    secondaryTask ??= settle(loaders.getSecondary);
+    return secondaryTask;
+  };
+  const hedgeTimer = setTimeout(
+    () => void getSecondaryResult(),
+    loaders.hedgeDelayMs ?? SECONDARY_HEDGE_DELAY_MS,
+  );
 
-  // Verify the primary first. The slower secondary is only a repair path.
+  // Verify the primary first. Hedge only when verification exceeds the budget.
   const [aggregatedResult, rootResult] = await Promise.allSettled([
     loaders.getAggregated(),
     loaders.getOfficialRoot(),
   ]);
+  clearTimeout(hedgeTimer);
   const aggregated =
     aggregatedResult.status === "fulfilled" ? aggregatedResult.value : null;
   const root = rootResult.status === "fulfilled" ? rootResult.value : null;
@@ -131,11 +151,9 @@ export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
     return aggregated;
   }
 
-  const secondaryResult = await Promise.allSettled([loaders.getSecondary()]);
+  const secondaryResult = await getSecondaryResult();
   const secondary =
-    secondaryResult[0]?.status === "fulfilled"
-      ? secondaryResult[0].value
-      : null;
+    secondaryResult.status === "fulfilled" ? secondaryResult.value : null;
   secondaryCount = secondary?.comments_count ?? null;
 
   const selection = selectBulk(aggregated, secondary);
@@ -164,8 +182,8 @@ export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
       throw toError(aggregatedResult.reason);
     }
 
-    if (secondaryResult[0]?.status === "rejected") {
-      throw toError(secondaryResult[0].reason);
+    if (secondaryResult.status === "rejected") {
+      throw toError(secondaryResult.reason);
     }
 
     report("official-unavailable", "none");

@@ -68,6 +68,33 @@ describe("loadPost", () => {
     expect(secondaryLoads).toBe(0);
   });
 
+  test("hedges the secondary while primary verification is slow", async () => {
+    let releaseAggregate: (post: Post) => void = () => undefined;
+    const aggregate = new Promise<Post>((resolve) => {
+      releaseAggregate = resolve;
+    });
+    let secondaryLoads = 0;
+
+    const result = loadPost(POST_ID, {
+      getAggregated: () => aggregate,
+      getSecondary: () => {
+        secondaryLoads += 1;
+        return Promise.resolve(createPost(3));
+      },
+      getOfficialPost: () => Promise.resolve(createPost(3)),
+      getOfficialRoot: () => Promise.resolve(createRoot(3)),
+      hedgeDelayMs: 0,
+      report: () => undefined,
+    });
+
+    await Bun.sleep(5);
+    const loadsBeforePrimary = secondaryLoads;
+    releaseAggregate(createPost(0));
+    await result;
+
+    expect(loadsBeforePrimary).toBe(1);
+  });
+
   test("uses the aggregate when it is ahead of the official count", async () => {
     const aggregate = createPost(4);
     let officialLoads = 0;
