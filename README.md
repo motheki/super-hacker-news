@@ -33,7 +33,9 @@ bun run dev
 Before submitting changes, run:
 
 ```sh
+bun run format:check
 bun run lint
+bun run typecheck
 bun run test
 bun run test:e2e
 bun run test:instant
@@ -42,9 +44,7 @@ bun run build
 
 ## Architecture
 
-The application uses the Next.js App Router and React Server Components by default. Tight Suspense, error, global error, and not-found boundaries handle navigation and failure states. Public API reads use Cache Components with `use cache`, explicit `cacheLife` policies, and cache tags; Partial Prefetching reuses route shells while intent prefetching resolves likely URL-specific data. Client components are limited to interactive UI islands.
-
-See [Architecture and design](docs/architecture.md) and the [Next.js documentation audit](docs/nextjs-audit.md) for the route map, data flow, caching strategy, and framework decisions.
+The application uses the Next.js App Router, React Server Components, Suspense streaming, Cache Components, Partial Prefetching, typed routes, React Compiler, and TypeScript 7. Next links own route prefetching and navigation. The browser owns scrolling and comment disclosure. Client components are limited to browser-only controls.
 
 ## Browser icons
 

@@ -1,15 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Pixel } from "next/font/google";
-import Script from "next/script";
-import { Suspense, type ReactNode } from "react";
 import { Header } from "~/components/Header";
 import { JsonLd } from "~/components/JsonLd";
-import { ScrollPolicy } from "~/components/ScrollPolicy";
-import {
-  SCROLL_ENTRY_STATE,
-  SCROLL_POSITIONS_WINDOW,
-  SCROLL_TRAVERSE_ATTR,
-} from "~/lib/scroll";
 import {
   SITE_DESCRIPTION,
   SITE_NAME,
@@ -25,46 +17,6 @@ const geistPixel = Geist_Pixel({
   adjustFontFallback: false,
   fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "monospace"],
 });
-
-const SCROLL_POLICY_ID = "scroll-policy-init";
-const INIT_SCROLL_POLICY = `
-(function () {
-  const entryState = "${SCROLL_ENTRY_STATE}";
-  const positionsState = "${SCROLL_POSITIONS_WINDOW}";
-  const pushState = history.pushState;
-  const replaceState = history.replaceState;
-  const makeEntry = () => crypto.randomUUID();
-  const addEntry = (state, entry) => ({ ...(state ?? {}), [entryState]: entry });
-
-  window[positionsState] = new Map();
-  replaceState.call(history, addEntry(history.state, makeEntry()), "");
-  history.pushState = function (state, title, url) {
-    const currentEntry = history.state?.[entryState];
-    if (currentEntry) window[positionsState].set(currentEntry, scrollY);
-
-    return pushState.call(this, addEntry(state, makeEntry()), title, url);
-  };
-  history.replaceState = function (state, title, url) {
-    const entry = history.state?.[entryState] ?? makeEntry();
-    return replaceState.call(this, addEntry(state, entry), title, url);
-  };
-
-  history.scrollRestoration = "manual";
-  addEventListener("popstate", (event) => {
-    document.documentElement.setAttribute(
-      "${SCROLL_TRAVERSE_ATTR}",
-      event.state?.[entryState] ?? "",
-    );
-  });
-  addEventListener("load", () => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (!location.hash) scrollTo(0, 0);
-      });
-    });
-  }, { once: true });
-})();
-`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -122,16 +74,10 @@ export const viewport: Viewport = {
   ],
 };
 
-// oxlint-disable-next-line typescript/prefer-readonly-parameter-types -- Next.js supplies ReactNode with framework-owned mutable portal internals.
-export default function RootLayout({
-  children,
-}: Readonly<{ children: Readonly<ReactNode> }>) {
+export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={geistPixel.variable}>
       <head>
-        <Script id={SCROLL_POLICY_ID} strategy="beforeInteractive">
-          {INIT_SCROLL_POLICY}
-        </Script>
         <link
           rel="mask-icon"
           href="/super-hn-terminal-v1-mask.svg"
@@ -148,9 +94,6 @@ export default function RootLayout({
             url: SITE_URL,
           }}
         />
-        <Suspense fallback={null}>
-          <ScrollPolicy />
-        </Suspense>
         <div className="mx-auto max-w-3xl">
           <Header />
           <main>{children}</main>

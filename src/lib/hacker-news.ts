@@ -7,6 +7,10 @@ import type { User } from "./user";
 
 type Validator<T> = (value: unknown) => value is T;
 
+const CACHE_NEWS = "news";
+const CACHE_STORY_IDS = "storyIds";
+const HTTP_NOT_FOUND = 404;
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
@@ -94,7 +98,7 @@ async function fetchJson<T>(
     headers: { accept: "application/json" },
   });
 
-  if (response.status === 404) return null;
+  if (response.status === HTTP_NOT_FOUND) return null;
   if (!response.ok) {
     throw new Error(`Upstream request failed with status ${response.status}`);
   }
@@ -109,16 +113,9 @@ async function fetchJson<T>(
   return isValid(value) ? value : null;
 }
 
-const shortCacheLife = { stale: 60, revalidate: 60, expire: 3600 } as const;
-const storyIdsCacheLife = {
-  stale: 3600,
-  revalidate: 3600,
-  expire: 86400,
-} as const;
-
 export async function fetchTopicItems(topic: string, page: number) {
   "use cache";
-  cacheLife(shortCacheLife);
+  cacheLife(CACHE_NEWS);
   cacheTag("topics", `topic:${topic}:${page}`);
   const items = await fetchJson(
     `https://api.hackerwebapp.com/${topic}?page=${page}.json`,
@@ -129,7 +126,7 @@ export async function fetchTopicItems(topic: string, page: number) {
 
 export async function fetchPost(postId: number) {
   "use cache";
-  cacheLife(shortCacheLife);
+  cacheLife(CACHE_NEWS);
   cacheTag("posts", `post:${postId}`);
   const post = await fetchJson(
     `https://api.hackerwebapp.com/item/${postId}`,
@@ -140,7 +137,7 @@ export async function fetchPost(postId: number) {
 
 export async function fetchItemReference(itemId: number) {
   "use cache";
-  cacheLife(shortCacheLife);
+  cacheLife(CACHE_NEWS);
   cacheTag("items", `item:${itemId}`);
   const item = await fetchJson(
     `https://hacker-news.firebaseio.com/v0/item/${itemId}.json`,
@@ -151,7 +148,7 @@ export async function fetchItemReference(itemId: number) {
 
 export async function fetchUser(userName: string) {
   "use cache";
-  cacheLife(shortCacheLife);
+  cacheLife(CACHE_NEWS);
   cacheTag("users", `user:${userName}`);
   const user = await fetchJson(
     `https://api.hnpwa.com/v0/user/${encodeURIComponent(userName)}.json`,
@@ -162,7 +159,7 @@ export async function fetchUser(userName: string) {
 
 export async function fetchBestStoryIds() {
   "use cache";
-  cacheLife(storyIdsCacheLife);
+  cacheLife(CACHE_STORY_IDS);
   cacheTag("stories", "stories:best");
   const storyIds = await fetchJson(
     "https://hacker-news.firebaseio.com/v0/beststories.json",

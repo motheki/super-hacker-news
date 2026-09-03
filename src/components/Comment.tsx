@@ -1,6 +1,6 @@
 import { Fragment } from "react";
+import Link from "next/link";
 import { CollapsibleComment } from "~/components/CollapsibleComment";
-import { IntentPrefetchLink } from "~/components/IntentPrefetchLink";
 import { renderHnHtml } from "~/lib/html";
 import type { Comment as CommentType } from "~/lib/post";
 
@@ -48,12 +48,9 @@ const CommentInfo = ({
   return (
     <>
       {comment.user !== undefined && comment.user.length > 0 && (
-        <IntentPrefetchLink
-          className="eink-link"
-          href={`/user/${comment.user}`}
-        >
+        <Link className="eink-link" href={`/user/${comment.user}`}>
           {comment.user}
-        </IntentPrefetchLink>
+        </Link>
       )}{" "}
       <a className="eink-link" href={commentLink(comment.id)}>
         {comment.time_ago}

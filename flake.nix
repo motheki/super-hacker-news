@@ -39,8 +39,7 @@
             programs = {
               alejandra.enable = true;
               deadnix.enable = true;
-              mdformat.enable = true;
-              oxfmt.enable = true;
+              prettier.enable = true;
               taplo.enable = true;
             };
           };

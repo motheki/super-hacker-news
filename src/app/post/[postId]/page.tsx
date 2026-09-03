@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Comment } from "~/components/Comment";
-import { IntentPrefetchLink } from "~/components/IntentPrefetchLink";
 import { JsonLd } from "~/components/JsonLd";
 import { RouteLoading } from "~/components/RouteLoading";
 import { getPost, getRootItemId } from "~/lib/data";
@@ -12,13 +12,9 @@ import type { Post } from "~/lib/post";
 import { parsePostId } from "~/lib/route";
 import { SITE_URL, SOCIAL_IMAGE_PATH } from "~/lib/site";
 
-type PostPageProps = Readonly<{
-  params: Readonly<Promise<Readonly<{ postId: string }>>>;
-}>;
-
 export const generateMetadata = async ({
   params,
-}: PostPageProps): Promise<Metadata> => {
+}: PageProps<"/post/[postId]">): Promise<Metadata> => {
   const postId = parsePostId((await params).postId);
   if (postId === null) return {};
   const post = await getPost(postId);
@@ -101,9 +97,9 @@ const PostDetails = ({ post }: Readonly<{ post: Post }>) => (
     <article>
       <p className="eink-muted mt-1 text-sm">
         {post.points} points by{" "}
-        <IntentPrefetchLink className="eink-link" href={`/user/${post.user}`}>
+        <Link className="eink-link" href={`/user/${post.user}`}>
           {post.user}
-        </IntentPrefetchLink>{" "}
+        </Link>{" "}
         {post.time_ago} | {post.comments_count}{" "}
         {post.comments_count === 1 ? "comment" : "comments"}
       </p>
@@ -130,7 +126,7 @@ const PostComments = ({ post }: Readonly<{ post: Post }>) => (
   </div>
 );
 
-export default function PostPage(props: PostPageProps) {
+export default function PostPage(props: PageProps<"/post/[postId]">) {
   return (
     <div data-testid="post-shell">
       <Suspense fallback={<RouteLoading label="discussion" />}>
@@ -140,7 +136,7 @@ export default function PostPage(props: PostPageProps) {
   );
 }
 
-async function PostContent({ params }: PostPageProps) {
+async function PostContent({ params }: PageProps<"/post/[postId]">) {
   const postId = parsePostId((await params).postId);
   if (postId === null) notFound();
 

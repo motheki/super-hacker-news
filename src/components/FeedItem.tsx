@@ -1,4 +1,4 @@
-import { IntentPrefetchLink } from "~/components/IntentPrefetchLink";
+import Link from "next/link";
 import { isSafeExternalUrl } from "~/lib/link";
 import type { TopicItem } from "~/lib/topic";
 
@@ -30,20 +30,17 @@ const FeedItemMeta = ({ item }: Readonly<{ item: TopicItem }>) =>
         item.user.length > 0 && (
           <>
             {" by "}
-            <IntentPrefetchLink
-              className="eink-link"
-              href={`/user/${item.user}`}
-            >
+            <Link className="eink-link" href={`/user/${item.user}`}>
               {item.user}
-            </IntentPrefetchLink>
+            </Link>
           </>
         )}{" "}
       {item.time_ago}
       {" | "}
-      <IntentPrefetchLink className="eink-link" href={`/post/${item.id}`}>
+      <Link className="eink-link" href={`/post/${item.id}`}>
         {item.comments_count}&nbsp;
         {item.comments_count === 1 ? "comment" : "comments"}
-      </IntentPrefetchLink>
+      </Link>
     </p>
   );
 
@@ -59,12 +56,9 @@ export const FeedItem = ({ item, index }: Readonly<FeedItemProps>) => {
       <article className="min-w-0 text-lg">
         <h2>
           {externalUrl === null ? (
-            <IntentPrefetchLink
-              className={titleClass}
-              href={`/post/${item.id}`}
-            >
+            <Link className={titleClass} href={`/post/${item.id}`}>
               {title}
-            </IntentPrefetchLink>
+            </Link>
           ) : (
             <a
               className={titleClass}

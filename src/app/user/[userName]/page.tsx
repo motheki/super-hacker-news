@@ -7,13 +7,9 @@ import { renderHnHtml } from "~/lib/html";
 import { isValidUserName } from "~/lib/route";
 import { SOCIAL_IMAGE_PATH } from "~/lib/site";
 
-type UserPageProps = Readonly<{
-  params: Readonly<Promise<Readonly<{ userName: string }>>>;
-}>;
-
 export const generateMetadata = async ({
   params,
-}: UserPageProps): Promise<Metadata> => {
+}: PageProps<"/user/[userName]">): Promise<Metadata> => {
   const { userName } = await params;
   if (!isValidUserName(userName)) return {};
   const user = await getUser(userName);
@@ -42,7 +38,7 @@ export const generateMetadata = async ({
   };
 };
 
-export default function UserPage(props: UserPageProps) {
+export default function UserPage(props: PageProps<"/user/[userName]">) {
   return (
     <div data-testid="user-shell">
       <Suspense fallback={<RouteLoading label="profile" />}>
@@ -52,7 +48,7 @@ export default function UserPage(props: UserPageProps) {
   );
 }
 
-async function UserContent({ params }: UserPageProps) {
+async function UserContent({ params }: PageProps<"/user/[userName]">) {
   const { userName } = await params;
   if (!isValidUserName(userName)) notFound();
 

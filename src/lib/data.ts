@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import {
   fetchBestStoryIds,
   fetchItemReference,
@@ -28,14 +29,16 @@ const normalizePost = (post: Readonly<Post>): Post => {
   return { ...post, comments, comments_count: countComments(comments) };
 };
 
-export async function getPost(postId: number) {
+const loadPost = async (postId: number) => {
   const post = await fetchPost(postId);
   return post ? normalizePost(post) : null;
-}
+};
+
+export const getPost = cache(loadPost);
 
 export const getRootItemId = (itemId: number) =>
   resolveRootItemId(itemId, fetchItemReference);
 
-export const getUser = (userName: string) => fetchUser(userName);
+export const getUser = cache(fetchUser);
 
 export const getBestStoryIds = () => fetchBestStoryIds();

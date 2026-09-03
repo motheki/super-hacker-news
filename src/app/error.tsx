@@ -1,7 +1,5 @@
 "use client";
 
-import { startTransition } from "react";
-
 export default function ErrorPage({
   reset,
 }: Readonly<{
@@ -13,9 +11,8 @@ export default function ErrorPage({
       <h1 className="text-2xl">Something went wrong</h1>
       <button
         className="eink-interactive mt-4 border-2 border-dotted border-[var(--color-line)] px-3 py-2"
-        onClick={() => {
-          startTransition(reset);
-        }}
+        onClick={reset}
+        type="button"
       >
         Try again
       </button>

@@ -1,7 +1,7 @@
 {
   "name": "super-hacker-news",
   "private": false,
-  "homepage": "https://superhn.vercel.app",
+  "homepage": "https://super-hacker-news.vercel.app",
   "bugs": "https://github.com/motheki/super-hacker-news/issues",
   "repository": {
     "type": "git",
@@ -13,10 +13,15 @@
     "prebuild": "bun -e \"import { rmSync } from 'node:fs'; rmSync('.next/dev', { recursive: true, force: true })\"",
     "build": "next build",
     "dev": "next dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint --config eslint.config.ts .",
+    "lint:fix": "eslint --config eslint.config.ts --fix .",
     "start": "next start",
     "test": "bun test",
     "test:e2e": "playwright test",
-    "test:instant": "EXPOSE_TESTING_API=1 bun run build && playwright test --config playwright.instant.config.ts"
+    "test:instant": "EXPOSE_TESTING_API=1 bun run build && playwright test --config playwright.instant.config.ts",
+    "typecheck": "bun run prebuild && next typegen && tsc --noEmit"
   },
   "dependencies": {
     "html-react-parser": "^6.1.7",
@@ -26,18 +31,26 @@
     "sanitize-html": "^2.17.7"
   },
   "devDependencies": {
-    "@next/eslint-plugin-next": "^16.3.4",
+    "@babel/eslint-parser": "^7.29.0",
+    "@babel/preset-typescript": "^7.29.0",
+    "@eslint/js": "^9.39.4",
+    "@next/eslint-plugin-next": "16.4.0-canary.12",
     "@next/playwright": "16.4.0-canary.12",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/bun": "^1.4.0",
+    "@types/eslint-plugin-jsx-a11y": "^6.10.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "@types/sanitize-html": "^2.16.1",
     "babel-plugin-react-compiler": "^1.0.0",
-    "eslint": "^10.9.1",
-    "eslint-config-next": "^16.3.4",
+    "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
+    "jiti": "^2.7.0",
+    "prettier": "^3.9.6",
     "tailwindcss": "^4.3.3",
     "typescript": "7.0.2"
   }

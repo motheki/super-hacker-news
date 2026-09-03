@@ -11,20 +11,13 @@ import { TOPICS } from "~/lib/topic";
 
 const ITEMS_PER_PAGE = 30;
 
-type TopicPageProps = Readonly<{
-  params: Readonly<Promise<Readonly<{ topicName: string }>>>;
-  searchParams: Readonly<
-    Promise<Readonly<{ page?: string | readonly string[] }>>
-  >;
-}>;
-
 export const generateStaticParams = () =>
   TOPICS.map(({ name: topicName }) => ({ topicName }));
 
 export const generateMetadata = async ({
   params,
   searchParams,
-}: TopicPageProps): Promise<Metadata> => {
+}: PageProps<"/[topicName]">): Promise<Metadata> => {
   const [{ topicName }, query] = await Promise.all([params, searchParams]);
   const topic = TOPICS.find((item) => item.name === topicName);
   const page = parsePage(query.page);
@@ -47,7 +40,7 @@ export const generateMetadata = async ({
   };
 };
 
-export default function TopicPage(props: TopicPageProps) {
+export default function TopicPage(props: PageProps<"/[topicName]">) {
   return (
     <div data-testid="topic-shell">
       <Suspense fallback={<RouteLoading label="stories" />}>
@@ -57,7 +50,7 @@ export default function TopicPage(props: TopicPageProps) {
   );
 }
 
-async function TopicFeed({ params, searchParams }: TopicPageProps) {
+async function TopicFeed({ params, searchParams }: PageProps<"/[topicName]">) {
   const [{ topicName }, query] = await Promise.all([params, searchParams]);
   const topic = TOPICS.find((item) => item.name === topicName);
   const page = parsePage(query.page);

@@ -1,4 +1,3 @@
-/* oxlint-disable typescript/prefer-readonly-parameter-types -- Playwright Pages are framework-owned mutable fixtures. */
 import { instant } from "@next/playwright";
 import { expect, test } from "@playwright/test";
 

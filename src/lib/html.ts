@@ -8,9 +8,9 @@ import parseHtml, {
   type DOMNode,
   type HTMLReactParserOptions,
 } from "html-react-parser";
+import Link from "next/link";
 import { createElement } from "react";
 import sanitizeHtml from "sanitize-html";
-import { IntentPrefetchLink } from "~/components/IntentPrefetchLink";
 import { isInternalPath, replaceHnPostLinks } from "~/lib/link";
 
 const sanitizeOptions: sanitizeHtml.IOptions = {
@@ -32,7 +32,6 @@ const sanitizeOptions: sanitizeHtml.IOptions = {
 };
 
 const parserOptions: HTMLReactParserOptions = {
-  // oxlint-disable-next-line typescript/prefer-readonly-parameter-types -- Parser callbacks receive mutable third-party DOM classes.
   replace(domNode: Readonly<DOMNode>) {
     if (!(domNode instanceof Element) || domNode.name !== "a") return null;
     const href = domNode.attribs.href;
@@ -50,11 +49,7 @@ const parserOptions: HTMLReactParserOptions = {
       }
     }
 
-    return createElement(
-      IntentPrefetchLink,
-      { href },
-      domToReact(children, parserOptions),
-    );
+    return createElement(Link, { href }, domToReact(children, parserOptions));
   },
 };
 

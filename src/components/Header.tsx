@@ -5,13 +5,7 @@ import { TOPICS } from "~/lib/topic";
 import { ShareButton } from "./HeaderControls";
 import { GitHubIcon } from "./icons/GitHubIcon";
 import { MagnifyingGlassIcon } from "./icons/MagnifyingGlassIcon";
-import { TopicNavigation, type TopicLink } from "./TopicNavigation";
-
-// Keep the fallback static so navigation remains available while the client path resolves.
-const LINKS: readonly TopicLink[] = TOPICS.map(({ name, title }) => ({
-  title,
-  href: `/${name}`,
-}));
+import { TopicNavigation } from "./TopicNavigation";
 
 const interactiveClass =
   "eink-interactive inline-flex shrink-0 items-center justify-center rounded leading-none transition-colors focus-visible:outline-2 motion-reduce:transition-none";
@@ -19,9 +13,9 @@ const topicLinkClass = `${interactiveClass} h-9 whitespace-nowrap px-2`;
 const iconClass = `${interactiveClass} size-9`;
 
 const TopicNavigationFallback = () =>
-  LINKS.map((link) => (
-    <Link className={topicLinkClass} href={link.href} key={link.href}>
-      {link.title}
+  TOPICS.map(({ name, title }) => (
+    <Link className={topicLinkClass} href={`/${name}`} key={name}>
+      {title}
     </Link>
   ));
 
@@ -32,7 +26,7 @@ export const Header = () => (
       className="mr-auto flex min-w-0 items-center gap-0.5 sm:gap-2"
     >
       <Suspense fallback={<TopicNavigationFallback />}>
-        <TopicNavigation links={LINKS} />
+        <TopicNavigation />
       </Suspense>
     </nav>
 

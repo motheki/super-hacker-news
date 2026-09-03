@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { PaperAirplaneIcon } from "./icons/PaperAirplaneIcon";
 
 const iconClass =
   "eink-interactive inline-flex size-9 shrink-0 items-center justify-center rounded leading-none transition-colors focus-visible:outline-2 motion-reduce:transition-none";
+const subscribe = () => () => undefined;
+const getShareSupport = () => typeof navigator.share === "function";
+const getServerShareSupport = () => false;
 
 const sharePage = async () => {
+  if (!getShareSupport()) return;
+
   try {
     await navigator.share({
       title: document.title,
@@ -18,11 +23,11 @@ const sharePage = async () => {
 };
 
 export function ShareButton() {
-  const [canShare, setCanShare] = useState(false);
-
-  useEffect(() => {
-    setCanShare(typeof navigator.share === "function");
-  }, []);
+  const canShare = useSyncExternalStore(
+    subscribe,
+    getShareSupport,
+    getServerShareSupport,
+  );
 
   if (!canShare) return null;
 

@@ -1,7 +1,5 @@
 "use client";
 
-import { startTransition } from "react";
-
 export default function GlobalError({
   reset,
 }: Readonly<{
@@ -20,12 +18,7 @@ export default function GlobalError({
         >
           <h1>Something went wrong</h1>
           <p>The application could not finish loading.</p>
-          <button
-            onClick={() => {
-              startTransition(reset);
-            }}
-            type="button"
-          >
+          <button onClick={reset} type="button">
             Try again
           </button>
         </main>

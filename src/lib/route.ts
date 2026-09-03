@@ -15,7 +15,10 @@ export const parsePage = (value?: string | readonly string[]) => {
   if (value === undefined) return 1;
   if (typeof value === "string") return parsePositiveInteger(value);
   if (value.length === 0) return 1;
-  return value.length === 1 ? parsePositiveInteger(value[0]) : null;
+  if (value.length !== 1) return null;
+
+  const [page] = value;
+  return page === undefined ? null : parsePositiveInteger(page);
 };
 
 export const parsePostId = (value: string) => parsePositiveInteger(value);
