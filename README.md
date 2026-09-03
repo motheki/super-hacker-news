@@ -26,7 +26,7 @@ A small, server-rendered Hacker News reader built with Astro and deployed on Clo
 - Official Hacker News data with HackerWeb and Algolia outage fallbacks
 - Bun, TypeScript 7, ESLint, Prettier, and Playwright
 
-Astro 7.2.10 and `@astrojs/cloudflare` 14.2.6 are pinned as a compatible pair. Astro 7.3.0's published asset pipeline omits an internal logger export required by its Worker build.
+Astro 7.3.1 and `@astrojs/cloudflare` 14.3.0 are pinned together.
 
 ## Development
 
@@ -48,7 +48,7 @@ bun run build
 
 `bun run typecheck` uses Astro's TypeScript 6-compatible checker for `.astro` templates and the TypeScript 7 native compiler for TypeScript source. TypeScript 7 does not yet expose the programmatic API Astro's checker requires.
 
-Run the production route benchmark with `bun run benchmark`.
+Run the local route benchmark with `bun run benchmark`. `bun run benchmark:live` measures warm, materialized, and provider-fallback production routes when given `MATERIALIZED_IDS` and `FALLBACK_IDS`.
 
 ## Architecture
 
@@ -65,13 +65,13 @@ Browser
 
 Astro renders feeds, posts, comments, profiles, metadata, and errors on the server. The browser receives compressed HTML, self-hosted fonts, a small opt-in prefetch helper, and no component framework. Native links own navigation and scrolling; native `<details>` elements own comment collapsing. Discussion links prerender on hover in supported browsers and fall back to Astro's prefetch helper elsewhere.
 
-Feeds cache at Cloudflare's edge for one minute, profiles for 15 minutes, and the sitemap for one hour. Active posts cache for 15 seconds, settled posts for one minute, and posts older than 30 days for five minutes. Their background revalidation windows are one minute, five minutes, and one hour respectively. Successful HTML also receives a 15-second browser cache. Upstream requests have separate short-lived Cloudflare caches, timeouts, bounded retries, schema validation, and structured metrics.
+Feeds and active discussions cache at Cloudflare's edge for one minute with five minutes of background revalidation. Discussions from one to 30 days old cache for five minutes with one hour of revalidation. Older discussions and the sitemap cache for one hour with one day of revalidation. Profiles cache for 15 minutes with one hour of revalidation. Successful HTML also receives a 15-second browser cache. Errors, missing data, and redirects are not cached.
 
-The private data service polls official feed and update indexes, stores validated source items and normalized output, and materializes complete post trees asynchronously. The Astro Worker reads those trees through a service binding, so readers do not wait for a fan-out of Hacker News requests. Missing or stale feeds also refresh on demand, so scheduled synchronization is not a single point of failure.
+The private data service polls official feed and update indexes, stores validated source items and normalized output, and materializes complete post trees asynchronously. One service-binding request and one indexed D1 join resolve either a post or its root redirect. Target maintenance runs after the response. Replica-eligible reads use D1 Sessions while writes remain on the primary. Missing or stale data retains the provider fallback.
 
 Cold, warming, or unavailable service reads fall back to the previous validated provider chain. HackerWeb is checked against the official descendant count first. Algolia runs only when HackerWeb is missing or behind. Small mismatches can still use bounded official reconstruction; large discussions never risk exhausting one page request's subrequest budget.
 
-Static assets receive long immutable caching where safe. Dynamic HTML uses stale-while-revalidate caching so current Hacker News data remains recent without making every visitor wait for upstream APIs.
+Derived image assets are palette-compressed, content-hashed, and cached immutably for one year. Dynamic HTML uses stale-while-revalidate caching so current Hacker News data remains recent without making every visitor wait for upstream APIs.
 
 ## Deployment
 

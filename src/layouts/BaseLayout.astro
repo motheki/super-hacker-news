@@ -1,12 +1,14 @@
 ---
 import { Font } from "astro:assets";
+import appleTouchIcon from "~/assets/apple-touch-icon.png";
+import favicon32 from "~/assets/favicon-32.png";
+import socialImage from "~/assets/super-hn-social.png";
 import Header from "~/components/Header.astro";
 import {
   REPOSITORY_URL,
   SITE_DESCRIPTION,
   SITE_NAME,
   SITE_URL,
-  SOCIAL_IMAGE_PATH,
 } from "~/lib/site";
 import "~/styles/global.css";
 
@@ -27,7 +29,7 @@ const {
 } = Astro.props;
 const pageTitle = title === undefined ? SITE_NAME : `${title} | ${SITE_NAME}`;
 const canonicalUrl = new URL(canonical, SITE_URL);
-const socialImageUrl = new URL(SOCIAL_IMAGE_PATH, SITE_URL);
+const socialImageUrl = new URL(socialImage.src, SITE_URL);
 const websiteData = {
   "@context": "https://schema.org",
   "@type": "WebSite",
@@ -71,8 +73,8 @@ const jsonLd = JSON.stringify(structuredData ?? websiteData).replaceAll(
     <meta name="twitter:image" content={socialImageUrl} />
     <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" href={favicon32.src} sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href={appleTouchIcon.src} />
     <link rel="manifest" href="/manifest.webmanifest" />
     <Font
       cssVariable="--font-quantico"

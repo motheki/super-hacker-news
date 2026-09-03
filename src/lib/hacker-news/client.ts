@@ -125,7 +125,7 @@ export async function fetchJson<T>(
       });
 
       if (!canRetryError) {
-        throw new Error("Upstream request failed", { cause: toError(error) });
+        throw new Error("Upstream request failed", { cause: error });
       }
 
       await sleep(RETRY_DELAY_MS * attempt);

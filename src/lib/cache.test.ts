@@ -34,22 +34,22 @@ describe("cacheHtml", () => {
 describe("getPostCache", () => {
   test("keeps active discussions fresh", () => {
     expect(getPostCache(NOW_SECONDS - DAY_SECONDS + 1, NOW_SECONDS)).toEqual({
-      maxAge: 15,
-      swr: 60,
-    });
-  });
-
-  test("caches settled discussions briefly", () => {
-    expect(getPostCache(NOW_SECONDS - DAY_SECONDS, NOW_SECONDS)).toEqual({
       maxAge: 60,
       swr: 300,
     });
   });
 
-  test("caches archived discussions at the edge", () => {
-    expect(getPostCache(NOW_SECONDS - MONTH_SECONDS, NOW_SECONDS)).toEqual({
+  test("caches settled discussions briefly", () => {
+    expect(getPostCache(NOW_SECONDS - DAY_SECONDS, NOW_SECONDS)).toEqual({
       maxAge: 300,
       swr: 3_600,
+    });
+  });
+
+  test("caches archived discussions at the edge", () => {
+    expect(getPostCache(NOW_SECONDS - MONTH_SECONDS, NOW_SECONDS)).toEqual({
+      maxAge: 3_600,
+      swr: 86_400,
     });
   });
 });

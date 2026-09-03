@@ -1,4 +1,6 @@
 import type { APIRoute } from "astro";
+import icon192 from "~/assets/icon-192.png";
+import icon512 from "~/assets/icon-512.png";
 import { SITE_DESCRIPTION, SITE_NAME } from "~/lib/site";
 
 export const prerender = true;
@@ -12,13 +14,13 @@ export const GET: APIRoute = () =>
       icons: [
         {
           sizes: "192x192",
-          src: "/icon-192.png",
+          src: icon192.src,
           type: "image/png",
         },
         {
           purpose: "any maskable",
           sizes: "512x512",
-          src: "/icon-512.png",
+          src: icon512.src,
           type: "image/png",
         },
       ],

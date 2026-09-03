@@ -1,4 +1,3 @@
-import type { HackerNewsItemReference } from "~/lib/item";
 import type { Post } from "~/lib/post";
 import type { TopicItem } from "~/lib/topic";
 import type { User } from "~/lib/user";
@@ -15,28 +14,25 @@ export interface ServiceBinding {
   fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
 }
 
-export interface ServiceResolution {
-  readonly item: HackerNewsItemReference;
-  readonly rootId: number;
-}
+export type ServiceTarget =
+  | { readonly kind: "post"; readonly post: Post }
+  | { readonly kind: "redirect"; readonly rootId: number };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-function parseResolution(value: unknown): ServiceResolution | null {
-  if (!isRecord(value) || !isRecord(value.item)) return null;
-  if (typeof value.rootId !== "number") return null;
-  if (typeof value.item.id !== "number") return null;
-  if (typeof value.item.type !== "string") return null;
-  if (
-    value.item.parent !== undefined &&
-    typeof value.item.parent !== "number"
-  ) {
-    return null;
+function parseTarget(value: unknown): ServiceTarget | null {
+  if (!isRecord(value) || typeof value.kind !== "string") return null;
+  if (value.kind === "post") {
+    const post = parseAggregatedPost(value.post);
+    return post === null ? null : { kind: "post", post };
   }
+  if (value.kind !== "redirect") return null;
+  if (typeof value.rootId !== "number") return null;
+  if (!Number.isSafeInteger(value.rootId) || value.rootId <= 0) return null;
 
-  return value as unknown as ServiceResolution;
+  return { kind: "redirect", rootId: value.rootId };
 }
 
 export class HnDataClient {
@@ -47,6 +43,7 @@ export class HnDataClient {
   }
 
   async #get<T>(path: string, parse: (value: unknown) => T | null) {
+    const start = performance.now();
     try {
       const response = await this.#binding.fetch(`${SERVICE_ORIGIN}${path}`, {
         headers: { accept: "application/json" },
@@ -55,7 +52,8 @@ export class HnDataClient {
         console.info(
           JSON.stringify({
             event: "hn.service_miss",
-            path,
+            durationMs: Math.round((performance.now() - start) * 10) / 10,
+            operation: path.split("/")[1] ?? "unknown",
             status: response.status,
           }),
         );
@@ -67,8 +65,9 @@ export class HnDataClient {
       console.warn(
         JSON.stringify({
           event: "hn.service_fallback",
+          durationMs: Math.round((performance.now() - start) * 10) / 10,
           message: error instanceof Error ? error.message : String(error),
-          path,
+          operation: path.split("/")[1] ?? "unknown",
         }),
       );
       return null;
@@ -79,12 +78,8 @@ export class HnDataClient {
     return this.#get("/best", parseNumberArray);
   }
 
-  getPost(postId: number): Promise<Post | null> {
-    return this.#get(`/post/${postId}`, parseAggregatedPost);
-  }
-
-  getResolution(itemId: number) {
-    return this.#get(`/resolve/${itemId}`, parseResolution);
+  getTarget(itemId: number): Promise<ServiceTarget | null> {
+    return this.#get(`/target/${itemId}`, parseTarget);
   }
 
   getTopics(topic: string, page: number): Promise<TopicItem[] | null> {
