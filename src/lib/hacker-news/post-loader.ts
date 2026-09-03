@@ -33,6 +33,11 @@ interface PostLoaders {
   readonly report: (metric: PostSelectionMetric) => void;
 }
 
+interface CompletePostLoaders {
+  readonly getFallback: () => Promise<Post | null>;
+  readonly getOfficial: () => Promise<Post | null>;
+}
+
 const OFFICIAL_COMMENT_BUDGET = 20;
 const SECONDARY_HEDGE_DELAY_MS = 250;
 
@@ -101,6 +106,17 @@ function selectBulk(primary: Post | null, secondary: Post | null) {
   return secondary.comments_count > primary.comments_count
     ? ({ post: secondary, provider: "algolia", divergent: true } as const)
     : ({ post: primary, provider: "hackerwebapp", divergent: true } as const);
+}
+
+export async function loadCompletePost(loaders: CompletePostLoaders) {
+  try {
+    const official = await loaders.getOfficial();
+    if (official !== null) return official;
+  } catch {
+    // Provider data keeps discussions available when official hydration fails.
+  }
+
+  return loaders.getFallback();
 }
 
 export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {

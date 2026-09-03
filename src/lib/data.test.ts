@@ -15,6 +15,20 @@ const POST: Post = {
   user: "alice",
 };
 
+const FRESH_POST: Post = {
+  ...POST,
+  comments_count: 1,
+  comments: [
+    {
+      comments: [],
+      comments_count: 0,
+      content: "Fresh",
+      id: POST_ID + 1,
+      user: "bob",
+    },
+  ],
+};
+
 describe("getPostTarget", () => {
   test("uses one data-service request for a materialized post", async () => {
     let requests = 0;
@@ -52,6 +66,37 @@ describe("getPostTarget", () => {
 
     expect(target).toEqual({ kind: "post", post: POST });
     expect(itemReads).toBe(1);
+    expect(postReads).toBe(1);
+  });
+
+  test("replaces a stale service post through the complete fallback", async () => {
+    let requests = 0;
+    let postReads = 0;
+    const target = await getPostTarget(
+      POST_ID,
+      {
+        fetch: () => {
+          requests += 1;
+          return Promise.resolve(
+            Response.json(
+              { kind: "post", post: POST },
+              { headers: { "x-super-hn-stale": "1" } },
+            ),
+          );
+        },
+      },
+      {
+        loadItem: () =>
+          Promise.resolve({ id: POST_ID, type: "story" } as const),
+        loadPost: () => {
+          postReads += 1;
+          return Promise.resolve(FRESH_POST);
+        },
+      },
+    );
+
+    expect(target).toEqual({ kind: "post", post: FRESH_POST });
+    expect(requests).toBe(1);
     expect(postReads).toBe(1);
   });
 });

@@ -1,7 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import type { Post } from "~/lib/post";
 import type { OfficialItem } from "./codec";
-import { loadPost, type PostSelectionMetric } from "./post-loader";
+import {
+  loadCompletePost,
+  loadPost,
+  type PostSelectionMetric,
+} from "./post-loader";
 
 const POST_ID = 1;
 const STORY_TIME = 1_700_000_000;
@@ -227,5 +231,34 @@ describe("loadPost", () => {
     });
 
     expect(post).toBe(secondary);
+  });
+});
+
+describe("loadCompletePost", () => {
+  test("prefers the reachable official tree", async () => {
+    const official = createPost(4);
+    let fallbackLoads = 0;
+
+    const post = await loadCompletePost({
+      getFallback: () => {
+        fallbackLoads += 1;
+        return Promise.resolve(createPost(3));
+      },
+      getOfficial: () => Promise.resolve(official),
+    });
+
+    expect(post).toBe(official);
+    expect(fallbackLoads).toBe(0);
+  });
+
+  test("keeps provider fallback when official hydration fails", async () => {
+    const fallback = createPost(3);
+
+    const post = await loadCompletePost({
+      getFallback: () => Promise.resolve(fallback),
+      getOfficial: () => Promise.reject(new Error("offline")),
+    });
+
+    expect(post).toBe(fallback);
   });
 });
