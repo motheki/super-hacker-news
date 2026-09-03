@@ -9,11 +9,21 @@ test("loads descendants added by a short first batch", async () => {
   ]);
   const root: OfficialItem = { id: 1, kids: [2], type: "story" };
 
-  const descendants = await loadDescendants(
+  const result = await loadDescendants(
     root,
     (id) => Promise.resolve(items.get(id) ?? null),
     24,
   );
 
-  expect([...descendants.keys()]).toEqual([2, 3]);
+  expect([...result.items.keys()]).toEqual([2, 3]);
+  expect(result.missingIds).toEqual([]);
+});
+
+test("reports descendants that could not be loaded", async () => {
+  const root: OfficialItem = { id: 1, kids: [2], type: "story" };
+
+  const result = await loadDescendants(root, () => Promise.resolve(null), 24);
+
+  expect(result.items.size).toBe(0);
+  expect(result.missingIds).toEqual([2]);
 });

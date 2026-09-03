@@ -2,23 +2,17 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { aggregatedProvider } from "./aggregated";
 import { preferPrimary } from "./client";
-import { isPostComplete } from "./codec";
 import {
   getOfficialBestStoryIds,
-  getOfficialCommentCount,
   getOfficialItemReference,
+  getOfficialPost,
+  getOfficialPostRoot,
   officialProvider,
 } from "./official";
+import { loadPost, type PostSelectionMetric } from "./post-loader";
 
-async function getPrimaryPost(postId: number) {
-  const countPromise = getOfficialCommentCount(postId).catch(() => null);
-  const [post, officialCount] = await Promise.all([
-    aggregatedProvider.getPost(postId),
-    countPromise,
-  ]);
-
-  if (post === null || !isPostComplete(post, officialCount)) return null;
-  return post;
+function reportPostSelection(metric: PostSelectionMetric) {
+  console.info("hn.post_selection", metric);
 }
 
 export async function fetchTopicItems(topic: string, page: number) {
@@ -38,11 +32,12 @@ export async function fetchPost(postId: number) {
   cacheLife("post");
   cacheTag("posts", `post:${postId}`);
 
-  return preferPrimary(
-    "post",
-    () => getPrimaryPost(postId),
-    () => officialProvider.getPost(postId),
-  );
+  return loadPost(postId, {
+    getAggregated: () => aggregatedProvider.getPost(postId),
+    getOfficialPost,
+    getOfficialRoot: () => getOfficialPostRoot(postId),
+    report: reportPostSelection,
+  });
 }
 
 export async function fetchItemReference(itemId: number) {

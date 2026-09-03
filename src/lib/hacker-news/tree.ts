@@ -7,7 +7,8 @@ export async function loadDescendants(
   loadItem: ItemLoader,
   batchSize: number,
 ) {
-  const descendants = new Map<number, OfficialItem>();
+  const itemsById = new Map<number, OfficialItem>();
+  const missingIds: number[] = [];
   const queued = new Set<number>([root.id]);
   const queue: number[] = [];
 
@@ -28,13 +29,19 @@ export async function loadDescendants(
     cursor += batch.length;
     const items = await Promise.all(batch.map(loadItem));
 
-    for (const item of items) {
-      if (item === null) continue;
+    for (let index = 0; index < items.length; index += 1) {
+      const item = items[index];
+      if (item === undefined || item === null) {
+        const missingId = batch[index];
+        if (missingId !== undefined) missingIds.push(missingId);
 
-      descendants.set(item.id, item);
+        continue;
+      }
+
+      itemsById.set(item.id, item);
       enqueue(item.kids ?? []);
     }
   }
 
-  return descendants;
+  return { items: itemsById, missingIds };
 }

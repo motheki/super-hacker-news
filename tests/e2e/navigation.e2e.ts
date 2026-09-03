@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 const TOP_PATH = "/top";
 const NEW_PATH = "/new";
 const KNOWN_POST_PATH = "/post/8863";
+const ACTIVE_POST_PATH = "/post/49522137";
 const MIN_SCROLL_Y = 400;
 
 test("omits search and share controls", async ({ page }) => {
@@ -48,6 +49,15 @@ test("uses native disclosure for comment threads", async ({ page }) => {
 
   await summary.click();
   await expect(details).toHaveJSProperty("open", true);
+});
+
+test("renders comments for a lagging active discussion", async ({ page }) => {
+  await page.goto(ACTIVE_POST_PATH);
+
+  await expect(page.locator("details").first()).toBeVisible();
+  await expect(page.getByTestId("post-content")).not.toContainText(
+    /\|\s*0 comments/u,
+  );
 });
 
 test("preserves comment anchors", async ({ page }) => {

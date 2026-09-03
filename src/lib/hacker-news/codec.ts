@@ -35,8 +35,6 @@ const SECONDS_PER_HOUR = 3_600;
 const SECONDS_PER_DAY = 86_400;
 const SECONDS_PER_MONTH = 2_592_000;
 const SECONDS_PER_YEAR = 31_536_000;
-const MAX_COMMENT_LAG = 5;
-const MIN_COMMENT_RATIO = 0.8;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -148,13 +146,8 @@ export function parseAggregatedPost(value: unknown): Post | null {
 }
 
 export function isPostComplete(post: Post, officialCount: number | null) {
-  if (officialCount === null || post.comments_count >= officialCount) {
-    return true;
-  }
-
-  const missing = officialCount - post.comments_count;
-  const ratio = post.comments_count / officialCount;
-  return missing <= MAX_COMMENT_LAG || ratio >= MIN_COMMENT_RATIO;
+  // Exact parity prevents a transient empty tree from entering the post cache.
+  return officialCount === null || post.comments_count === officialCount;
 }
 
 export function parseAggregatedTopics(value: unknown): TopicItem[] | null {

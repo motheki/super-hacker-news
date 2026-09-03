@@ -90,17 +90,28 @@ async function getTopics(
   return topics;
 }
 
+export async function getOfficialPost(
+  root: OfficialItem,
+): Promise<Post | null> {
+  const result = await loadDescendants(root, getOfficialItem, ITEM_BATCH_SIZE);
+
+  // Every reachable child must load; HN can count unreachable killed comments.
+  if (result.missingIds.length > 0) {
+    throw new Error("Official comment tree is incomplete");
+  }
+
+  return toOfficialPost(root, result.items, nowSeconds());
+}
+
+export function getOfficialPostRoot(postId: number) {
+  return getOfficialItem(postId);
+}
+
 async function getPost(postId: number): Promise<Post | null> {
-  const post = await getOfficialItem(postId);
-  if (post === null) return null;
+  const root = await getOfficialPostRoot(postId);
+  if (root === null) return null;
 
-  const comments = await loadDescendants(
-    post,
-    getOfficialItem,
-    ITEM_BATCH_SIZE,
-  );
-
-  return toOfficialPost(post, comments, nowSeconds());
+  return getOfficialPost(root);
 }
 
 async function getUser(userName: string): Promise<User | null> {
@@ -124,11 +135,6 @@ export async function getOfficialItemReference(
     type: item.type,
     ...(item.parent === undefined ? {} : { parent: item.parent }),
   };
-}
-
-export async function getOfficialCommentCount(postId: number) {
-  const item = await getOfficialItem(postId);
-  return item?.descendants ?? null;
 }
 
 export function getOfficialBestStoryIds() {

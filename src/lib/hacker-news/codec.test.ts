@@ -21,7 +21,7 @@ describe("post codecs", () => {
     expect(post === null ? true : isPostComplete(post, 71)).toBeFalse();
   });
 
-  test("accepts normal aggregator lag", () => {
+  test("rejects every verified aggregator lag", () => {
     const post = parseAggregatedPost({
       id: 1,
       title: "Story",
@@ -37,7 +37,56 @@ describe("post codecs", () => {
     });
 
     expect(post).not.toBeNull();
-    expect(post === null ? false : isPostComplete(post, 33)).toBeTrue();
+    expect(post === null ? true : isPostComplete(post, 33)).toBeFalse();
+  });
+
+  test("rejects an empty aggregate for a small discussion", () => {
+    const post = parseAggregatedPost({
+      id: 1,
+      title: "Story",
+      points: 10,
+      user: "alice",
+      time: STORY_TIME,
+      time_ago: "2 minutes ago",
+      comments_count: 0,
+      comments: [],
+    });
+
+    expect(post === null ? true : isPostComplete(post, 3)).toBeFalse();
+  });
+
+  test("accepts exact parity or an unavailable official count", () => {
+    const post = parseAggregatedPost({
+      id: 1,
+      title: "Story",
+      points: 10,
+      user: "alice",
+      time: STORY_TIME,
+      time_ago: "2 minutes ago",
+      comments_count: 0,
+      comments: [],
+    });
+
+    expect(post === null ? false : isPostComplete(post, 0)).toBeTrue();
+    expect(post === null ? false : isPostComplete(post, null)).toBeTrue();
+  });
+
+  test("rejects an aggregate ahead of its official snapshot", () => {
+    const post = parseAggregatedPost({
+      id: 1,
+      title: "Story",
+      points: 10,
+      user: "alice",
+      time: STORY_TIME,
+      time_ago: "2 minutes ago",
+      comments_count: 0,
+      comments: Array.from({ length: 5 }, (_, index) => ({
+        id: index + 2,
+        comments: [],
+      })),
+    });
+
+    expect(post === null ? true : isPostComplete(post, 4)).toBeFalse();
   });
 
   test("validates and counts aggregated comments in one pass", () => {
