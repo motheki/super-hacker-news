@@ -9,10 +9,11 @@ import type { TopicItem } from "~/lib/topic";
 import { HnApi } from "./api";
 import { materialize } from "./materializer";
 import { HnRepository } from "./repository";
-import type { HnDataEnv, HydrationMessage } from "./types";
+import type { HnDataEnv, HydrationMessage, ItemHydration } from "./types";
 
 const ITEMS_PER_PAGE = 30;
-const QUEUE_BATCH_SIZE = 100;
+const HYDRATION_BATCH_SIZE = 25;
+const QUEUE_WRITE_BATCH_SIZE = 100;
 const FEED_REFRESH_SECONDS = 60;
 const POST_REFRESH_SECONDS = 15;
 const USER_REFRESH_SECONDS = 3_600;
@@ -51,15 +52,47 @@ export class HnDataService {
   }
 
   async #enqueue(messages: readonly HydrationMessage[], delaySeconds?: number) {
-    for (let start = 0; start < messages.length; start += QUEUE_BATCH_SIZE) {
+    for (
+      let start = 0;
+      start < messages.length;
+      start += QUEUE_WRITE_BATCH_SIZE
+    ) {
       const batch = messages
-        .slice(start, start + QUEUE_BATCH_SIZE)
+        .slice(start, start + QUEUE_WRITE_BATCH_SIZE)
         .map((body) => ({
           body,
           ...(delaySeconds === undefined ? {} : { delaySeconds }),
         }));
       await this.#env.HYDRATE_QUEUE.sendBatch(batch);
     }
+  }
+
+  async #enqueueItems(items: readonly ItemHydration[], delaySeconds?: number) {
+    const messages: HydrationMessage[] = [];
+    for (let start = 0; start < items.length; start += HYDRATION_BATCH_SIZE) {
+      messages.push({
+        items: items.slice(start, start + HYDRATION_BATCH_SIZE),
+        kind: "items",
+      });
+    }
+
+    await this.#enqueue(messages, delaySeconds);
+  }
+
+  async #enqueueUsers(userNames: readonly string[]) {
+    const messages: HydrationMessage[] = [];
+    for (
+      let start = 0;
+      start < userNames.length;
+      start += HYDRATION_BATCH_SIZE
+    ) {
+      messages.push({
+        kind: "users",
+        userNames: userNames.slice(start, start + HYDRATION_BATCH_SIZE),
+      });
+    }
+
+    await this.#enqueue(messages);
   }
 
   async #enqueuePost(rootId: number, delaySeconds = POST_RETRY_SECONDS) {
@@ -149,7 +182,7 @@ export class HnDataService {
     const stored = await this.#repo.getItems(ids);
     const missingIds = ids.filter((id) => !stored.has(id));
     if (missingIds.length > 0) {
-      await this.#enqueue(missingIds.map((id) => ({ id, kind: "item" })));
+      await this.#enqueueItems(missingIds.map((id) => ({ id })));
       return null;
     }
 
@@ -172,8 +205,8 @@ export class HnDataService {
       stored === null ||
       nowSeconds() - stored.observedAt >= POST_REFRESH_SECONDS;
     if (isStale) {
-      await this.#enqueue([
-        { id: postId, kind: "item", materialize: true, rootId: postId },
+      await this.#enqueueItems([
+        { id: postId, materialize: true, rootId: postId },
       ]);
       await this.#enqueuePost(postId);
     }
@@ -237,8 +270,20 @@ export class HnDataService {
       );
       return;
     }
+    if (message.kind === "items") {
+      for (const item of message.items) {
+        await this.hydrateItem(item.id, item.rootId, item.materialize ?? false);
+      }
+      return;
+    }
     if (message.kind === "post") {
       await this.hydratePost(message.rootId);
+      return;
+    }
+    if (message.kind === "users") {
+      for (const userName of message.userNames) {
+        await this.getUser(userName);
+      }
       return;
     }
 
@@ -285,10 +330,9 @@ export class HnDataService {
 
     const previousKids = new Set(previous?.item.kids ?? []);
     const newKids = (item.kids ?? []).filter((id) => !previousKids.has(id));
-    await this.#enqueue(
+    await this.#enqueueItems(
       newKids.map((id) => ({
         id,
-        kind: "item",
         materialize: true,
         rootId,
       })),
@@ -302,8 +346,8 @@ export class HnDataService {
   async hydratePost(rootId: number) {
     const storedRoot = await this.#repo.getItem(rootId);
     if (storedRoot === null) {
-      await this.#enqueue(
-        [{ id: rootId, kind: "item", materialize: true, rootId }],
+      await this.#enqueueItems(
+        [{ id: rootId, materialize: true, rootId }],
         POST_RETRY_SECONDS,
       );
       await this.#sendPost(rootId);
@@ -316,10 +360,9 @@ export class HnDataService {
     );
     const result = materialize(storedRoot.item, items, nowSeconds());
     if (result.missingIds.length > 0) {
-      await this.#enqueue(
+      await this.#enqueueItems(
         result.missingIds.map((id) => ({
           id,
-          kind: "item",
           materialize: true,
           rootId,
         })),
@@ -352,16 +395,14 @@ export class HnDataService {
   async sync() {
     for (const name of Object.keys(FEEDS) as FeedName[]) {
       const { freshIds } = await this.#refreshFeed(name, true);
-      await this.#enqueue(freshIds.map((id) => ({ id, kind: "item" })));
+      await this.#enqueueItems(freshIds.map((id) => ({ id })));
     }
 
     const updates = await this.#api.getUpdates();
     if (updates === null) return;
 
-    await this.#enqueue(updates.items.map((id) => ({ id, kind: "item" })));
-    await this.#enqueue(
-      updates.profiles.map((userName) => ({ kind: "user", userName })),
-    );
+    await this.#enqueueItems(updates.items.map((id) => ({ id })));
+    await this.#enqueueUsers(updates.profiles);
     console.info(
       JSON.stringify({
         event: "hn.sync",

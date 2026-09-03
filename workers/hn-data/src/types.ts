@@ -1,14 +1,17 @@
 import type { OfficialItem } from "~/lib/hacker-news/codec";
 
+export interface ItemHydration {
+  readonly id: number;
+  readonly materialize?: boolean;
+  readonly rootId?: number;
+}
+
 export type HydrationMessage =
-  | {
-      readonly id: number;
-      readonly kind: "item";
-      readonly materialize?: boolean;
-      readonly rootId?: number;
-    }
+  | (ItemHydration & { readonly kind: "item" })
+  | { readonly items: readonly ItemHydration[]; readonly kind: "items" }
   | { readonly kind: "post"; readonly rootId: number }
-  | { readonly kind: "user"; readonly userName: string };
+  | { readonly kind: "user"; readonly userName: string }
+  | { readonly kind: "users"; readonly userNames: readonly string[] };
 
 export interface HnDataEnv {
   readonly DB: D1Database;
