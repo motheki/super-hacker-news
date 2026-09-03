@@ -20,7 +20,7 @@ A small, server-rendered Hacker News reader built with Astro and deployed on Clo
 ## Stack
 
 - Astro server rendering on Cloudflare Workers
-- A private Cloudflare service binding backed by D1, Queues, and Cron Triggers
+- A separately deployed private Cloudflare data service
 - Astro Fonts with self-hosted Quantico files sourced from Google Fonts
 - Astro route caching backed by Cloudflare's CDN cache
 - Official Hacker News data with HackerWeb and Algolia outage fallbacks
@@ -67,7 +67,7 @@ Astro renders feeds, posts, comments, profiles, metadata, and errors on the serv
 
 Feeds cache at Cloudflare's edge for one minute, profiles for 15 minutes, and the sitemap for one hour. Active posts cache for 15 seconds, settled posts for one minute, and posts older than 30 days for five minutes. Their background revalidation windows are one minute, five minutes, and one hour respectively. Successful HTML also receives a 15-second browser cache. Upstream requests have separate short-lived Cloudflare caches, timeouts, bounded retries, schema validation, and structured metrics.
 
-The data Worker polls official feed and update indexes each minute. D1 stores validated source items and normalized output. Queue messages batch up to 25 hydration jobs to stay within Cloudflare write quotas; consumers process one message per invocation, then materialize complete post trees. The Astro Worker reads those trees through a private service binding, so readers do not wait for a fan-out of Hacker News requests. Missing or stale feeds also refresh on demand, so Cron delivery is not a single point of failure.
+The private data service polls official feed and update indexes, stores validated source items and normalized output, and materializes complete post trees asynchronously. The Astro Worker reads those trees through a service binding, so readers do not wait for a fan-out of Hacker News requests. Missing or stale feeds also refresh on demand, so scheduled synchronization is not a single point of failure.
 
 Cold, warming, or unavailable service reads fall back to the previous validated provider chain. HackerWeb is checked against the official descendant count first. Algolia runs only when HackerWeb is missing or behind. Small mismatches can still use bounded official reconstruction; large discussions never risk exhausting one page request's subrequest budget.
 
@@ -75,20 +75,13 @@ Static assets receive long immutable caching where safe. Dynamic HTML uses stale
 
 ## Deployment
 
-The deployment needs a D1 database named `super-hn-data` and a Queue named `super-hn-hydrate`. Their bindings live in `workers/hn-data/wrangler.jsonc`. Authenticate once with `wrangler login`, then deploy both Workers in dependency order:
+The private data service is maintained and deployed from a separate private repository. This public repository deploys only the Astro Worker:
 
 ```sh
 bun run deploy
 ```
 
-`bun run deploy` validates the data Worker, applies D1 migrations, deploys `super-hn-data`, builds the Astro application, and deploys `super-hn`. Pushing `master` also deploys the Astro Worker through Cloudflare's Git integration. Astro sessions remain disabled because visitor state is not stored.
-
-The data service can be validated independently:
-
-```sh
-bun run check:data
-bunx wrangler d1 migrations apply DB --local -c workers/hn-data/wrangler.jsonc
-```
+`bun run deploy` builds and deploys the Astro application. Pushing `master` also deploys it through Cloudflare's Git integration. Astro sessions remain disabled because visitor state is not stored.
 
 ## Brand
 
