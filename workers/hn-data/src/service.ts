@@ -13,6 +13,7 @@ import type { HnDataEnv, HydrationMessage } from "./types";
 
 const ITEMS_PER_PAGE = 30;
 const QUEUE_BATCH_SIZE = 100;
+const FEED_REFRESH_SECONDS = 60;
 const POST_REFRESH_SECONDS = 15;
 const USER_REFRESH_SECONDS = 3_600;
 const POST_RETRY_SECONDS = 10;
@@ -25,6 +26,8 @@ const FEEDS = {
   newest: "newstories",
   show: "showstories",
 } as const;
+
+type FeedName = keyof typeof FEEDS;
 
 function nowSeconds() {
   return Math.floor(Date.now() / 1_000);
@@ -106,18 +109,39 @@ export class HnDataService {
     return null;
   }
 
+  async #refreshFeed(name: FeedName, force = false) {
+    const previous = await this.#repo.getFeed(name);
+    const isFresh =
+      previous !== null &&
+      nowSeconds() - previous.observedAt < FEED_REFRESH_SECONDS;
+    if (!force && isFresh) return { feed: previous, freshIds: [] };
+
+    // Refresh on demand so feed availability does not depend on Cron delivery.
+    const ids = await this.#api.getFeed(FEEDS[name]);
+    if (ids === null) return { feed: previous, freshIds: [] };
+
+    const observedAt = nowSeconds();
+    await this.#repo.saveFeed(name, ids, observedAt);
+    const previousIds = new Set(previous?.ids ?? []);
+
+    return {
+      feed: { ids, observedAt },
+      freshIds: ids.filter((id) => !previousIds.has(id)),
+    };
+  }
+
   async #saveItem(item: OfficialItem, rootId: number) {
     await this.#repo.saveItem({ item, observedAt: nowSeconds(), rootId });
   }
 
   async getBestIds() {
-    return (await this.#repo.getFeed("best"))?.ids ?? null;
+    return (await this.#refreshFeed("best")).feed?.ids ?? null;
   }
 
   async getFeed(topic: string, page: number): Promise<TopicItem[] | null> {
     if (!(topic in FEEDS)) return null;
 
-    const feed = await this.#repo.getFeed(topic);
+    const feed = (await this.#refreshFeed(topic as FeedName)).feed;
     if (feed === null) return null;
 
     const start = ITEMS_PER_PAGE * (page - 1);
@@ -326,15 +350,8 @@ export class HnDataService {
   }
 
   async sync() {
-    const observedAt = nowSeconds();
-    for (const [name, upstreamName] of Object.entries(FEEDS)) {
-      const previous = await this.#repo.getFeed(name);
-      const ids = await this.#api.getFeed(upstreamName);
-      if (ids === null) continue;
-
-      await this.#repo.saveFeed(name, ids, observedAt);
-      const previousIds = new Set(previous?.ids ?? []);
-      const freshIds = ids.filter((id) => !previousIds.has(id));
+    for (const name of Object.keys(FEEDS) as FeedName[]) {
+      const { freshIds } = await this.#refreshFeed(name, true);
       await this.#enqueue(freshIds.map((id) => ({ id, kind: "item" })));
     }
 
