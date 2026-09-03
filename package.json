@@ -1,7 +1,7 @@
 {
   "name": "super-hacker-news",
   "private": false,
-  "homepage": "https://super-hacker-news.vercel.app",
+  "homepage": "https://superhn.vercel.app",
   "bugs": "https://github.com/motheki/super-hacker-news/issues",
   "repository": {
     "type": "git",

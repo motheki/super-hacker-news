@@ -4,7 +4,7 @@ Super HN is a fast, focused, and responsive interface for browsing Hacker News, 
 
 ![Super HN E-ink terminal banner](docs/images/super-hn-banner.png)
 
-- [Live application](https://super-hacker-news.vercel.app)
+- [Live application](https://superhn.vercel.app)
 - [Source repository](https://github.com/motheki/super-hacker-news)
 - [Issue tracker](https://github.com/motheki/super-hacker-news/issues)
 
