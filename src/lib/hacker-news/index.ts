@@ -1,10 +1,12 @@
 import { aggregatedProvider } from "./aggregated";
+import { getAlgoliaPost } from "./algolia";
 import { preferPrimary } from "./client";
 import {
   getOfficialBestStoryIds,
   getOfficialItemReference,
   getOfficialPost,
   getOfficialPostRoot,
+  getOfficialPostSummary,
   officialProvider,
 } from "./official";
 import { loadPost, type PostSelectionMetric } from "./post-loader";
@@ -26,6 +28,8 @@ export async function fetchPost(postId: number) {
     getAggregated: () => aggregatedProvider.getPost(postId),
     getOfficialPost,
     getOfficialRoot: () => getOfficialPostRoot(postId),
+    getOfficialSummary: getOfficialPostSummary,
+    getSecondary: () => getAlgoliaPost(postId),
     report: reportPostSelection,
   });
 }

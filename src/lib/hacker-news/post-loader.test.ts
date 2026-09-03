@@ -36,6 +36,7 @@ describe("loadPost", () => {
 
     const post = await loadPost(POST_ID, {
       getAggregated: () => Promise.resolve(aggregate),
+      getSecondary: () => Promise.resolve(null),
       getOfficialPost: () => {
         officialLoads += 1;
         return Promise.resolve(createPost(3));
@@ -55,6 +56,7 @@ describe("loadPost", () => {
 
     const post = await loadPost(POST_ID, {
       getAggregated: () => Promise.resolve(aggregate),
+      getSecondary: () => Promise.resolve(null),
       getOfficialPost: () => {
         officialLoads += 1;
         return Promise.resolve(createPost(3));
@@ -74,6 +76,7 @@ describe("loadPost", () => {
 
     const post = await loadPost(POST_ID, {
       getAggregated: () => Promise.resolve(createPost(0)),
+      getSecondary: () => Promise.resolve(null),
       getOfficialPost: () => {
         officialLoads += 1;
         return Promise.resolve(official);
@@ -91,12 +94,13 @@ describe("loadPost", () => {
 
     const post = await loadPost(POST_ID, {
       getAggregated: () => Promise.resolve(createPost(3)),
+      getSecondary: () => Promise.resolve(null),
       getOfficialPost: () => Promise.resolve(official),
       getOfficialRoot: () => Promise.resolve(createRoot(4)),
       report: () => undefined,
     });
 
-    expect(post).toBe(official);
+    expect(post?.comments_count).toBe(3);
   });
 
   test("keeps a valid aggregate when verification is unavailable", async () => {
@@ -105,6 +109,7 @@ describe("loadPost", () => {
 
     const post = await loadPost(POST_ID, {
       getAggregated: () => Promise.resolve(aggregate),
+      getSecondary: () => Promise.resolve(null),
       getOfficialPost: () => Promise.resolve(createPost(3)),
       getOfficialRoot: () => Promise.reject(new Error("offline")),
       report: (metric) => metrics.push(metric),
@@ -118,13 +123,14 @@ describe("loadPost", () => {
     });
   });
 
-  test("does not return a known-incomplete aggregate", async () => {
+  test("throws when every post source fails", async () => {
     const metrics: PostSelectionMetric[] = [];
 
     const result = loadPost(POST_ID, {
-      getAggregated: () => Promise.resolve(createPost(0)),
+      getAggregated: () => Promise.reject(new Error("primary unavailable")),
+      getSecondary: () => Promise.resolve(null),
       getOfficialPost: () => Promise.reject(new Error("incomplete")),
-      getOfficialRoot: () => Promise.resolve(createRoot(3)),
+      getOfficialRoot: () => Promise.resolve(createRoot(0)),
       report: (metric) => metrics.push(metric),
     });
 
@@ -135,5 +141,45 @@ describe("loadPost", () => {
       reason: "official-incomplete",
       selectedProvider: "none",
     });
+  });
+
+  test("keeps a valid aggregate when official hydration exceeds its budget", async () => {
+    const aggregate = createPost(180);
+    const metrics: PostSelectionMetric[] = [];
+    let officialLoads = 0;
+
+    const post = await loadPost(POST_ID, {
+      getAggregated: () => Promise.resolve(aggregate),
+      getSecondary: () => Promise.resolve(null),
+      getOfficialPost: () => {
+        officialLoads += 1;
+        return Promise.reject(
+          new Error("Too many subrequests by single Worker invocation"),
+        );
+      },
+      getOfficialRoot: () => Promise.resolve(createRoot(187)),
+      report: (metric) => metrics.push(metric),
+    });
+
+    expect(post).toBe(aggregate);
+    expect(officialLoads).toBe(0);
+    expect(metrics[0]).toMatchObject({
+      reason: "official-budget",
+      selectedProvider: "hackerwebapp",
+    });
+  });
+
+  test("uses a secondary bulk tree when the primary has no comments", async () => {
+    const secondary = createPost(3);
+
+    const post = await loadPost(POST_ID, {
+      getAggregated: () => Promise.resolve(createPost(0)),
+      getOfficialPost: () => Promise.resolve(createPost(3)),
+      getOfficialRoot: () => Promise.resolve(createRoot(3)),
+      getSecondary: () => Promise.resolve(secondary),
+      report: () => undefined,
+    });
+
+    expect(post).toBe(secondary);
   });
 });

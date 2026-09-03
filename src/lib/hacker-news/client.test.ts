@@ -45,6 +45,27 @@ describe("fetchJson", () => {
     expect(value).toBeNull();
     expect(calls).toBe(1);
   });
+
+  test("does not retry a Worker subrequest limit", async () => {
+    let calls = 0;
+    const fetcher = () => {
+      calls += 1;
+      return Promise.reject(
+        new Error("Too many subrequests by single Worker invocation"),
+      );
+    };
+
+    const result = fetchJson("https://example.test/item", parseNumber, {
+      fetcher,
+      operation: "item",
+      provider: "test",
+      sleep: noWait,
+    });
+
+    expect(result).rejects.toThrow("Upstream request failed");
+    await result.catch(() => undefined);
+    expect(calls).toBe(1);
+  });
 });
 
 describe("preferPrimary", () => {

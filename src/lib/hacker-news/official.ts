@@ -105,6 +105,10 @@ export function getOfficialPostRoot(postId: number) {
   return getOfficialItem(postId);
 }
 
+export function getOfficialPostSummary(root: OfficialItem) {
+  return toOfficialPost(root, new Map(), nowSeconds());
+}
+
 async function getPost(postId: number): Promise<Post | null> {
   const root = await getOfficialPostRoot(postId);
   if (root === null) return null;

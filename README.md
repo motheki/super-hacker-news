@@ -10,7 +10,7 @@ A small, server-rendered Hacker News reader built with Astro and deployed on Clo
 ## Features
 
 - Top, new, Ask HN, and Show HN feeds
-- Complete nested comment trees with native disclosure controls
+- Validated nested comment trees with native disclosure controls
 - Comment permalinks and redirects to the containing discussion
 - Hacker News user profiles
 - Automatic system light and dark themes
@@ -21,8 +21,8 @@ A small, server-rendered Hacker News reader built with Astro and deployed on Clo
 
 - Astro server rendering on Cloudflare Workers
 - Astro Fonts with self-hosted Quantico files sourced from Google Fonts
-- Cloudflare Cache API for short-lived page caching
-- Aggregated Hacker News APIs with the official API as the validated fallback
+- Astro route caching backed by Cloudflare's CDN cache
+- HackerWeb and Algolia bulk trees with a bounded official API fallback
 - Bun, TypeScript 7, ESLint, Prettier, and Playwright
 
 Astro 7.2.10 and `@astrojs/cloudflare` 14.2.6 are pinned as a compatible pair. Astro 7.3.0's published asset pipeline omits an internal logger export required by its Worker build.
@@ -55,14 +55,16 @@ Run the production route benchmark with `bun run benchmark`.
 Browser
   -> Astro routes and components
     -> Hacker News service
-      -> aggregated APIs
-      -> official API fallback
-  -> Cloudflare edge cache
+      -> HackerWeb + Algolia bulk trees
+      -> bounded official API fallback
+  -> Astro route cache on Cloudflare
 ```
 
 Astro renders feeds, posts, comments, profiles, metadata, and errors on the server. The browser receives compressed HTML, self-hosted fonts, a small opt-in prefetch helper, and no component framework. Native links own navigation and scrolling; native `<details>` elements own comment collapsing.
 
-Feeds cache for 30 seconds, posts for 15 seconds, profiles for 15 minutes, and the sitemap for one hour. Upstream requests have separate short-lived Cloudflare caches, timeouts, bounded retries, schema validation, structured metrics, and official-API fallback. A post is accepted only when its reachable comment tree is complete.
+Feeds cache for 30 seconds, posts for 15 seconds, profiles for 15 minutes, and the sitemap for one hour. Posts remain available for five minutes during background revalidation. Upstream requests have separate short-lived Cloudflare caches, timeouts, bounded retries, schema validation, and structured metrics.
+
+Post requests validate HackerWeb and Algolia trees in parallel and select the superset, or the larger valid tree when sources diverge. The official Hacker News root supplies metadata and a freshness signal. Per-comment official reconstruction is limited to small discussions so one Worker request cannot exceed Cloudflare's subrequest budget. A valid bulk tree remains available when another provider lags or fails.
 
 Static assets receive long immutable caching where safe. Dynamic HTML uses stale-while-revalidate caching so current Hacker News data remains recent without making every visitor wait for upstream APIs.
 
@@ -74,7 +76,7 @@ Authenticate once with `wrangler login`, then deploy:
 bun run deploy
 ```
 
-Wrangler builds the Astro Worker, uploads static assets, provisions its cache/session binding, and deploys `super-hn` to Cloudflare.
+Wrangler builds the Astro Worker, uploads static assets, configures its CDN cache, and deploys `super-hn` to Cloudflare. Astro sessions are disabled because the application stores no visitor state.
 
 ## Brand
 

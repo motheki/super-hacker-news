@@ -41,6 +41,7 @@ const REQUEST_TIMEOUT_MS = 3_000;
 const RETRY_COUNT = 1;
 const RETRY_DELAY_MS = 100;
 const SLOW_REQUEST_MS = 250;
+const SUBREQUEST_LIMIT_MESSAGE = "Too many subrequests";
 
 function wait(delayMs: number) {
   return new Promise<void>((resolve) => {
@@ -76,6 +77,10 @@ function toError(error: unknown) {
   return error instanceof Error ? error : new Error(String(error));
 }
 
+function hitSubrequestLimit(error: unknown) {
+  return toError(error).message.includes(SUBREQUEST_LIMIT_MESSAGE);
+}
+
 export async function fetchJson<T>(
   url: string,
   parse: JsonParser<T>,
@@ -109,7 +114,8 @@ export async function fetchJson<T>(
         signal: AbortSignal.timeout(timeoutMs),
       });
     } catch (error) {
-      const outcome = attempt < attempts ? "retry" : "failure";
+      const canRetryError = !hitSubrequestLimit(error) && attempt < attempts;
+      const outcome = canRetryError ? "retry" : "failure";
       report({
         attempt,
         durationMs: durationSince(start),
@@ -118,7 +124,7 @@ export async function fetchJson<T>(
         provider: options.provider,
       });
 
-      if (attempt >= attempts) {
+      if (!canRetryError) {
         throw new Error("Upstream request failed", { cause: toError(error) });
       }
 

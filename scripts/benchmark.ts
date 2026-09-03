@@ -9,6 +9,7 @@ const ROUTES = [
   "/top",
   "/new",
   "/post/49508405",
+  "/post/49548395",
   "/post/8863",
   "/user/pg",
 ] as const;
