@@ -63,7 +63,12 @@ export class HnDataService {
           body,
           ...(delaySeconds === undefined ? {} : { delaySeconds }),
         }));
-      await this.#env.HYDRATE_QUEUE.sendBatch(batch);
+      try {
+        await this.#env.HYDRATE_QUEUE.sendBatch(batch);
+      } catch (error) {
+        this.#logQueueError(error, batch.length);
+        return;
+      }
     }
   }
 
@@ -99,13 +104,30 @@ export class HnDataService {
     const claimed = await this.#repo.claimPost(rootId, nowSeconds());
     if (!claimed) return;
 
-    await this.#sendPost(rootId, delaySeconds);
+    const queued = await this.#sendPost(rootId, delaySeconds);
+    if (!queued) await this.#repo.finishPost(rootId);
   }
 
-  #sendPost(rootId: number, delaySeconds = POST_RETRY_SECONDS) {
-    return this.#env.HYDRATE_QUEUE.send(
-      { kind: "post", rootId },
-      { delaySeconds },
+  async #sendPost(rootId: number, delaySeconds = POST_RETRY_SECONDS) {
+    try {
+      await this.#env.HYDRATE_QUEUE.send(
+        { kind: "post", rootId },
+        { delaySeconds },
+      );
+      return true;
+    } catch (error) {
+      this.#logQueueError(error, 1);
+      return false;
+    }
+  }
+
+  #logQueueError(error: unknown, messageCount: number) {
+    console.error(
+      JSON.stringify({
+        event: "hn.queue_write_error",
+        message: error instanceof Error ? error.message : String(error),
+        messageCount,
+      }),
     );
   }
 
@@ -350,7 +372,9 @@ export class HnDataService {
         [{ id: rootId, materialize: true, rootId }],
         POST_RETRY_SECONDS,
       );
-      await this.#sendPost(rootId);
+      if (!(await this.#sendPost(rootId))) {
+        await this.#repo.finishPost(rootId);
+      }
       return;
     }
 
@@ -367,7 +391,9 @@ export class HnDataService {
           rootId,
         })),
       );
-      await this.#sendPost(rootId);
+      if (!(await this.#sendPost(rootId))) {
+        await this.#repo.finishPost(rootId);
+      }
       return;
     }
     if (result.post === null) {
