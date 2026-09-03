@@ -1,6 +1,7 @@
 ---
 import Comment from "~/components/Comment.astro";
 import BaseLayout from "~/layouts/BaseLayout.astro";
+import { getPostCache } from "~/lib/cache";
 import { getPost, getRootItemId } from "~/lib/data";
 import { sanitizeHnHtml } from "~/lib/html";
 import { isSafeExternalUrl } from "~/lib/link";
@@ -21,6 +22,8 @@ if (post === null) {
 
   return Astro.rewrite("/404");
 }
+
+Astro.cache.set(getPostCache(post.time, Math.floor(Date.now() / 1_000)));
 
 const externalUrl = isSafeExternalUrl(post.url) ? post.url : null;
 const content =

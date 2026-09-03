@@ -1,13 +1,9 @@
 import type { Comment, Post } from "~/lib/post";
 import { fetchJson } from "./client";
+import { formatAge, getDomain } from "./format";
 
 const ALGOLIA_API = "https://hn.algolia.com/api/v1";
 const POST_CACHE_SECONDS = 15;
-const SECONDS_PER_MINUTE = 60;
-const SECONDS_PER_HOUR = 3_600;
-const SECONDS_PER_DAY = 86_400;
-const SECONDS_PER_MONTH = 2_592_000;
-const SECONDS_PER_YEAR = 31_536_000;
 
 interface ParsedComment {
   readonly comment: Comment;
@@ -22,37 +18,7 @@ function optionalText(value: unknown) {
   return value === undefined || value === null || typeof value === "string";
 }
 
-function age(time: number) {
-  const elapsed = Math.max(0, Math.floor(Date.now() / 1_000) - time);
-  const units = [
-    [SECONDS_PER_YEAR, "year"],
-    [SECONDS_PER_MONTH, "month"],
-    [SECONDS_PER_DAY, "day"],
-    [SECONDS_PER_HOUR, "hour"],
-    [SECONDS_PER_MINUTE, "minute"],
-  ] as const;
-
-  for (const [seconds, label] of units) {
-    if (elapsed < seconds) continue;
-
-    const count = Math.floor(elapsed / seconds);
-    return `${count} ${label}${count === 1 ? "" : "s"} ago`;
-  }
-
-  return `${elapsed} second${elapsed === 1 ? "" : "s"} ago`;
-}
-
-function domain(url: string | undefined) {
-  if (url === undefined) return undefined;
-
-  try {
-    return new URL(url).hostname.replace(/^www\./u, "");
-  } catch {
-    return undefined;
-  }
-}
-
-function parseComment(value: unknown): ParsedComment | null {
+function parseComment(value: unknown, now: number): ParsedComment | null {
   if (
     !isRecord(value) ||
     typeof value.id !== "number" ||
@@ -67,7 +33,7 @@ function parseComment(value: unknown): ParsedComment | null {
   const comments: Comment[] = [];
   let count = 0;
   for (const child of value.children) {
-    const parsed = parseComment(child);
+    const parsed = parseComment(child, now);
     if (parsed === null) return null;
 
     comments.push(parsed.comment);
@@ -80,7 +46,7 @@ function parseComment(value: unknown): ParsedComment | null {
       comments,
       comments_count: count,
       time: value.created_at_i,
-      time_ago: age(value.created_at_i),
+      time_ago: formatAge(value.created_at_i, now),
       ...(typeof value.author === "string" ? { user: value.author } : {}),
       ...(typeof value.text === "string" ? { content: value.text } : {}),
       ...(value.author === null ? { deleted: true } : {}),
@@ -105,8 +71,9 @@ export function parseAlgoliaPost(value: unknown): Post | null {
 
   const comments: Comment[] = [];
   let commentsCount = 0;
+  const now = Math.floor(Date.now() / 1_000);
   for (const child of value.children) {
-    const parsed = parseComment(child);
+    const parsed = parseComment(child, now);
     if (parsed === null) return null;
 
     comments.push(parsed.comment);
@@ -114,14 +81,14 @@ export function parseAlgoliaPost(value: unknown): Post | null {
   }
 
   const url = typeof value.url === "string" ? value.url : undefined;
-  const host = domain(url);
+  const host = getDomain(url);
   return {
     id: value.id,
     title: value.title,
     points: typeof value.points === "number" ? value.points : 0,
     user: value.author,
     time: value.created_at_i,
-    time_ago: age(value.created_at_i),
+    time_ago: formatAge(value.created_at_i, now),
     comments,
     comments_count: commentsCount,
     ...(typeof value.text === "string" ? { content: value.text } : {}),

@@ -3,6 +3,11 @@ import { cacheCloudflare } from "@astrojs/cloudflare/cache";
 import { defineConfig, fontProviders, svgoOptimizer } from "astro/config";
 
 const SITE_URL = "https://super-hn.trevor-opiyo.workers.dev";
+const FEED_CACHE_SECONDS = 60;
+const POST_CACHE_SECONDS = 15;
+const POST_SWR_SECONDS = 60;
+const PROFILE_CACHE_SECONDS = 900;
+const SITEMAP_CACHE_SECONDS = 3_600;
 
 export default defineConfig({
   adapter: cloudflare({ imageService: "passthrough" }),
@@ -15,6 +20,9 @@ export default defineConfig({
   compressHTML: true,
   experimental: {
     svgOptimizer: svgoOptimizer(),
+    incrementalBuild: true,
+    chromeDevtoolsWorkspace: true,
+    clientPrerender: true,
   },
   fonts: [
     {
@@ -42,17 +50,26 @@ export default defineConfig({
     },
   },
   routeRules: {
-    "/ask": { maxAge: 30, swr: 30 },
-    "/ask/[page]": { maxAge: 30, swr: 30 },
-    "/new": { maxAge: 30, swr: 30 },
-    "/new/[page]": { maxAge: 30, swr: 30 },
-    "/post/[postId]": { maxAge: 15, swr: 300 },
-    "/show": { maxAge: 30, swr: 30 },
-    "/show/[page]": { maxAge: 30, swr: 30 },
-    "/sitemap.xml": { maxAge: 3_600, swr: 3_600 },
-    "/top": { maxAge: 30, swr: 30 },
-    "/top/[page]": { maxAge: 30, swr: 30 },
-    "/user/[userName]": { maxAge: 900, swr: 900 },
+    "/ask": { maxAge: FEED_CACHE_SECONDS, swr: FEED_CACHE_SECONDS },
+    "/ask/[page]": { maxAge: FEED_CACHE_SECONDS, swr: FEED_CACHE_SECONDS },
+    "/new": { maxAge: FEED_CACHE_SECONDS, swr: FEED_CACHE_SECONDS },
+    "/new/[page]": { maxAge: FEED_CACHE_SECONDS, swr: FEED_CACHE_SECONDS },
+    "/post/[postId]": {
+      maxAge: POST_CACHE_SECONDS,
+      swr: POST_SWR_SECONDS,
+    },
+    "/show": { maxAge: FEED_CACHE_SECONDS, swr: FEED_CACHE_SECONDS },
+    "/show/[page]": { maxAge: FEED_CACHE_SECONDS, swr: FEED_CACHE_SECONDS },
+    "/sitemap.xml": {
+      maxAge: SITEMAP_CACHE_SECONDS,
+      swr: SITEMAP_CACHE_SECONDS,
+    },
+    "/top": { maxAge: FEED_CACHE_SECONDS, swr: FEED_CACHE_SECONDS },
+    "/top/[page]": { maxAge: FEED_CACHE_SECONDS, swr: FEED_CACHE_SECONDS },
+    "/user/[userName]": {
+      maxAge: PROFILE_CACHE_SECONDS,
+      swr: PROFILE_CACHE_SECONDS,
+    },
   },
   session: false,
   site: SITE_URL,

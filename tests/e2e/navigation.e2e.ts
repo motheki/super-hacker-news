@@ -5,6 +5,22 @@ const NEW_PATH = "/new";
 const KNOWN_POST_PATH = "/post/8863";
 const ACTIVE_POST_PATH = "/post/49522137";
 const MIN_SCROLL_Y = 400;
+const HTML_CACHE_CONTROL = "public, max-age=15";
+
+test("caches successful HTML briefly in the browser", async ({ page }) => {
+  const response = await page.goto(TOP_PATH);
+
+  expect(response?.headers()["cache-control"]).toBe(HTML_CACHE_CONTROL);
+});
+
+test("prefetches discussion links on intent", async ({ page }) => {
+  await page.goto(TOP_PATH);
+
+  await expect(page.locator('a[href^="/post/"]').last()).toHaveAttribute(
+    "data-astro-prefetch",
+    "hover",
+  );
+});
 
 test("omits search and share controls", async ({ page }) => {
   await page.goto(TOP_PATH);

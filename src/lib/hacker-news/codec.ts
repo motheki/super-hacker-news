@@ -1,6 +1,7 @@
 import type { Comment, Post } from "~/lib/post";
 import type { TopicItem } from "~/lib/topic";
 import type { User } from "~/lib/user";
+import { formatAge, getDomain } from "./format";
 
 export interface OfficialItem {
   readonly by?: string;
@@ -29,12 +30,6 @@ interface ParsedComment {
   readonly comment: Comment;
   readonly count: number;
 }
-
-const SECONDS_PER_MINUTE = 60;
-const SECONDS_PER_HOUR = 3_600;
-const SECONDS_PER_DAY = 86_400;
-const SECONDS_PER_MONTH = 2_592_000;
-const SECONDS_PER_YEAR = 31_536_000;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -235,36 +230,6 @@ export function parseOfficialUser(value: unknown): OfficialUser | null {
   }
 
   return value as unknown as OfficialUser;
-}
-
-function formatAge(time: number, now: number) {
-  const age = Math.max(0, now - time);
-  const units = [
-    [SECONDS_PER_YEAR, "year"],
-    [SECONDS_PER_MONTH, "month"],
-    [SECONDS_PER_DAY, "day"],
-    [SECONDS_PER_HOUR, "hour"],
-    [SECONDS_PER_MINUTE, "minute"],
-  ] as const;
-
-  for (const [seconds, label] of units) {
-    if (age < seconds) continue;
-
-    const count = Math.floor(age / seconds);
-    return `${count} ${label}${count === 1 ? "" : "s"} ago`;
-  }
-
-  return `${age} second${age === 1 ? "" : "s"} ago`;
-}
-
-function getDomain(url: string | undefined) {
-  if (url === undefined) return undefined;
-
-  try {
-    return new URL(url).hostname.replace(/^www\./u, "");
-  } catch {
-    return undefined;
-  }
 }
 
 function toOfficialComment(

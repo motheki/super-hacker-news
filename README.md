@@ -60,9 +60,9 @@ Browser
   -> Astro route cache on Cloudflare
 ```
 
-Astro renders feeds, posts, comments, profiles, metadata, and errors on the server. The browser receives compressed HTML, self-hosted fonts, a small opt-in prefetch helper, and no component framework. Native links own navigation and scrolling; native `<details>` elements own comment collapsing.
+Astro renders feeds, posts, comments, profiles, metadata, and errors on the server. The browser receives compressed HTML, self-hosted fonts, a small opt-in prefetch helper, and no component framework. Native links own navigation and scrolling; native `<details>` elements own comment collapsing. Discussion links prerender on hover in supported browsers and fall back to Astro's prefetch helper elsewhere.
 
-Feeds cache for 30 seconds, posts for 15 seconds, profiles for 15 minutes, and the sitemap for one hour. Posts remain available for five minutes during background revalidation. Upstream requests have separate short-lived Cloudflare caches, timeouts, bounded retries, schema validation, and structured metrics.
+Feeds cache at Cloudflare's edge for one minute, profiles for 15 minutes, and the sitemap for one hour. Active posts cache for 15 seconds, settled posts for one minute, and posts older than 30 days for five minutes. Their background revalidation windows are one minute, five minutes, and one hour respectively. Successful HTML also receives a 15-second browser cache. Upstream requests have separate short-lived Cloudflare caches, timeouts, bounded retries, schema validation, and structured metrics.
 
 Post requests validate HackerWeb and Algolia trees in parallel and select the superset, or the larger valid tree when sources diverge. The official Hacker News root supplies metadata and a freshness signal. Per-comment official reconstruction is limited to small discussions so one Worker request cannot exceed Cloudflare's subrequest budget. A valid bulk tree remains available when another provider lags or fails.
 
