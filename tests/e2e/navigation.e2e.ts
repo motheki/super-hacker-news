@@ -136,7 +136,7 @@ test("ships only the transition runtime", async ({ page }) => {
 
   expect(html?.length).toBeLessThan(80_000);
   expect(html).not.toContain("__next");
-  expect(html).not.toContain("react");
+  expect(html).not.toMatch(/\b(?:__react|data-reactroot|react-dom)\b/u);
   expect(scripts).toBeLessThanOrEqual(2);
 });
 

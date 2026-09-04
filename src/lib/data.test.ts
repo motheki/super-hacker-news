@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
 import type { HackerNewsItemReference } from "~/lib/item";
 import type { Post } from "~/lib/post";
 import { getPostTarget } from "./data";
@@ -67,9 +67,10 @@ describe("getPostTarget", () => {
     expect(postReads).toBe(1);
   });
 
-  test("refreshes a stale materialization with the live tree", async () => {
+  test("serves a stale materialization without calling providers", async () => {
     const stalePost = createPost(35);
-    const livePost = createPost(62);
+    let itemReads = 0;
+    let postReads = 0;
     const target = await getPostTarget(
       POST_ID,
       {
@@ -82,112 +83,46 @@ describe("getPostTarget", () => {
           ),
       },
       {
-        loadItem: () =>
-          Promise.resolve({ id: POST_ID, type: "story" } as const),
-        loadPost: () => Promise.resolve(livePost),
-      },
-    );
-
-    expect(target).toEqual({ kind: "post", post: livePost });
-  });
-
-  test("keeps stale data when every live provider fails", async () => {
-    const stalePost = createPost(35);
-    const target = await getPostTarget(
-      POST_ID,
-      {
-        fetch: () =>
-          Promise.resolve(
-            Response.json(
-              { kind: "post", post: stalePost },
-              { headers: { "x-super-hn-stale": "1" } },
-            ),
-          ),
-      },
-      {
-        loadItem: () => Promise.reject(new Error("offline")),
-        loadPost: () => Promise.reject(new Error("offline")),
+        loadItem: () => {
+          itemReads += 1;
+          return Promise.resolve({ id: POST_ID, type: "story" } as const);
+        },
+        loadPost: () => {
+          postReads += 1;
+          return Promise.resolve(createPost(62));
+        },
       },
     );
 
     expect(target).toEqual({ kind: "post", post: stalePost });
+    expect(itemReads).toBe(0);
+    expect(postReads).toBe(0);
   });
 
-  test("does not replace stale data with a smaller live tree", async () => {
-    const stalePost = createPost(35);
-    const target = await getPostTarget(
-      POST_ID,
-      {
+  test("logs the post source and durations", async () => {
+    const logs: string[] = [];
+    const info = spyOn(console, "info").mockImplementation((message) => {
+      logs.push(String(message));
+    });
+
+    try {
+      await getPostTarget(POST_ID, {
         fetch: () =>
-          Promise.resolve(
-            Response.json(
-              { kind: "post", post: stalePost },
-              { headers: { "x-super-hn-stale": "1" } },
-            ),
-          ),
-      },
-      {
-        loadItem: () =>
-          Promise.resolve({ id: POST_ID, type: "story" } as const),
-        loadPost: () => Promise.resolve(createPost(34)),
-      },
-    );
+          Promise.resolve(Response.json({ kind: "post", post: POST })),
+      });
+    } finally {
+      info.mockRestore();
+    }
 
-    expect(target).toEqual({ kind: "post", post: stalePost });
-  });
-
-  test("rejects a live tree for a different root", async () => {
-    const stalePost = createPost(35);
-    const livePost = { ...createPost(62), id: POST_ID + 1 };
-    const target = await getPostTarget(
-      POST_ID,
-      {
-        fetch: () =>
-          Promise.resolve(
-            Response.json(
-              { kind: "post", post: stalePost },
-              { headers: { "x-super-hn-stale": "1" } },
-            ),
-          ),
-      },
-      {
-        loadItem: () =>
-          Promise.resolve({
-            descendants: 62,
-            id: POST_ID,
-            type: "story",
-          }),
-        loadPost: () => Promise.resolve(livePost),
-      },
-    );
-
-    expect(target).toEqual({ kind: "post", post: stalePost });
-  });
-
-  test("rejects a live tree below the official descendant watermark", async () => {
-    const stalePost = createPost(35);
-    const target = await getPostTarget(
-      POST_ID,
-      {
-        fetch: () =>
-          Promise.resolve(
-            Response.json(
-              { kind: "post", post: stalePost },
-              { headers: { "x-super-hn-stale": "1" } },
-            ),
-          ),
-      },
-      {
-        loadItem: () =>
-          Promise.resolve({
-            descendants: 63,
-            id: POST_ID,
-            type: "story",
-          }),
-        loadPost: () => Promise.resolve(createPost(62)),
-      },
-    );
-
-    expect(target).toEqual({ kind: "post", post: stalePost });
+    const entry = logs
+      .map((message) => JSON.parse(message) as Record<string, unknown>)
+      .find(({ event }) => event === "hn.post_load");
+    expect(entry).toMatchObject({
+      commentsCount: 0,
+      event: "hn.post_load",
+      postId: POST_ID,
+      source: "service-fresh",
+    });
+    expect(entry?.serviceDurationMs).toEqual(expect.any(Number));
   });
 });

@@ -8,7 +8,7 @@ interface CachePolicy {
   readonly swr: number;
 }
 
-const ACTIVE_POST_CACHE: CachePolicy = { maxAge: 60, swr: 10 };
+const ACTIVE_POST_CACHE: CachePolicy = { maxAge: 60, swr: 240 };
 const SETTLED_POST_CACHE: CachePolicy = { maxAge: 300, swr: 3_600 };
 const ARCHIVED_POST_CACHE: CachePolicy = { maxAge: 3_600, swr: 86_400 };
 

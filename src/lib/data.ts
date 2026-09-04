@@ -5,9 +5,7 @@ import {
   fetchTopicItems,
   fetchUser,
 } from "~/lib/hacker-news";
-import { isPostComplete } from "~/lib/hacker-news/codec";
 import { HnDataClient, type ServiceBinding } from "~/lib/hacker-news/service";
-import { isRootItemType } from "~/lib/item";
 import { resolvePostTarget } from "~/lib/post-target";
 
 interface PostFallback {
@@ -22,6 +20,29 @@ const POST_FALLBACK: PostFallback = {
 
 function getClient(binding?: ServiceBinding) {
   return binding === undefined ? null : new HnDataClient(binding);
+}
+
+function durationSince(start: number) {
+  return Math.round((performance.now() - start) * 10) / 10;
+}
+
+function logPostLoad(
+  postId: number,
+  source: "provider-fallback" | "service-fresh" | "service-stale",
+  serviceDurationMs: number,
+  commentsCount: number | null,
+  fallbackDurationMs?: number,
+) {
+  console.info(
+    JSON.stringify({
+      commentsCount,
+      event: "hn.post_load",
+      ...(fallbackDurationMs === undefined ? {} : { fallbackDurationMs }),
+      postId,
+      serviceDurationMs,
+      source,
+    }),
+  );
 }
 
 export async function getTopicItems(
@@ -39,43 +60,49 @@ export async function getPostTarget(
   fallback: PostFallback = POST_FALLBACK,
 ) {
   const client = getClient(binding);
+  const serviceStart = performance.now();
   const result = await client?.getTarget(itemId);
+  const serviceDurationMs = durationSince(serviceStart);
   if (result === null || result === undefined) {
-    return resolvePostTarget(itemId, fallback.loadItem, fallback.loadPost);
+    const fallbackStart = performance.now();
+    try {
+      const target = await resolvePostTarget(
+        itemId,
+        fallback.loadItem,
+        fallback.loadPost,
+      );
+      logPostLoad(
+        target.kind === "post"
+          ? target.post.id
+          : target.kind === "redirect"
+            ? target.rootId
+            : itemId,
+        "provider-fallback",
+        serviceDurationMs,
+        target.kind === "post" ? target.post.comments_count : null,
+        durationSince(fallbackStart),
+      );
+
+      return target;
+    } catch (error) {
+      logPostLoad(
+        itemId,
+        "provider-fallback",
+        serviceDurationMs,
+        null,
+        durationSince(fallbackStart),
+      );
+      throw error;
+    }
   }
 
   const { stale, target } = result;
-  if (!stale || target.kind === "redirect") return target;
-
-  try {
-    const root = await fallback.loadItem(itemId);
-    if (
-      root === null ||
-      root.id !== itemId ||
-      !isRootItemType(root.type) ||
-      target.post.id !== itemId
-    ) {
-      return target;
-    }
-
-    const live = await fallback.loadPost(itemId);
-    if (
-      live !== null &&
-      live.id === itemId &&
-      live.comments_count >= target.post.comments_count &&
-      isPostComplete(live, root.descendants ?? 0)
-    ) {
-      return { kind: "post", post: live } as const;
-    }
-  } catch (error) {
-    console.warn(
-      JSON.stringify({
-        event: "hn.stale_fallback",
-        itemId,
-        message: error instanceof Error ? error.message : String(error),
-      }),
-    );
-  }
+  logPostLoad(
+    target.kind === "post" ? target.post.id : target.rootId,
+    stale ? "service-stale" : "service-fresh",
+    serviceDurationMs,
+    target.kind === "post" ? target.post.comments_count : null,
+  );
 
   return target;
 }
