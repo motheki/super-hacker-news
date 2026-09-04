@@ -3,6 +3,7 @@ import { Font } from "astro:assets";
 import { ClientRouter } from "astro:transitions";
 import appleTouchIcon from "~/assets/apple-touch-icon.png";
 import favicon32 from "~/assets/favicon-32.png";
+import favicon32Dark from "~/assets/favicon-32-dark.png";
 import socialImage from "~/assets/super-hn-social.png";
 import Header from "~/components/Header.astro";
 import {
@@ -74,11 +75,28 @@ const jsonLd = JSON.stringify(structuredData ?? websiteData).replaceAll(
     <meta name="twitter:image" content={socialImageUrl} />
     <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" href={favicon32.src} sizes="32x32" type="image/png" />
+    <link
+      rel="icon"
+      href={favicon32.src}
+      media="(prefers-color-scheme: light)"
+      sizes="32x32"
+      type="image/png"
+    />
+    <link
+      rel="icon"
+      href={favicon32Dark.src}
+      media="(prefers-color-scheme: dark)"
+      sizes="32x32"
+      type="image/png"
+    />
     <link rel="apple-touch-icon" href={appleTouchIcon.src} />
     <link rel="manifest" href="/manifest.webmanifest" />
     <Font
-      cssVariable="--font-alike"
+      cssVariable="--font-nova-cut"
+      preload={[{ subset: "latin", style: "normal", weight: 400 }]}
+    />
+    <Font
+      cssVariable="--font-nova-mono"
       preload={[{ subset: "latin", style: "normal", weight: 400 }]}
     />
     <title>{pageTitle}</title>

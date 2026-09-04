@@ -11,7 +11,7 @@
   --domain-size-adjustment: 0.36pt;
   color-scheme: light;
   font-family:
-    var(--font-alike), ui-serif, Georgia, Cambria, "Times New Roman", serif;
+    var(--font-nova-cut), ui-serif, Georgia, Cambria, "Times New Roman", serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -87,6 +87,15 @@ pre {
   max-width: 100%;
   overflow-x: auto;
   white-space: pre-wrap;
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family:
+    var(--font-nova-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 .site-shell {

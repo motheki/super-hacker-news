@@ -7,9 +7,9 @@ const ASSET_DIR = new URL("src/assets/", ROOT);
 const DOCS_DIR = new URL("docs/images/", ROOT);
 const PUBLIC_DIR = new URL("public/", ROOT);
 
-const MASTER_NAME = "super-hn-fly-whisk.png";
+const MASTER_NAME = "super-hn-gourd.png";
 const SOCIAL_NAME = "super-hn-social.png";
-const HERO_NAME = "super-hn-fly-whisk-banner.png";
+const HERO_NAME = "super-hn-gourd-banner.png";
 const MASTER_SIZE = 1_024;
 const SOCIAL_WIDTH = 1_280;
 const SOCIAL_HEIGHT = 640;
@@ -32,18 +32,25 @@ const PALETTE = {
   parchment: "#d9c4a8",
   ink: "#212020",
   silver: "#c3c3c4",
-  line: "#a79077",
   darkCanvas: "#0f0e0f",
 } as const;
 
-const MARK_COLORS = [
-  PALETTE.parchment,
-  PALETTE.ink,
-  PALETTE.silver,
-  PALETTE.line,
-].map(toRgb);
+const MARK_COLORS = [PALETTE.parchment, PALETTE.ink].map(toRgb);
 
 type Rgb = Readonly<{ r: number; g: number; b: number }>;
+type MarkTheme = Readonly<{ body: Rgb; pattern: Rgb }>;
+
+const MASTER_INK = toRgb(PALETTE.ink);
+const MARK_THEMES = {
+  light: {
+    body: MASTER_INK,
+    pattern: toRgb(PALETTE.parchment),
+  },
+  dark: {
+    body: toRgb(PALETTE.silver),
+    pattern: toRgb(PALETTE.darkCanvas),
+  },
+} as const satisfies Record<"dark" | "light", MarkTheme>;
 
 function assetPath(name: string): string {
   return fileURLToPath(new URL(name, ASSET_DIR));
@@ -93,7 +100,7 @@ async function importMaster(source: string): Promise<void> {
     const blue = data[offset + 2] ?? 0;
     const range = Math.max(red, green, blue) - Math.min(red, green, blue);
 
-    // Remove a generated white checkerboard while retaining silver details.
+    // Remove a generated neutral backdrop without dropping parchment details.
     if (
       Math.min(red, green, blue) >= BACKGROUND_MIN &&
       range <= BACKGROUND_RANGE
@@ -123,8 +130,35 @@ async function importMaster(source: string): Promise<void> {
     .toFile(assetPath(MASTER_NAME));
 }
 
-async function mark(size: number): Promise<Buffer> {
-  return sharp(assetPath(MASTER_NAME))
+async function mark(
+  size: number,
+  theme: MarkTheme = MARK_THEMES.light,
+): Promise<Buffer> {
+  const { data, info } = await sharp(assetPath(MASTER_NAME))
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  // Recolor the same master for each system color scheme.
+  for (let offset = 0; offset < data.length; offset += info.channels) {
+    const isBody =
+      data[offset] === MASTER_INK.r &&
+      data[offset + 1] === MASTER_INK.g &&
+      data[offset + 2] === MASTER_INK.b;
+    const color = isBody ? theme.body : theme.pattern;
+
+    data[offset] = color.r;
+    data[offset + 1] = color.g;
+    data[offset + 2] = color.b;
+  }
+
+  return sharp(data, {
+    raw: {
+      width: info.width,
+      height: info.height,
+      channels: 4,
+    },
+  })
     .resize(size, size, { fit: "contain" })
     .png(PNG_OPTIONS)
     .toBuffer();
@@ -136,7 +170,17 @@ async function splitCanvas(
   markSize: number,
 ): Promise<Buffer> {
   const left = Math.floor(width / 2);
-  const logo = await mark(markSize);
+  const logoLeft = Math.floor((width - markSize) / 2);
+  const darkSliceLeft = left - logoLeft;
+  const lightLogo = await mark(markSize);
+  const darkLogo = await sharp(await mark(markSize, MARK_THEMES.dark))
+    .extract({
+      left: darkSliceLeft,
+      top: 0,
+      width: markSize - darkSliceLeft,
+      height: markSize,
+    })
+    .toBuffer();
 
   return sharp({
     create: {
@@ -160,8 +204,13 @@ async function splitCanvas(
         top: 0,
       },
       {
-        input: logo,
-        left: Math.floor((width - markSize) / 2),
+        input: lightLogo,
+        left: logoLeft,
+        top: Math.floor((height - markSize) / 2),
+      },
+      {
+        input: darkLogo,
+        left,
         top: Math.floor((height - markSize) / 2),
       },
     ])
@@ -211,6 +260,7 @@ async function generate(): Promise<void> {
 
   const favicon16 = await mark(16);
   const favicon32 = await mark(32);
+  const favicon32Dark = await mark(32, MARK_THEMES.dark);
   const apple = await appIcon(180);
   const icon192 = await appIcon(192);
   const icon512 = await appIcon(512);
@@ -222,6 +272,7 @@ async function generate(): Promise<void> {
 
   await Promise.all([
     writeFile(new URL("favicon-32.png", ASSET_DIR), favicon32),
+    writeFile(new URL("favicon-32-dark.png", ASSET_DIR), favicon32Dark),
     writeFile(new URL("apple-touch-icon.png", ASSET_DIR), apple),
     writeFile(new URL("icon-192.png", ASSET_DIR), icon192),
     writeFile(new URL("icon-512.png", ASSET_DIR), icon512),

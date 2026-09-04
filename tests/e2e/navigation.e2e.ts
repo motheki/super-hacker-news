@@ -140,23 +140,28 @@ test("ships only the transition runtime", async ({ page }) => {
   expect(scripts).toBeLessThanOrEqual(2);
 });
 
-test("uses the newspaper palettes and Alike", async ({ page }) => {
+test("uses the newspaper palettes and Nova fonts", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" });
   await page.goto(TOP_PATH);
 
   const light = await page.evaluate(() => {
     const style = getComputedStyle(document.documentElement);
+    const mono = document.createElement("pre");
+    document.body.append(mono);
+
     return {
       background: style.backgroundColor,
       color: style.color,
       font: style.fontFamily,
+      monoFont: getComputedStyle(mono).fontFamily,
     };
   });
   expect(light).toMatchObject({
     background: "rgb(217, 196, 168)",
     color: "rgb(33, 32, 32)",
   });
-  expect(light.font).toContain("Alike");
+  expect(light.font).toContain("Nova Cut");
+  expect(light.monoFont).toContain("Nova Mono");
 
   await page.emulateMedia({ colorScheme: "dark" });
   const dark = await page.evaluate(() => {

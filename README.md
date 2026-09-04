@@ -1,6 +1,6 @@
 # Super HN
 
-![Super HN fly-whisk emblem](docs/images/super-hn-fly-whisk-banner.png)
+![Super HN gourd emblem](docs/images/super-hn-gourd-banner.png)
 
 A small, server-rendered Hacker News reader built with Astro and deployed on Cloudflare Workers.
 
@@ -21,7 +21,7 @@ A small, server-rendered Hacker News reader built with Astro and deployed on Clo
 
 - Astro server rendering on Cloudflare Workers
 - A separately deployed private Cloudflare data service
-- Astro Fonts with self-hosted Alike files sourced from Google Fonts
+- Astro Fonts with self-hosted Nova Cut and Nova Mono files sourced from Google Fonts
 - Astro route caching backed by Cloudflare's CDN cache
 - Official Hacker News data with HackerWeb and Algolia outage fallbacks
 - Bun, TypeScript 7, ESLint, Prettier, and Playwright
@@ -85,7 +85,7 @@ bun run deploy
 
 ## Brand
 
-The source logo is [`src/assets/super-hn-fly-whisk.png`](src/assets/super-hn-fly-whisk.png). The original dithered image draws on the wooden handle and flowing animal-tail tuft of the Luo [fly whisk](https://artsandculture.google.com/asset/fly-whisk/_gFKI5qOz6yVZQ). Derived favicons, application icons, the social image, and this README banner use the application palette:
+The source logo is [`src/assets/super-hn-gourd.png`](src/assets/super-hn-gourd.png). Its two-tone bottle-gourd silhouette and botanical pattern draw on traditional decorated gourds. Derived favicons, application icons, the social image, and this README banner use the application palette:
 
 - light canvas `#D9C4A8`
 - light ink `#212020`

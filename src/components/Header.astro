@@ -1,5 +1,6 @@
 ---
 import favicon32 from "~/assets/favicon-32.png";
+import favicon32Dark from "~/assets/favicon-32-dark.png";
 import { TOPICS } from "~/lib/topic";
 
 interface Props {
@@ -17,7 +18,10 @@ const { currentPath, repositoryUrl } = Astro.props;
     data-astro-prefetch="tap"
     href="/top"
   >
-    <img alt="" height="34" src={favicon32.src} width="34" />
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset={favicon32Dark.src} />
+      <img alt="" height="34" src={favicon32.src} width="34" />
+    </picture>
   </a>
 
   <nav aria-label="Topics" class="topic-nav">
