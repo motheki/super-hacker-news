@@ -1,25 +1,25 @@
 :root {
-  --canvas: #e2e5de;
-  --ink: #020202;
-  --muted: #3f423e;
-  --faint: #626660;
-  --line: #888d92;
-  --selection: #c9cdc6;
-  --selection-ink: #020202;
+  --canvas: #d9c4a8;
+  --ink: #212020;
+  --muted: #554b42;
+  --faint: #5f5145;
+  --line: #a79077;
+  --selection: #b4a28b;
+  --selection-ink: #212020;
   color-scheme: light;
   font-family:
-    var(--font-alike), ui-monospace, SFMono-Regular, Menlo, monospace;
+    var(--font-alike), ui-serif, Georgia, Cambria, "Times New Roman", serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --canvas: #323232;
-    --ink: #ffffff;
-    --muted: #dedede;
-    --faint: #b8b8b8;
-    --line: #8d8d8d;
-    --selection: #ffffff;
-    --selection-ink: #323232;
+    --canvas: #0f0e0f;
+    --ink: #c3c3c4;
+    --muted: #929193;
+    --faint: #7e7d81;
+    --line: #5b5a5d;
+    --selection: #c3c3c4;
+    --selection-ink: #0f0e0f;
     color-scheme: dark;
   }
 }

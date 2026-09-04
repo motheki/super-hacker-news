@@ -8,7 +8,7 @@ export const prerender = true;
 export const GET: APIRoute = () =>
   Response.json(
     {
-      background_color: "#E2E5DE",
+      background_color: "#D9C4A8",
       description: SITE_DESCRIPTION,
       display: "standalone",
       icons: [
@@ -28,7 +28,7 @@ export const GET: APIRoute = () =>
       orientation: "portrait",
       short_name: SITE_NAME,
       start_url: "/top",
-      theme_color: "#E2E5DE",
+      theme_color: "#D9C4A8",
     },
     {
       headers: {

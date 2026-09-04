@@ -75,7 +75,7 @@ test("ships no framework runtime", async ({ page }) => {
   expect(scripts).toBeLessThanOrEqual(1);
 });
 
-test("uses the reference palette and Quantico", async ({ page }) => {
+test("uses the newspaper palettes and Alike", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" });
   await page.goto(TOP_PATH);
 
@@ -88,10 +88,10 @@ test("uses the reference palette and Quantico", async ({ page }) => {
     };
   });
   expect(light).toMatchObject({
-    background: "rgb(226, 229, 222)",
-    color: "rgb(2, 2, 2)",
+    background: "rgb(217, 196, 168)",
+    color: "rgb(33, 32, 32)",
   });
-  expect(light.font).toContain("Quantico");
+  expect(light.font).toContain("Alike");
 
   await page.emulateMedia({ colorScheme: "dark" });
   const dark = await page.evaluate(() => {
@@ -102,8 +102,8 @@ test("uses the reference palette and Quantico", async ({ page }) => {
     };
   });
   expect(dark).toEqual({
-    background: "rgb(50, 50, 50)",
-    color: "rgb(255, 255, 255)",
+    background: "rgb(15, 14, 15)",
+    color: "rgb(195, 195, 196)",
   });
 });
 
