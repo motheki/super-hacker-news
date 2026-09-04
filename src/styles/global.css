@@ -8,7 +8,7 @@
   --selection-ink: #020202;
   color-scheme: light;
   font-family:
-    var(--font-quantico), ui-monospace, SFMono-Regular, Menlo, monospace;
+    var(--font-alike), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
