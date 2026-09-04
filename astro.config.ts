@@ -23,8 +23,6 @@ export default defineConfig({
   compressHTML: true,
   experimental: {
     svgOptimizer: svgoOptimizer(),
-    incrementalBuild: true,
-    chromeDevtoolsWorkspace: true,
     clientPrerender: true,
   },
   fonts: [

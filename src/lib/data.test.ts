@@ -1,7 +1,9 @@
 import { describe, expect, spyOn, test } from "bun:test";
 import type { HackerNewsItemReference } from "~/lib/item";
 import type { Post } from "~/lib/post";
-import { getPostTarget } from "./data";
+import { SubrequestBudgetError } from "./hacker-news/budget";
+import { PostUnavailableError } from "./hacker-news/post-loader";
+import { DataUnavailableError, getPostTarget } from "./data";
 
 const POST_ID = 8_863;
 const POST: Post = {
@@ -76,5 +78,38 @@ describe("getPostTarget", () => {
       source: "providers",
     });
     expect(entry?.providerDurationMs).toEqual(expect.any(Number));
+  });
+
+  test("converts provider exhaustion into a route-level outage", async () => {
+    const result = getPostTarget(POST_ID, {
+      loadItem: () => Promise.resolve({ id: POST_ID, type: "story" }),
+      loadPost: () =>
+        Promise.reject(new PostUnavailableError("providers unavailable")),
+    });
+
+    expect(result).rejects.toBeInstanceOf(DataUnavailableError);
+    await result.catch(() => undefined);
+  });
+
+  test("converts parent lookup failures into a route-level outage", async () => {
+    const commentId = POST_ID + 2;
+    const parentId = POST_ID + 1;
+    const result = getPostTarget(commentId, {
+      loadItem: (itemId) => {
+        if (itemId === commentId) {
+          return Promise.resolve({
+            id: commentId,
+            parent: parentId,
+            type: "comment",
+          });
+        }
+
+        return Promise.reject(new SubrequestBudgetError());
+      },
+      loadPost: () => Promise.resolve(null),
+    });
+
+    expect(result).rejects.toBeInstanceOf(DataUnavailableError);
+    await result.catch(() => undefined);
   });
 });

@@ -83,6 +83,18 @@ describe("brand images", () => {
     expect(source).not.toContain("favicon-32-dark.png");
   });
 
+  test("preloads only the primary text font", async () => {
+    const source = await readFile(LAYOUT, "utf8");
+    const mono = source.match(
+      /<Font cssVariable="--font-dm-mono"[^>]*\/>/u,
+    )?.[0];
+
+    expect(source.match(/<Font/gu)).toHaveLength(2);
+    expect(source).toContain('cssVariable="--font-dm-sans"');
+    expect(mono).toBeDefined();
+    expect(mono).not.toContain("preload");
+  });
+
   test("versioned favicon matches the generated gourd", async () => {
     const layout = await readFile(LAYOUT, "utf8");
     const favicon32 = await readFile(new URL("favicon-32.png", ASSET_DIR));

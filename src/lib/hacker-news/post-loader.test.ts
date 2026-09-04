@@ -1,10 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import type { Post } from "~/lib/post";
 import type { OfficialItem } from "./codec";
-import { loadPost, type PostSelectionMetric } from "./post-loader";
+import {
+  loadPost,
+  PostUnavailableError,
+  type PostSelectionMetric,
+} from "./post-loader";
 
 const POST_ID = 1;
 const STORY_TIME = 1_700_000_000;
+const ASYNC_DELAY_MS = 5;
 
 function createPost(commentsCount: number): Post {
   return {
@@ -105,7 +110,7 @@ describe("loadPost", () => {
       report: () => undefined,
     });
 
-    await Bun.sleep(5);
+    await Bun.sleep(ASYNC_DELAY_MS);
     const loadsBeforePrimary = secondaryLoads;
     const primary = createPost(3);
     releaseAggregate(primary);
@@ -199,7 +204,7 @@ describe("loadPost", () => {
       report: (metric) => metrics.push(metric),
     });
 
-    expect(result).rejects.toThrow("incomplete");
+    expect(result).rejects.toBeInstanceOf(PostUnavailableError);
     await result.catch(() => undefined);
 
     expect(metrics[0]).toMatchObject({
@@ -208,12 +213,30 @@ describe("loadPost", () => {
     });
   });
 
-  test("hydrates a large official fallback without a comment budget", async () => {
+  test("throws when the official root fails after bulk misses", async () => {
+    const metrics: PostSelectionMetric[] = [];
+    const result = loadPost(POST_ID, {
+      getAggregated: () => Promise.resolve(null),
+      getSecondary: () => Promise.resolve(null),
+      getOfficialPost: () => Promise.resolve(null),
+      getOfficialRoot: () => Promise.reject(new Error("official unavailable")),
+      report: (metric) => metrics.push(metric),
+    });
+
+    expect(result).rejects.toBeInstanceOf(PostUnavailableError);
+    await result.catch(() => undefined);
+    expect(metrics[0]).toMatchObject({
+      reason: "all-unavailable",
+      selectedProvider: "none",
+    });
+  });
+
+  test("refuses an official tree outside the subrequest budget", async () => {
     const official = createPost(187);
     const metrics: PostSelectionMetric[] = [];
     let officialLoads = 0;
 
-    const post = await loadPost(POST_ID, {
+    const post = loadPost(POST_ID, {
       getAggregated: () => Promise.resolve(null),
       getSecondary: () => Promise.resolve(null),
       getOfficialPost: () => {
@@ -222,15 +245,53 @@ describe("loadPost", () => {
       },
       getOfficialRoot: () => Promise.resolve(createRoot(187)),
       getOfficialSummary: () => createPost(0),
+      canLoadOfficial: () => false,
       report: (metric) => metrics.push(metric),
     });
 
-    expect(post).toBe(official);
-    expect(officialLoads).toBe(1);
+    expect(post).rejects.toBeInstanceOf(PostUnavailableError);
+    await post.catch(() => undefined);
+    expect(officialLoads).toBe(0);
     expect(metrics[0]).toMatchObject({
-      reason: "official-fallback",
-      selectedProvider: "official",
+      reason: "budget-exhausted",
+      selectedProvider: "none",
     });
+  });
+
+  test("starts both bulk fallbacks together after the primary misses", async () => {
+    let rootStarted = false;
+    let secondaryStarted = false;
+    let releaseRoot: (root: OfficialItem) => void = () => undefined;
+    let releaseSecondary: (post: Post) => void = () => undefined;
+    const root = new Promise<OfficialItem>((resolve) => {
+      releaseRoot = resolve;
+    });
+    const secondary = new Promise<Post>((resolve) => {
+      releaseSecondary = resolve;
+    });
+
+    const result = loadPost(POST_ID, {
+      getAggregated: () => Promise.resolve(null),
+      getOfficialPost: () => Promise.resolve(createPost(3)),
+      getOfficialRoot: () => {
+        rootStarted = true;
+        return root;
+      },
+      getSecondary: () => {
+        secondaryStarted = true;
+        return secondary;
+      },
+      report: () => undefined,
+    });
+
+    await Bun.sleep(ASYNC_DELAY_MS);
+    expect(rootStarted).toBeTrue();
+    expect(secondaryStarted).toBeTrue();
+
+    releaseRoot(createRoot(3));
+    const post = createPost(3);
+    releaseSecondary(post);
+    expect(await result).toBe(post);
   });
 
   test("uses a secondary bulk tree when the primary is unavailable", async () => {
@@ -247,11 +308,15 @@ describe("loadPost", () => {
     expect(post).toBe(secondary);
   });
 
-  test("stops fallbacks when the official item is a comment", async () => {
+  test("does not hydrate the official tree when its item is a comment", async () => {
     let officialLoads = 0;
     let secondaryLoads = 0;
+    let releaseSecondary: () => void = () => undefined;
+    const secondary = new Promise<Post | null>((resolve) => {
+      releaseSecondary = () => resolve(null);
+    });
 
-    const post = await loadPost(POST_ID, {
+    const result = loadPost(POST_ID, {
       getAggregated: () => Promise.resolve(null),
       getOfficialPost: () => {
         officialLoads += 1;
@@ -262,13 +327,20 @@ describe("loadPost", () => {
       getOfficialSummary: () => null,
       getSecondary: () => {
         secondaryLoads += 1;
-        return Promise.resolve(null);
+        return secondary;
       },
       report: () => undefined,
     });
+    const completed = await Promise.race([
+      result.then(() => true),
+      Bun.sleep(ASYNC_DELAY_MS).then(() => false),
+    ]);
+    releaseSecondary();
+    const post = await result;
 
+    expect(completed).toBeTrue();
     expect(post).toBeNull();
     expect(officialLoads).toBe(0);
-    expect(secondaryLoads).toBe(0);
+    expect(secondaryLoads).toBe(1);
   });
 });

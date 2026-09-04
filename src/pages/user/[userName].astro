@@ -1,15 +1,32 @@
 ---
 import BaseLayout from "~/layouts/BaseLayout.astro";
-import { getUser } from "~/lib/data";
+import { DataUnavailableError, getUser } from "~/lib/data";
 import { sanitizeHnHtml } from "~/lib/html";
 import { isValidUserName } from "~/lib/route";
+import { addServerTiming } from "~/lib/timing";
 
 const userName = Astro.params.userName ?? "";
 if (!isValidUserName(userName)) {
   return Astro.rewrite("/404");
 }
 
-const user = await getUser(userName);
+let user: Awaited<ReturnType<typeof getUser>>;
+const providerStart = performance.now();
+try {
+  user = await getUser(userName);
+} catch (error) {
+  if (error instanceof DataUnavailableError) {
+    return Astro.rewrite("/503");
+  }
+
+  throw error;
+} finally {
+  addServerTiming(
+    Astro.response.headers,
+    "provider",
+    performance.now() - providerStart,
+  );
+}
 if (user === null) {
   return Astro.rewrite("/404");
 }

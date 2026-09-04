@@ -96,10 +96,7 @@ const jsonLd = JSON.stringify(structuredData ?? websiteData).replaceAll(
       cssVariable="--font-dm-sans"
       preload={[{ subset: "latin", style: "normal", weight: 400 }]}
     />
-    <Font
-      cssVariable="--font-dm-mono"
-      preload={[{ subset: "latin", style: "normal", weight: 400 }]}
-    />
+    <Font cssVariable="--font-dm-mono" />
     <title>{pageTitle}</title>
     <ClientRouter />
     <script is:inline type="application/ld+json" set:html={jsonLd} />

@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { createServer } from "node:http";
+import { gzipSync } from "node:zlib";
 
 const TOP_PATH = "/top";
 const NEW_PATH = "/new";
@@ -13,6 +14,9 @@ const SITE_ORIGIN = "https://superhn.org";
 const CSS_POINT_PX = 4 / 3;
 const FONT_INCREASE_PX = 2 * CSS_POINT_PX;
 const FONT_TOLERANCE_PX = 0.05;
+const RETRY_AFTER_SECONDS = "60";
+const INITIAL_TRANSFER_BUDGET_BYTES = 27_000;
+const CLIENT_JS_BUDGET_BYTES = 5_000;
 
 function expectFontIncrease(actual: number, baseline: number) {
   expect(Math.abs(actual - baseline - FONT_INCREASE_PX)).toBeLessThan(
@@ -24,6 +28,28 @@ test("caches successful HTML briefly in the browser", async ({ page }) => {
   const response = await page.goto(TOP_PATH);
 
   expect(response?.headers()["cache-control"]).toBe(HTML_CACHE_CONTROL);
+});
+
+test("secures dynamic HTML responses", async ({ request }) => {
+  const response = await request.get(TOP_PATH);
+  const headers = response.headers();
+
+  expect(headers["content-type"]).toBe("text/html; charset=utf-8");
+  expect(headers["permissions-policy"]).toBe(
+    "camera=(), geolocation=(), microphone=()",
+  );
+  expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+  expect(headers["x-content-type-options"]).toBe("nosniff");
+  expect(headers["x-frame-options"]).toBe("DENY");
+});
+
+test("serves a retryable unavailable page", async ({ request }) => {
+  const response = await request.get("/503");
+
+  expect(response.status()).toBe(503);
+  expect(response.headers()["cache-control"]).toBe("no-store");
+  expect(response.headers()["retry-after"]).toBe(RETRY_AFTER_SECONDS);
+  expect(await response.text()).toContain("Temporarily unavailable");
 });
 
 test("uses the canonical origin in metadata and discovery", async ({
@@ -54,6 +80,7 @@ test("uses the canonical origin in metadata and discovery", async ({
   const robots = await (await request.get("/robots.txt")).text();
   expect(robots).toContain(`Sitemap: ${SITE_ORIGIN}/sitemap.xml`);
   expect(robots).toContain(`Host: ${SITE_ORIGIN}`);
+  expect(robots).toContain("Disallow: /cdn-cgi/");
 
   const sitemap = await (await request.get("/sitemap.xml")).text();
   expect(sitemap).toContain(`<loc>${SITE_ORIGIN}/top</loc>`);
@@ -138,6 +165,51 @@ test("ships only the transition runtime", async ({ page }) => {
   expect(html).not.toContain("__next");
   expect(html).not.toMatch(/\b(?:__react|data-reactroot|react-dom)\b/u);
   expect(scripts).toBeLessThanOrEqual(2);
+});
+
+test("keeps the initial authored transfer within budget", async ({
+  page,
+  request,
+}) => {
+  const response = await page.goto(TOP_PATH);
+  const html = (await response?.text()) ?? "";
+  const assetPaths = await page
+    .locator(
+      'script[src], link[rel="stylesheet"][href], link[rel="preload"][as="font"][href]',
+    )
+    .evaluateAll((elements) =>
+      elements.map((element) => {
+        if (element instanceof HTMLScriptElement) return element.src;
+        if (element instanceof HTMLLinkElement) return element.href;
+
+        return "";
+      }),
+    );
+  let initialBytes = gzipSync(html).byteLength;
+  let clientJsBytes = 0;
+
+  for (const path of new Set(assetPaths.filter(Boolean))) {
+    const asset = await request.get(path);
+    const body = await asset.body();
+    const contentType = asset.headers()["content-type"] ?? "";
+    const bytes = contentType.startsWith("font/")
+      ? body.byteLength
+      : gzipSync(body).byteLength;
+
+    initialBytes += bytes;
+    if (contentType.startsWith("text/javascript")) clientJsBytes += bytes;
+  }
+
+  const loadedFonts = await page.evaluate(() =>
+    performance
+      .getEntriesByType("resource")
+      .filter(({ name }) => name.endsWith(".woff2"))
+      .map(({ name }) => name),
+  );
+
+  expect(loadedFonts).toHaveLength(1);
+  expect(clientJsBytes).toBeLessThanOrEqual(CLIENT_JS_BUDGET_BYTES);
+  expect(initialBytes).toBeLessThanOrEqual(INITIAL_TRANSFER_BUDGET_BYTES);
 });
 
 test("uses the newspaper palettes and DM fonts", async ({ page }) => {

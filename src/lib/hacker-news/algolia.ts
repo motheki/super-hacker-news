@@ -1,6 +1,7 @@
 import type { Comment, Post } from "~/lib/post";
 import { fetchJson } from "./client";
 import { formatAge, getDomain } from "./format";
+import type { RequestBudget } from "./budget";
 
 const ALGOLIA_API = "https://hn.algolia.com/api/v1";
 const POST_CACHE_SECONDS = 60;
@@ -98,9 +99,10 @@ export function parseAlgoliaPost(value: unknown): Post | null {
   };
 }
 
-export function getAlgoliaPost(postId: number) {
+export function getAlgoliaPost(postId: number, budget: RequestBudget) {
   return fetchJson(`${ALGOLIA_API}/items/${postId}`, parseAlgoliaPost, {
     cacheTtlSeconds: POST_CACHE_SECONDS,
+    budget,
     operation: "post",
     provider: "algolia",
     retryCount: 0,

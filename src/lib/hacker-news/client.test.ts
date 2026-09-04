@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { fetchJson, preferPrimary } from "./client";
+import { RequestBudget } from "./budget";
 
 const parseNumber = (value: unknown) =>
   typeof value === "number" ? value : null;
@@ -65,6 +66,32 @@ describe("fetchJson", () => {
     expect(result).rejects.toThrow("Upstream request failed");
     await result.catch(() => undefined);
     expect(calls).toBe(1);
+  });
+
+  test("counts every retry against the request budget", async () => {
+    const budget = new RequestBudget(2);
+    let calls = 0;
+    const fetcher = () => {
+      calls += 1;
+      return Promise.resolve(new Response(null, { status: 503 }));
+    };
+
+    const result = fetchJson("https://example.test/item", parseNumber, {
+      budget,
+      fetcher,
+      operation: "item",
+      provider: "test",
+      retryCount: 2,
+      sleep: noWait,
+    });
+
+    expect(result).rejects.toThrow("Upstream request failed");
+    await result.catch(() => undefined);
+    expect(calls).toBe(2);
+    expect(budget.snapshot()).toEqual({
+      subrequestsRemaining: 0,
+      subrequestsUsed: 2,
+    });
   });
 });
 

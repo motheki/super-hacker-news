@@ -1,9 +1,11 @@
 import type { Post } from "~/lib/post";
+import type { BudgetSnapshot } from "./budget";
 import type { OfficialItem } from "./codec";
 
 type PostProvider = "algolia" | "hackerwebapp" | "none" | "official";
 type SelectionReason =
   | "all-unavailable"
+  | "budget-exhausted"
   | "official-fallback"
   | "official-incomplete"
   | "primary"
@@ -17,15 +19,26 @@ export interface PostSelectionMetric {
   readonly postId: number;
   readonly reason: SelectionReason;
   readonly selectedProvider: PostProvider;
+  readonly subrequestsRemaining?: number;
+  readonly subrequestsUsed?: number;
 }
 
 interface PostLoaders {
+  readonly canLoadOfficial?: (root: OfficialItem) => boolean;
   readonly getAggregated: () => Promise<Post | null>;
   readonly getOfficialPost: (root: OfficialItem) => Promise<Post | null>;
   readonly getOfficialRoot: () => Promise<OfficialItem | null>;
   readonly getOfficialSummary?: (root: OfficialItem) => Post | null;
   readonly getSecondary: () => Promise<Post | null>;
+  readonly getBudget?: () => BudgetSnapshot;
   readonly report: (metric: PostSelectionMetric) => void;
+}
+
+export class PostUnavailableError extends Error {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = "PostUnavailableError";
+  }
 }
 
 function toError(error: unknown) {
@@ -58,6 +71,7 @@ export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
       postId,
       reason,
       selectedProvider,
+      ...loaders.getBudget?.(),
     });
   };
 
@@ -72,7 +86,8 @@ export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
     return aggregated;
   }
 
-  // A single item lookup distinguishes comment permalinks from missing posts.
+  // Start both fallbacks, but let comment redirects continue on the root result.
+  const secondaryResultPromise = settle(loaders.getSecondary);
   const rootResult = await settle(loaders.getOfficialRoot);
   const root = rootResult.status === "fulfilled" ? rootResult.value : null;
   officialCount = root?.descendants ?? null;
@@ -84,11 +99,12 @@ export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
     loaders.getOfficialSummary !== undefined &&
     officialSummary === null
   ) {
+    void secondaryResultPromise;
     report("all-unavailable", "none");
     return null;
   }
 
-  const secondaryResult = await settle(loaders.getSecondary);
+  const secondaryResult = await secondaryResultPromise;
   const secondary =
     secondaryResult.status === "fulfilled" ? secondaryResult.value : null;
   secondaryCount = secondary?.comments_count ?? null;
@@ -100,16 +116,35 @@ export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
 
   // The official API remains the complete-tree fallback when bulk APIs miss.
   if (root === null) {
-    if (aggregatedResult.status === "rejected") {
-      throw toError(aggregatedResult.reason);
-    }
+    const providerFailed =
+      aggregatedResult.status === "rejected" ||
+      rootResult.status === "rejected" ||
+      secondaryResult.status === "rejected";
+    if (providerFailed) {
+      const cause =
+        aggregatedResult.status === "rejected"
+          ? aggregatedResult.reason
+          : rootResult.status === "rejected"
+            ? rootResult.reason
+            : secondaryResult.status === "rejected"
+              ? secondaryResult.reason
+              : undefined;
 
-    if (secondaryResult.status === "rejected") {
-      throw toError(secondaryResult.reason);
+      report("all-unavailable", "none");
+      throw new PostUnavailableError("Every post provider is unavailable", {
+        cause,
+      });
     }
 
     report("all-unavailable", "none");
     return null;
+  }
+
+  if (loaders.canLoadOfficial?.(root) === false) {
+    report("budget-exhausted", "none");
+    throw new PostUnavailableError(
+      "The official comment tree exceeds the request budget",
+    );
   }
 
   try {
@@ -120,6 +155,8 @@ export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
     return official;
   } catch (error) {
     report("official-incomplete", "none");
-    throw toError(error);
+    throw new PostUnavailableError("Every complete post provider failed", {
+      cause: toError(error),
+    });
   }
 }

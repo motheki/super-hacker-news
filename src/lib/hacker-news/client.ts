@@ -1,4 +1,9 @@
 export type JsonParser<T> = (value: unknown) => T | null;
+import {
+  RequestBudget,
+  SubrequestBudgetError,
+  type BudgetSnapshot,
+} from "./budget";
 
 type Fetcher = (
   input: string | URL | Request,
@@ -14,9 +19,12 @@ export interface UpstreamMetric {
   readonly outcome: "failure" | "invalid" | "not-found" | "retry" | "success";
   readonly provider: string;
   readonly status?: number;
+  readonly subrequestsRemaining?: number;
+  readonly subrequestsUsed?: number;
 }
 
 interface FetchJsonOptions {
+  readonly budget?: RequestBudget;
   readonly cacheTtlSeconds?: number;
   readonly fetcher?: Fetcher;
   readonly operation: string;
@@ -78,7 +86,16 @@ function toError(error: unknown) {
 }
 
 function hitSubrequestLimit(error: unknown) {
-  return toError(error).message.includes(SUBREQUEST_LIMIT_MESSAGE);
+  return (
+    error instanceof SubrequestBudgetError ||
+    toError(error).message.includes(SUBREQUEST_LIMIT_MESSAGE)
+  );
+}
+
+function budgetMetric(
+  budget: RequestBudget | undefined,
+): Partial<BudgetSnapshot> {
+  return budget?.snapshot() ?? {};
 }
 
 export async function fetchJson<T>(
@@ -109,6 +126,7 @@ export async function fetchJson<T>(
     let response: Response;
 
     try {
+      options.budget?.take();
       response = await fetcher(url, {
         ...requestInit,
         signal: AbortSignal.timeout(timeoutMs),
@@ -118,6 +136,7 @@ export async function fetchJson<T>(
       const outcome = canRetryError ? "retry" : "failure";
       report({
         attempt,
+        ...budgetMetric(options.budget),
         durationMs: durationSince(start),
         operation: options.operation,
         outcome,
@@ -135,6 +154,7 @@ export async function fetchJson<T>(
     const bytes = contentLength(response);
     const metric = () => ({
       attempt,
+      ...budgetMetric(options.budget),
       ...(bytes === undefined ? {} : { bytes }),
       durationMs: durationSince(start),
       operation: options.operation,

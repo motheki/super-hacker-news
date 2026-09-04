@@ -20,10 +20,9 @@ A small, server-rendered Hacker News reader built with Astro and deployed on Clo
 ## Stack
 
 - Astro server rendering on Cloudflare Workers
-- A separately deployed private Cloudflare data service
 - Astro Fonts with self-hosted DM Sans and DM Mono files sourced from Google Fonts
 - Astro route caching backed by Cloudflare's CDN cache
-- Official Hacker News data with HackerWeb and Algolia outage fallbacks
+- HackerWeb data with Algolia and official HN fallbacks
 - Bun, TypeScript 7, ESLint, Prettier, and Playwright
 
 Astro 7.3.1 and `@astrojs/cloudflare` 14.3.0 are pinned together.
@@ -48,34 +47,28 @@ bun run build
 
 `bun run typecheck` uses Astro's TypeScript 6-compatible checker for `.astro` templates and the TypeScript 7 native compiler for TypeScript source. TypeScript 7 does not yet expose the programmatic API Astro's checker requires.
 
-Run the local route benchmark with `bun run benchmark`. `bun run benchmark:live` measures warm, materialized, and provider-fallback production routes when given `MATERIALIZED_IDS` and `FALLBACK_IDS`.
+Run the local route benchmark with `bun run benchmark`. `bun run benchmark:live` compares cache fill, repeated requests, confirmed hits, reference posts, and the current official best stories. It records every tested ID. Override its targets with `BENCHMARK_URLS`, `REFERENCE_POST_IDS`, and `RECENT_POST_IDS`.
 
 ## Architecture
 
 ```text
 Browser
-  -> Astro routes and components
-    -> private HN data Worker
-      -> D1 materialized feeds, posts, and profiles
-      -> Queue comment-tree hydration
-      -> scheduled official HN synchronization
-    -> HackerWeb + Algolia fallback
   -> Astro route cache on Cloudflare
+    -> Astro routes and data service
+      -> HackerWeb fast path
+      -> official root + Algolia fallback
+      -> bounded official comment reconstruction
 ```
 
-Astro renders feeds, posts, comments, profiles, metadata, and errors on the server. The browser receives compressed HTML, self-hosted fonts, a small opt-in prefetch helper, and no component framework. Native links own navigation and scrolling; native `<details>` elements own comment collapsing. Discussion links prerender on hover in supported browsers and fall back to Astro's prefetch helper elsewhere.
+Astro renders feeds, posts, comments, profiles, metadata, and errors on the server. The browser receives compressed HTML, self-hosted fonts, Astro's transition runtime, and no component framework. Native `<details>` elements own comment collapsing. Discussion links prefetch on intent.
 
-Feeds and active discussions cache at Cloudflare's edge for one minute with five minutes of background revalidation. Discussions from one to 30 days old cache for five minutes with one hour of revalidation. Older discussions and the sitemap cache for one hour with one day of revalidation. Profiles cache for 15 minutes with one hour of revalidation. Successful HTML also receives a 15-second browser cache. Errors, missing data, and redirects are not cached.
+Feeds cache at Cloudflare's edge for one minute with five minutes of background revalidation. Active discussions use one minute with four minutes of revalidation. Discussions from one to 30 days old use five minutes with one hour of revalidation. Older discussions and the sitemap use one hour with one day of revalidation. Profiles use 15 minutes with one hour of revalidation. Successful HTML also receives a 15-second browser cache. Outages return an uncached, retryable 503.
 
-The private data service polls official feed and update indexes, stores validated source items and normalized output, and materializes complete post trees asynchronously. One service-binding request and one indexed D1 join resolve either a post or its root redirect. Target maintenance runs after the response. Replica-eligible reads use D1 Sessions while writes remain on the primary. Missing or stale data retains the provider fallback.
+HackerWeb is the fast path. After it misses, the official root and Algolia load together. If both bulk providers miss, small discussions can use official reconstruction. One request budget covers retries, comment redirects, and reconstruction; large trees return 503 instead of exceeding the Worker limit or publishing partial content.
 
-Cold, warming, or unavailable service reads fall back to the previous validated provider chain. HackerWeb is checked against the official descendant count first. Algolia runs only when HackerWeb is missing or behind. Small mismatches can still use bounded official reconstruction; large discussions never risk exhausting one page request's subrequest budget.
-
-Derived image assets are palette-compressed, content-hashed, and cached immutably for one year. Dynamic HTML uses stale-while-revalidate caching so current Hacker News data remains recent without making every visitor wait for upstream APIs.
+Derived image assets are palette-compressed, content-hashed, and cached immutably for one year. Dynamic HTML uses stale-while-revalidate caching and shared security headers.
 
 ## Deployment
-
-The private data service is maintained and deployed from a separate private repository. This public repository deploys only the Astro Worker:
 
 ```sh
 bun run deploy

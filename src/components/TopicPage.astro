@@ -1,8 +1,9 @@
 ---
 import FeedItem from "~/components/FeedItem.astro";
 import BaseLayout from "~/layouts/BaseLayout.astro";
-import { getTopicItems } from "~/lib/data";
+import { DataUnavailableError, getTopicItems } from "~/lib/data";
 import { TOPICS } from "~/lib/topic";
+import { addServerTiming } from "~/lib/timing";
 
 interface Props {
   readonly page: number;
@@ -17,7 +18,23 @@ if (topic === undefined) {
   return Astro.rewrite("/404");
 }
 
-const items = await getTopicItems(topic.value, page);
+let items: Awaited<ReturnType<typeof getTopicItems>>;
+const providerStart = performance.now();
+try {
+  items = await getTopicItems(topic.value, page);
+} catch (error) {
+  if (error instanceof DataUnavailableError) {
+    return Astro.rewrite("/503");
+  }
+
+  throw error;
+} finally {
+  addServerTiming(
+    Astro.response.headers,
+    "provider",
+    performance.now() - providerStart,
+  );
+}
 if (items === null) {
   return Astro.rewrite("/404");
 }

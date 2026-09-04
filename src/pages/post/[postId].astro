@@ -2,18 +2,35 @@
 import Comment from "~/components/Comment.astro";
 import BaseLayout from "~/layouts/BaseLayout.astro";
 import { getPostCache } from "~/lib/cache";
-import { getPostTarget } from "~/lib/data";
+import { DataUnavailableError, getPostTarget } from "~/lib/data";
 import { sanitizeHnHtml } from "~/lib/html";
 import { isSafeExternalUrl } from "~/lib/link";
 import { parsePostId } from "~/lib/route";
 import { SITE_URL } from "~/lib/site";
+import { addServerTiming } from "~/lib/timing";
 
 const postId = parsePostId(Astro.params.postId ?? "");
 if (postId === null) {
   return Astro.rewrite("/404");
 }
 
-const target = await getPostTarget(postId);
+let target: Awaited<ReturnType<typeof getPostTarget>>;
+const providerStart = performance.now();
+try {
+  target = await getPostTarget(postId);
+} catch (error) {
+  if (error instanceof DataUnavailableError) {
+    return Astro.rewrite("/503");
+  }
+
+  throw error;
+} finally {
+  addServerTiming(
+    Astro.response.headers,
+    "provider",
+    performance.now() - providerStart,
+  );
+}
 if (target.kind === "redirect") {
   return Astro.redirect(`/post/${target.rootId}#comment-${postId}`, 302);
 }

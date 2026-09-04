@@ -27,14 +27,17 @@ export async function resolvePostTarget(
   }
 
   let item: HackerNewsItemReference | null;
+  let itemError: Error | undefined;
   try {
     item = await loadItem(itemId);
-  } catch {
+  } catch (error) {
     item = null;
+    itemError = error instanceof Error ? error : new Error(String(error));
   }
 
   if (item === null || isRootItemType(item.type)) {
     if (postError !== undefined) throw postError;
+    if (itemError !== undefined) throw itemError;
 
     return { kind: "missing" };
   }

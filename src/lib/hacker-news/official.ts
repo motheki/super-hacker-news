@@ -12,6 +12,7 @@ import {
   type OfficialItem,
 } from "./codec";
 import type { ContentProvider } from "./provider";
+import type { RequestBudget } from "./budget";
 import { loadDescendants } from "./tree";
 
 const OFFICIAL_API = "https://hacker-news.firebaseio.com/v0";
@@ -32,31 +33,35 @@ function nowSeconds() {
   return Math.floor(Date.now() / 1_000);
 }
 
-async function getOfficialItem(itemId: number) {
+async function getOfficialItem(itemId: number, budget: RequestBudget) {
   return fetchJson(`${OFFICIAL_API}/item/${itemId}.json`, parseOfficialItem, {
     cacheTtlSeconds: ITEM_CACHE_SECONDS,
+    budget,
     operation: "item",
     provider: "official",
   });
 }
 
-async function getOfficialFeedIds(topic: string) {
+async function getOfficialFeedIds(topic: string, budget: RequestBudget) {
   const feed = FEED_NAMES[topic];
   if (feed === undefined) return null;
 
   return fetchJson(`${OFFICIAL_API}/${feed}.json`, parseNumberArray, {
     cacheTtlSeconds: FEED_CACHE_SECONDS,
+    budget,
     operation: "feed-ids",
     provider: "official",
   });
 }
 
-async function getOfficialItems(ids: readonly number[]) {
+async function getOfficialItems(ids: readonly number[], budget: RequestBudget) {
   const items: OfficialItem[] = [];
 
   for (let start = 0; start < ids.length; start += ITEM_BATCH_SIZE) {
     const batch = ids.slice(start, start + ITEM_BATCH_SIZE);
-    const loaded = await Promise.all(batch.map(getOfficialItem));
+    const loaded = await Promise.all(
+      batch.map((itemId) => getOfficialItem(itemId, budget)),
+    );
 
     for (const item of loaded) {
       if (item !== null) items.push(item);
@@ -69,13 +74,14 @@ async function getOfficialItems(ids: readonly number[]) {
 async function getTopics(
   topic: string,
   page: number,
+  budget: RequestBudget,
 ): Promise<TopicItem[] | null> {
-  const ids = await getOfficialFeedIds(topic);
+  const ids = await getOfficialFeedIds(topic, budget);
   if (ids === null) return null;
 
   const start = ITEMS_PER_PAGE * (page - 1);
   const pageIds = ids.slice(start, start + ITEMS_PER_PAGE);
-  const items = await getOfficialItems(pageIds);
+  const items = await getOfficialItems(pageIds, budget);
   const now = nowSeconds();
 
   const topics: TopicItem[] = [];
@@ -89,8 +95,13 @@ async function getTopics(
 
 export async function getOfficialPost(
   root: OfficialItem,
+  budget: RequestBudget,
 ): Promise<Post | null> {
-  const result = await loadDescendants(root, getOfficialItem, ITEM_BATCH_SIZE);
+  const result = await loadDescendants(
+    root,
+    (itemId) => getOfficialItem(itemId, budget),
+    ITEM_BATCH_SIZE,
+  );
 
   // Every reachable child must load; HN can count unreachable killed comments.
   if (result.missingIds.length > 0) {
@@ -100,27 +111,34 @@ export async function getOfficialPost(
   return toOfficialPost(root, result.items, nowSeconds());
 }
 
-export function getOfficialPostRoot(postId: number) {
-  return getOfficialItem(postId);
+export function getOfficialPostRoot(postId: number, budget: RequestBudget) {
+  return getOfficialItem(postId, budget);
 }
 
 export function getOfficialPostSummary(root: OfficialItem) {
   return toOfficialPost(root, new Map(), nowSeconds());
 }
 
-async function getPost(postId: number): Promise<Post | null> {
-  const root = await getOfficialPostRoot(postId);
+async function getPost(
+  postId: number,
+  budget: RequestBudget,
+): Promise<Post | null> {
+  const root = await getOfficialPostRoot(postId, budget);
   if (root === null) return null;
 
-  return getOfficialPost(root);
+  return getOfficialPost(root, budget);
 }
 
-async function getUser(userName: string): Promise<User | null> {
+async function getUser(
+  userName: string,
+  budget: RequestBudget,
+): Promise<User | null> {
   const user = await fetchJson(
     `${OFFICIAL_API}/user/${encodeURIComponent(userName)}.json`,
     parseOfficialUser,
     {
       cacheTtlSeconds: USER_CACHE_SECONDS,
+      budget,
       operation: "user",
       provider: "official",
     },
@@ -131,14 +149,16 @@ async function getUser(userName: string): Promise<User | null> {
 
 export async function getOfficialItemReference(
   itemId: number,
+  budget: RequestBudget,
 ): Promise<OfficialItem | null> {
-  const item = await getOfficialItem(itemId);
+  const item = await getOfficialItem(itemId, budget);
   return item;
 }
 
-export function getOfficialBestStoryIds() {
+export function getOfficialBestStoryIds(budget: RequestBudget) {
   return fetchJson(`${OFFICIAL_API}/beststories.json`, parseNumberArray, {
     cacheTtlSeconds: FEED_CACHE_SECONDS,
+    budget,
     operation: "best-story-ids",
     provider: "official",
   });

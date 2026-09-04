@@ -1,0 +1,17 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+
+const RETRY_AFTER_SECONDS = 60;
+
+Astro.response.status = 503;
+Astro.response.headers.set("cache-control", "no-store");
+Astro.response.headers.set("retry-after", String(RETRY_AFTER_SECONDS));
+---
+
+<BaseLayout title="Temporarily unavailable">
+  <section class="message-page">
+    <h1>Temporarily unavailable</h1>
+    <p>Hacker News could not be reached. Try again shortly.</p>
+    <a class="text-link" href="">Try again</a>
+  </section>
+</BaseLayout>
