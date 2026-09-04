@@ -7,14 +7,13 @@ import { sanitizeHnHtml } from "~/lib/html";
 import { isSafeExternalUrl } from "~/lib/link";
 import { parsePostId } from "~/lib/route";
 import { SITE_URL } from "~/lib/site";
-import { env } from "cloudflare:workers";
 
 const postId = parsePostId(Astro.params.postId ?? "");
 if (postId === null) {
   return Astro.rewrite("/404");
 }
 
-const target = await getPostTarget(postId, env.HN_DATA);
+const target = await getPostTarget(postId);
 if (target.kind === "redirect") {
   return Astro.redirect(`/post/${target.rootId}#comment-${postId}`, 302);
 }

@@ -1,7 +1,16 @@
-const DEFAULT_BASE_URL = "https://superhn.org";
+const SUPER_HN_URL = "https://superhn.org";
+const BETTER_HN_URL = "https://bhn.vercel.app";
 const WARM_REQUESTS = 30;
-const REQUIRED_COLD_REQUESTS = 10;
+const REQUIRED_POSTS = 10;
 const WARM_ROUTES = ["/top", "/post/8863"] as const;
+const REFERENCE_POST_IDS = [
+  49_543_220, 49_554_643, 49_544_618, 49_550_698, 49_550_772, 49_551_096,
+  49_554_520, 49_552_572, 49_548_395, 49_526_453,
+] as const;
+const RECENT_POST_IDS = [
+  49_557_206, 49_548_452, 49_548_600, 49_558_433, 49_555_592, 49_559_330,
+  49_559_320, 49_559_069, 49_558_610, 49_559_314,
+] as const;
 
 interface Sample {
   readonly bytes: number;
@@ -12,20 +21,32 @@ interface Sample {
   readonly ttfbMs: number;
 }
 
-function parseIds(name: string) {
-  const value = process.env[name] ?? "";
+function parseUrls() {
+  const configured = process.env.BENCHMARK_URLS;
+  const urls = configured?.split(",").map((url) => url.trim()) ?? [
+    SUPER_HN_URL,
+    BETTER_HN_URL,
+  ];
+
+  return urls.filter((url) => url.length > 0);
+}
+
+function parseIds(name: string, defaults: readonly number[]) {
+  const value = process.env[name];
+  if (value === undefined) return defaults;
+
   const ids = value
     .split(",")
     .map((item) => Number(item))
     .filter((item) => Number.isSafeInteger(item) && item > 0);
-  if (ids.length < REQUIRED_COLD_REQUESTS) {
-    throw new Error(`${name} requires at least ${REQUIRED_COLD_REQUESTS} IDs`);
+  if (ids.length < REQUIRED_POSTS) {
+    throw new Error(`${name} requires at least ${REQUIRED_POSTS} IDs`);
   }
 
-  return ids.slice(0, REQUIRED_COLD_REQUESTS);
+  return ids.slice(0, REQUIRED_POSTS);
 }
 
-function percentile(values: readonly number[], fraction: number) {
+export function percentile(values: readonly number[], fraction: number) {
   const sorted = [...values].sort((left, right) => left - right);
   const index = Math.ceil(sorted.length * fraction) - 1;
   return sorted[Math.max(0, index)] ?? 0;
@@ -34,6 +55,7 @@ function percentile(values: readonly number[], fraction: number) {
 function summarize(samples: readonly Sample[]) {
   const totals = samples.map(({ totalMs }) => totalMs);
   const ttfbs = samples.map(({ ttfbMs }) => ttfbMs);
+  const caches = Object.groupBy(samples, ({ cache }) => cache);
 
   return {
     bytesMedian: Math.round(
@@ -42,6 +64,12 @@ function summarize(samples: readonly Sample[]) {
         0.5,
       ),
     ),
+    cache: Object.fromEntries(
+      Object.entries(caches).map(([status, entries]) => [
+        status,
+        entries?.length ?? 0,
+      ]),
+    ),
     count: samples.length,
     status5xx: samples.filter(({ status }) => status >= 500).length,
     totalP50Ms: Math.round(percentile(totals, 0.5) * 10) / 10,
@@ -49,6 +77,11 @@ function summarize(samples: readonly Sample[]) {
     ttfbP50Ms: Math.round(percentile(ttfbs, 0.5) * 10) / 10,
     ttfbP95Ms: Math.round(percentile(ttfbs, 0.95) * 10) / 10,
   };
+}
+
+function withProbe(path: string, runId: string, index: number) {
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}benchmark=${runId}-${index}`;
 }
 
 async function sample(baseUrl: string, path: string): Promise<Sample> {
@@ -74,10 +107,7 @@ async function samplePaths(baseUrl: string, paths: readonly string[]) {
   return samples;
 }
 
-async function run() {
-  const baseUrl = process.env.BENCHMARK_BASE_URL ?? DEFAULT_BASE_URL;
-  const materializedIds = parseIds("MATERIALIZED_IDS");
-  const fallbackIds = parseIds("FALLBACK_IDS");
+async function benchmark(baseUrl: string, runId: string) {
   const result: Record<string, ReturnType<typeof summarize>> = {};
 
   for (const route of WARM_ROUTES) {
@@ -86,20 +116,44 @@ async function run() {
     result[`warm:${route}`] = summarize(await samplePaths(baseUrl, paths));
   }
 
-  result.materialized = summarize(
+  const referenceIds = parseIds("REFERENCE_POST_IDS", REFERENCE_POST_IDS);
+  const recentIds = parseIds("RECENT_POST_IDS", RECENT_POST_IDS);
+  result["cold:reference-posts"] = summarize(
     await samplePaths(
       baseUrl,
-      materializedIds.map((id) => `/post/${id}`),
+      referenceIds.map((id, index) => withProbe(`/post/${id}`, runId, index)),
     ),
   );
-  result.fallback = summarize(
+  result["cold:recent-posts"] = summarize(
     await samplePaths(
       baseUrl,
-      fallbackIds.map((id) => `/post/${id}`),
+      recentIds.map((id, index) =>
+        withProbe(`/post/${id}`, runId, index + referenceIds.length),
+      ),
     ),
   );
 
-  console.log(JSON.stringify({ baseUrl, result }, null, 2));
+  return result;
 }
 
-await run();
+async function run() {
+  const runId = `${Date.now()}-${crypto.randomUUID()}`;
+  const results: Record<string, Awaited<ReturnType<typeof benchmark>>> = {};
+
+  for (const baseUrl of parseUrls()) {
+    results[baseUrl] = await benchmark(baseUrl, runId);
+  }
+
+  console.log(
+    JSON.stringify(
+      {
+        measuredAt: new Date().toISOString(),
+        results,
+      },
+      null,
+      2,
+    ),
+  );
+}
+
+if (import.meta.main) await run();

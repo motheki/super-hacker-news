@@ -3,14 +3,13 @@ import BaseLayout from "~/layouts/BaseLayout.astro";
 import { getUser } from "~/lib/data";
 import { sanitizeHnHtml } from "~/lib/html";
 import { isValidUserName } from "~/lib/route";
-import { env } from "cloudflare:workers";
 
 const userName = Astro.params.userName ?? "";
 if (!isValidUserName(userName)) {
   return Astro.rewrite("/404");
 }
 
-const user = await getUser(userName, env.HN_DATA);
+const user = await getUser(userName);
 if (user === null) {
   return Astro.rewrite("/404");
 }

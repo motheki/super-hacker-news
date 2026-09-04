@@ -1,14 +1,13 @@
 import type { APIRoute } from "astro";
 import { getBestStoryIds } from "~/lib/data";
 import { SITE_URL } from "~/lib/site";
-import { env } from "cloudflare:workers";
 
 const ROUTES = ["top", "new", "ask", "show"] as const;
 
 export const GET: APIRoute = async () => {
   let ids: number[] = [];
   try {
-    ids = (await getBestStoryIds(env.HN_DATA)) ?? [];
+    ids = (await getBestStoryIds()) ?? [];
   } catch (error) {
     console.error("Unable to include story URLs in the sitemap", error);
   }

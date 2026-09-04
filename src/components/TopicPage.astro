@@ -3,7 +3,6 @@ import FeedItem from "~/components/FeedItem.astro";
 import BaseLayout from "~/layouts/BaseLayout.astro";
 import { getTopicItems } from "~/lib/data";
 import { TOPICS } from "~/lib/topic";
-import { env } from "cloudflare:workers";
 
 interface Props {
   readonly page: number;
@@ -18,7 +17,7 @@ if (topic === undefined) {
   return Astro.rewrite("/404");
 }
 
-const items = await getTopicItems(topic.value, page, env.HN_DATA);
+const items = await getTopicItems(topic.value, page);
 if (items === null) {
   return Astro.rewrite("/404");
 }
