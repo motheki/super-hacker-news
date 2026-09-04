@@ -21,7 +21,7 @@ A small, server-rendered Hacker News reader built with Astro and deployed on Clo
 
 - Astro server rendering on Cloudflare Workers
 - A separately deployed private Cloudflare data service
-- Astro Fonts with self-hosted Nova Cut and Nova Mono files sourced from Google Fonts
+- Astro Fonts with self-hosted DM Sans and DM Mono files sourced from Google Fonts
 - Astro route caching backed by Cloudflare's CDN cache
 - Official Hacker News data with HackerWeb and Algolia outage fallbacks
 - Bun, TypeScript 7, ESLint, Prettier, and Playwright

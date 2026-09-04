@@ -29,11 +29,11 @@ export default defineConfig({
   },
   fonts: [
     {
-      cssVariable: "--font-nova-cut",
+      cssVariable: "--font-dm-sans",
       display: "swap",
-      fallbacks: ["ui-serif", "Georgia", "Cambria", "Times New Roman", "serif"],
+      fallbacks: ["ui-sans-serif", "system-ui", "sans-serif"],
       formats: ["woff2"],
-      name: "Nova Cut",
+      name: "DM Sans",
       optimizedFallbacks: true,
       provider: fontProviders.google(),
       styles: ["normal"],
@@ -41,7 +41,7 @@ export default defineConfig({
       weights: [400],
     },
     {
-      cssVariable: "--font-nova-mono",
+      cssVariable: "--font-dm-mono",
       display: "swap",
       fallbacks: [
         "ui-monospace",
@@ -54,7 +54,7 @@ export default defineConfig({
         "monospace",
       ],
       formats: ["woff2"],
-      name: "Nova Mono",
+      name: "DM Mono",
       optimizedFallbacks: true,
       provider: fontProviders.google(),
       styles: ["normal"],

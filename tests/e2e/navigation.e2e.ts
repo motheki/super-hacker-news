@@ -140,7 +140,7 @@ test("ships only the transition runtime", async ({ page }) => {
   expect(scripts).toBeLessThanOrEqual(2);
 });
 
-test("uses the newspaper palettes and Nova fonts", async ({ page }) => {
+test("uses the newspaper palettes and DM fonts", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" });
   await page.goto(TOP_PATH);
 
@@ -160,8 +160,8 @@ test("uses the newspaper palettes and Nova fonts", async ({ page }) => {
     background: "rgb(217, 196, 168)",
     color: "rgb(33, 32, 32)",
   });
-  expect(light.font).toContain("Nova Cut");
-  expect(light.monoFont).toContain("Nova Mono");
+  expect(light.font).toContain("DM Sans");
+  expect(light.monoFont).toContain("DM Mono");
 
   await page.emulateMedia({ colorScheme: "dark" });
   const dark = await page.evaluate(() => {
