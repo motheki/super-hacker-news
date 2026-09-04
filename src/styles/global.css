@@ -49,6 +49,12 @@ a {
   outline-offset: 3px;
 }
 
+a,
+button,
+summary {
+  touch-action: manipulation;
+}
+
 a:focus-visible,
 summary:focus-visible {
   outline: 2px dotted currentColor;
@@ -187,6 +193,7 @@ samp {
 .feed-index {
   color: var(--muted);
   font-size: calc(1.4rem + var(--font-size-increase));
+  font-variant-numeric: tabular-nums;
   line-height: 1.25;
   text-align: right;
 }
@@ -266,10 +273,12 @@ samp {
 
 #comments {
   margin-top: 1rem;
+  scroll-margin-top: 1rem;
 }
 
 .comment {
   margin-top: 0.65rem;
+  scroll-margin-top: 1rem;
 }
 
 .comment:first-child {

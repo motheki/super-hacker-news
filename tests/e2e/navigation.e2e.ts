@@ -111,7 +111,7 @@ test("omits search and share controls", async ({ page }) => {
 test("uses native navigation without custom scroll state", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveURL(new RegExp(`${TOP_PATH}$`, "u"));
-  await expect(page.getByRole("link", { name: "More..." })).toBeVisible();
+  await expect(page.getByRole("link", { name: "More…" })).toBeVisible();
 
   await page.evaluate(() => {
     window.scrollTo(0, document.documentElement.scrollHeight / 2);
@@ -150,7 +150,7 @@ test("opens the second feed page without losing pagination", async ({
   page,
 }) => {
   await page.goto(TOP_PATH);
-  await page.getByRole("link", { name: "More..." }).click();
+  await page.getByRole("link", { name: "More…" }).click();
 
   await expect(page).toHaveURL(/\/top\/2$/u);
   await expect(page.locator(".feed-index").first()).toHaveText("31");
