@@ -1,6 +1,6 @@
 # Super HN
 
-![Super HN computer mouse](docs/images/super-hn-mouse-banner.png)
+![Super HN fly-whisk emblem](docs/images/super-hn-fly-whisk-banner.png)
 
 A small, server-rendered Hacker News reader built with Astro and deployed on Cloudflare Workers.
 
@@ -85,12 +85,15 @@ bun run deploy
 
 ## Brand
 
-The source logo is [`src/assets/super-hn-mouse.png`](src/assets/super-hn-mouse.png). Derived favicons, application icons, the social image, and this README banner use the same computer-mouse mark and four-color palette:
+The source logo is [`src/assets/super-hn-fly-whisk.png`](src/assets/super-hn-fly-whisk.png). The original dithered image draws on the wooden handle and flowing animal-tail tuft of the Luo [fly whisk](https://artsandculture.google.com/asset/fly-whisk/_gFKI5qOz6yVZQ). Derived favicons, application icons, the social image, and this README banner use the application palette:
 
-- dark background `#323232`
-- dark text and UI `#FFFFFF`
-- light background `#E2E5DE`
-- light text and UI `#020202`
+- light canvas `#D9C4A8`
+- light ink `#212020`
+- dark canvas `#0F0E0F`
+- dark ink `#C3C3C4`
+- light divider `#A79077`
+
+Regenerate every image with `bun run brand:generate`.
 
 ## Attribution
 

@@ -11,6 +11,7 @@
   "scripts": {
     "benchmark": "bun run build && bun run scripts/benchmark.ts",
     "benchmark:live": "bun run scripts/live-benchmark.ts",
+    "brand:generate": "bun run scripts/generate-brand-assets.ts",
     "build": "bun run build:app",
     "build:app": "wrangler types --include-runtime false && astro check && astro build",
     "deploy": "bun run build:app && wrangler deploy",
@@ -43,6 +44,7 @@
     "globals": "^17.12.0",
     "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1",
+    "sharp": "0.35.4",
     "typescript": "6.0.2",
     "typescript-eslint": "^8.69.0",
     "wrangler": "^4.129.0"
