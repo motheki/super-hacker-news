@@ -3,7 +3,8 @@ import { fetchJson } from "./client";
 import { formatAge, getDomain } from "./format";
 
 const ALGOLIA_API = "https://hn.algolia.com/api/v1";
-const POST_CACHE_SECONDS = 15;
+const POST_CACHE_SECONDS = 60;
+const POST_TIMEOUT_MS = 2_000;
 
 interface ParsedComment {
   readonly comment: Comment;
@@ -102,5 +103,7 @@ export function getAlgoliaPost(postId: number) {
     cacheTtlSeconds: POST_CACHE_SECONDS,
     operation: "post",
     provider: "algolia",
+    retryCount: 0,
+    timeoutMs: POST_TIMEOUT_MS,
   });
 }

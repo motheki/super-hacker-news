@@ -15,6 +15,17 @@ export async function resolvePostTarget(
   loadItem: ItemLoader,
   loadPost: PostLoader,
 ): Promise<PostTarget> {
+  let postError: Error | undefined;
+  try {
+    const post = await loadPost(itemId);
+    if (post !== null && post.id !== itemId) {
+      return { kind: "redirect", rootId: post.id };
+    }
+    if (post !== null) return { kind: "post", post };
+  } catch (error) {
+    postError = error instanceof Error ? error : new Error(String(error));
+  }
+
   let item: HackerNewsItemReference | null;
   try {
     item = await loadItem(itemId);
@@ -23,8 +34,9 @@ export async function resolvePostTarget(
   }
 
   if (item === null || isRootItemType(item.type)) {
-    const post = await loadPost(itemId);
-    return post === null ? { kind: "missing" } : { kind: "post", post };
+    if (postError !== undefined) throw postError;
+
+    return { kind: "missing" };
   }
 
   const rootId = await resolveRootItemId(itemId, (currentId) =>

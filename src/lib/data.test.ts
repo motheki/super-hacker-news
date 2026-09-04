@@ -28,7 +28,7 @@ function createPost(commentsCount: number): Post {
 }
 
 describe("getPostTarget", () => {
-  test("loads posts directly from providers", async () => {
+  test("loads posts without an item preflight", async () => {
     let itemReads = 0;
     let postReads = 0;
     const target = await getPostTarget(POST_ID, {
@@ -46,7 +46,7 @@ describe("getPostTarget", () => {
     });
 
     expect(target).toEqual({ kind: "post", post: POST });
-    expect(itemReads).toBe(1);
+    expect(itemReads).toBe(0);
     expect(postReads).toBe(1);
   });
 

@@ -9,7 +9,8 @@ import type { ContentProvider } from "./provider";
 const HACKER_WEB_APP = "https://api.hackerwebapp.com";
 const HNPWA = "https://api.hnpwa.com/v0";
 const FEED_CACHE_SECONDS = 30;
-const POST_CACHE_SECONDS = 15;
+const POST_CACHE_SECONDS = 60;
+const POST_TIMEOUT_MS = 800;
 const USER_CACHE_SECONDS = 3_600;
 
 function getTopics(topic: string, page: number) {
@@ -29,6 +30,8 @@ function getPost(postId: number) {
     cacheTtlSeconds: POST_CACHE_SECONDS,
     operation: "post",
     provider: "hackerwebapp",
+    retryCount: 0,
+    timeoutMs: POST_TIMEOUT_MS,
   });
 }
 

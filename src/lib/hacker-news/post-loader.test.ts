@@ -30,6 +30,25 @@ const createRoot = (descendants: number): OfficialItem => ({
 });
 
 describe("loadPost", () => {
+  test("returns the primary without official verification", async () => {
+    const primary = createPost(3);
+    let officialReads = 0;
+
+    const post = await loadPost(POST_ID, {
+      getAggregated: () => Promise.resolve(primary),
+      getSecondary: () => Promise.resolve(null),
+      getOfficialPost: () => Promise.resolve(createPost(3)),
+      getOfficialRoot: () => {
+        officialReads += 1;
+        return Promise.resolve(createRoot(3));
+      },
+      report: () => undefined,
+    });
+
+    expect(post).toBe(primary);
+    expect(officialReads).toBe(0);
+  });
+
   test("uses the aggregate at exact parity", async () => {
     const aggregate = createPost(3);
     let officialLoads = 0;
@@ -68,7 +87,7 @@ describe("loadPost", () => {
     expect(secondaryLoads).toBe(0);
   });
 
-  test("hedges the secondary while primary verification is slow", async () => {
+  test("does not start fallbacks while the primary is pending", async () => {
     let releaseAggregate: (post: Post) => void = () => undefined;
     const aggregate = new Promise<Post>((resolve) => {
       releaseAggregate = resolve;
@@ -83,16 +102,16 @@ describe("loadPost", () => {
       },
       getOfficialPost: () => Promise.resolve(createPost(3)),
       getOfficialRoot: () => Promise.resolve(createRoot(3)),
-      hedgeDelayMs: 0,
       report: () => undefined,
     });
 
     await Bun.sleep(5);
     const loadsBeforePrimary = secondaryLoads;
-    releaseAggregate(createPost(0));
-    await result;
+    const primary = createPost(3);
+    releaseAggregate(primary);
 
-    expect(loadsBeforePrimary).toBe(1);
+    expect(loadsBeforePrimary).toBe(0);
+    expect(await result).toBe(primary);
   });
 
   test("uses the aggregate when it is ahead of the official count", async () => {
@@ -113,26 +132,26 @@ describe("loadPost", () => {
 
     expect(post).toBe(aggregate);
     expect(officialLoads).toBe(0);
-    expect(metrics[0]?.reason).toBe("aggregate-ahead");
+    expect(metrics[0]?.reason).toBe("primary");
   });
 
-  test("uses the official tree for every mismatch", async () => {
-    const official = createPost(3);
+  test("trusts the primary without an official mismatch check", async () => {
+    const primary = createPost(0);
     let officialLoads = 0;
 
     const post = await loadPost(POST_ID, {
-      getAggregated: () => Promise.resolve(createPost(0)),
+      getAggregated: () => Promise.resolve(primary),
       getSecondary: () => Promise.resolve(null),
       getOfficialPost: () => {
         officialLoads += 1;
-        return Promise.resolve(official);
+        return Promise.resolve(createPost(3));
       },
       getOfficialRoot: () => Promise.resolve(createRoot(3)),
       report: () => undefined,
     });
 
-    expect(post).toBe(official);
-    expect(officialLoads).toBe(1);
+    expect(post).toBe(primary);
+    expect(officialLoads).toBe(0);
   });
 
   test("accepts a complete reachable tree below descendants", async () => {
@@ -164,7 +183,7 @@ describe("loadPost", () => {
     expect(post).toBe(aggregate);
     expect(metrics[0]).toMatchObject({
       officialCount: null,
-      reason: "official-unavailable",
+      reason: "primary",
       selectedProvider: "hackerwebapp",
     });
   });
@@ -189,37 +208,36 @@ describe("loadPost", () => {
     });
   });
 
-  test("keeps a valid aggregate when official hydration exceeds its budget", async () => {
-    const aggregate = createPost(180);
+  test("hydrates a large official fallback without a comment budget", async () => {
+    const official = createPost(187);
     const metrics: PostSelectionMetric[] = [];
     let officialLoads = 0;
 
     const post = await loadPost(POST_ID, {
-      getAggregated: () => Promise.resolve(aggregate),
+      getAggregated: () => Promise.resolve(null),
       getSecondary: () => Promise.resolve(null),
       getOfficialPost: () => {
         officialLoads += 1;
-        return Promise.reject(
-          new Error("Too many subrequests by single Worker invocation"),
-        );
+        return Promise.resolve(official);
       },
       getOfficialRoot: () => Promise.resolve(createRoot(187)),
+      getOfficialSummary: () => createPost(0),
       report: (metric) => metrics.push(metric),
     });
 
-    expect(post).toBe(aggregate);
-    expect(officialLoads).toBe(0);
+    expect(post).toBe(official);
+    expect(officialLoads).toBe(1);
     expect(metrics[0]).toMatchObject({
-      reason: "official-budget",
-      selectedProvider: "hackerwebapp",
+      reason: "official-fallback",
+      selectedProvider: "official",
     });
   });
 
-  test("uses a secondary bulk tree when the primary has no comments", async () => {
+  test("uses a secondary bulk tree when the primary is unavailable", async () => {
     const secondary = createPost(3);
 
     const post = await loadPost(POST_ID, {
-      getAggregated: () => Promise.resolve(createPost(0)),
+      getAggregated: () => Promise.resolve(null),
       getOfficialPost: () => Promise.resolve(createPost(3)),
       getOfficialRoot: () => Promise.resolve(createRoot(3)),
       getSecondary: () => Promise.resolve(secondary),
@@ -227,5 +245,30 @@ describe("loadPost", () => {
     });
 
     expect(post).toBe(secondary);
+  });
+
+  test("stops fallbacks when the official item is a comment", async () => {
+    let officialLoads = 0;
+    let secondaryLoads = 0;
+
+    const post = await loadPost(POST_ID, {
+      getAggregated: () => Promise.resolve(null),
+      getOfficialPost: () => {
+        officialLoads += 1;
+        return Promise.resolve(null);
+      },
+      getOfficialRoot: () =>
+        Promise.resolve({ id: POST_ID, parent: 2, type: "comment" }),
+      getOfficialSummary: () => null,
+      getSecondary: () => {
+        secondaryLoads += 1;
+        return Promise.resolve(null);
+      },
+      report: () => undefined,
+    });
+
+    expect(post).toBeNull();
+    expect(officialLoads).toBe(0);
+    expect(secondaryLoads).toBe(0);
   });
 });

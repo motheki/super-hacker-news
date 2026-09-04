@@ -43,4 +43,19 @@ describe("resolvePostTarget", () => {
 
     expect(result).toEqual({ kind: "redirect", rootId: STORY_ID });
   });
+
+  test("redirects when a provider resolves a comment to its story", async () => {
+    let itemReads = 0;
+    const result = await resolvePostTarget(
+      COMMENT_ID,
+      () => {
+        itemReads += 1;
+        return Promise.resolve(null);
+      },
+      () => Promise.resolve(POST),
+    );
+
+    expect(result).toEqual({ kind: "redirect", rootId: STORY_ID });
+    expect(itemReads).toBe(0);
+  });
 });
