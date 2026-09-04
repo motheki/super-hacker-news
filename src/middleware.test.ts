@@ -30,6 +30,7 @@ describe("HTTP redirect", () => {
     expect(response?.headers.get("location")).toBe(
       "https://superhn.org/post/8863?from=http",
     );
+    expect(response?.headers.get("cache-control")).toBe("no-store");
   });
 
   test("does not redirect local development", () => {
