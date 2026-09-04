@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { redirectHttp, redirectLegacy } from "./lib/redirect";
+import { redirectHttp, redirectInsecure, redirectLegacy } from "./lib/redirect";
 
 describe("legacy host redirect", () => {
   test("preserves the path and query in a permanent redirect", () => {
@@ -35,5 +35,17 @@ describe("HTTP redirect", () => {
 
   test("does not redirect local development", () => {
     expect(redirectHttp(new URL("http://localhost:3000/top"))).toBeNull();
+  });
+
+  test("reads the external scheme before Astro caching", () => {
+    const request = new Request("https://superhn.org/top", {
+      headers: { "cf-visitor": '{"scheme":"http"}' },
+    });
+
+    const response = redirectInsecure(request);
+
+    expect(response?.status).toBe(308);
+    expect(response?.headers.get("location")).toBe("https://superhn.org/top");
+    expect(response?.headers.get("cache-control")).toBe("no-store");
   });
 });
