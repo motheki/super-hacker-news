@@ -307,7 +307,7 @@ details[open] > .comment-info > .open-label {
 
 .replies {
   min-width: 0;
-  margin-left: 0.75rem;
+  margin-left: 0;
   padding-left: 0.75rem;
   border-left: 2px dotted var(--line);
 }
@@ -359,7 +359,6 @@ details[open] > .comment-info > .open-label {
   }
 
   .replies {
-    margin-left: 1rem;
     padding-left: 1rem;
   }
 }

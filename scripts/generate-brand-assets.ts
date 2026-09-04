@@ -10,7 +10,11 @@ const PUBLIC_DIR = new URL("public/", ROOT);
 const MASTER_NAME = "super-hn-gourd.png";
 const SOCIAL_NAME = "super-hn-social.png";
 const HERO_NAME = "super-hn-gourd-banner.png";
+const HEADER_NAME = "header-icon-192.png";
+const HEADER_DARK_NAME = "header-icon-192-dark.png";
+const VERSIONED_FAVICON_NAME = "super-hn-gourd.ico";
 const MASTER_SIZE = 1_024;
+const HEADER_SIZE = 192;
 const SOCIAL_WIDTH = 1_280;
 const SOCIAL_HEIGHT = 640;
 const SOCIAL_MARK_SIZE = 480;
@@ -261,6 +265,8 @@ async function generate(): Promise<void> {
   const favicon16 = await mark(16);
   const favicon32 = await mark(32);
   const favicon32Dark = await mark(32, MARK_THEMES.dark);
+  const header = await mark(HEADER_SIZE);
+  const headerDark = await mark(HEADER_SIZE, MARK_THEMES.dark);
   const apple = await appIcon(180);
   const icon192 = await appIcon(192);
   const icon512 = await appIcon(512);
@@ -269,18 +275,19 @@ async function generate(): Promise<void> {
     SOCIAL_HEIGHT,
     SOCIAL_MARK_SIZE,
   );
+  const favicon = ico([favicon16, favicon32], [16, 32]);
 
   await Promise.all([
     writeFile(new URL("favicon-32.png", ASSET_DIR), favicon32),
     writeFile(new URL("favicon-32-dark.png", ASSET_DIR), favicon32Dark),
+    writeFile(new URL(HEADER_NAME, ASSET_DIR), header),
+    writeFile(new URL(HEADER_DARK_NAME, ASSET_DIR), headerDark),
     writeFile(new URL("apple-touch-icon.png", ASSET_DIR), apple),
     writeFile(new URL("icon-192.png", ASSET_DIR), icon192),
     writeFile(new URL("icon-512.png", ASSET_DIR), icon512),
     writeFile(new URL(SOCIAL_NAME, ASSET_DIR), social),
-    writeFile(
-      new URL("favicon.ico", PUBLIC_DIR),
-      ico([favicon16, favicon32], [16, 32]),
-    ),
+    writeFile(new URL("favicon.ico", PUBLIC_DIR), favicon),
+    writeFile(new URL(VERSIONED_FAVICON_NAME, PUBLIC_DIR), favicon),
     writeFile(new URL(HERO_NAME, DOCS_DIR), social),
   ]);
 }

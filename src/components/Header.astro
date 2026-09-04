@@ -1,6 +1,6 @@
 ---
-import favicon32 from "~/assets/favicon-32.png";
-import favicon32Dark from "~/assets/favicon-32-dark.png";
+import headerIcon from "~/assets/header-icon-192.png";
+import headerIconDark from "~/assets/header-icon-192-dark.png";
 import { TOPICS } from "~/lib/topic";
 
 interface Props {
@@ -19,8 +19,11 @@ const { currentPath, repositoryUrl } = Astro.props;
     href="/top"
   >
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset={favicon32Dark.src} />
-      <img alt="" height="34" src={favicon32.src} width="34" />
+      <source
+        media="(prefers-color-scheme: dark)"
+        srcset={headerIconDark.src}
+      />
+      <img alt="" height="34" src={headerIcon.src} width="34" />
     </picture>
   </a>
 
