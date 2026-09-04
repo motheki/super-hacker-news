@@ -1,6 +1,7 @@
 {
   "name": "super-hacker-news",
   "private": false,
+  "packageManager": "bun@1.3.13",
   "homepage": "https://superhn.org",
   "bugs": "https://github.com/motheki/super-hacker-news/issues",
   "repository": {
