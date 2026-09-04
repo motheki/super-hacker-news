@@ -29,7 +29,7 @@ export default defineConfig({
   },
   fonts: [
     {
-      cssVariable: "--font-quantico",
+      cssVariable: "--font-alike",
       display: "swap",
       fallbacks: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       formats: ["woff2"],
