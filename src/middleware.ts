@@ -1,5 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { cacheHtml } from "~/lib/cache";
+import { redirectLegacy } from "~/lib/redirect";
 import { isTopicName, parsePage } from "~/lib/route";
 
 const CACHEABLE_ROUTE =
@@ -22,6 +23,9 @@ function withRenderTiming(response: Response, durationMs: number) {
 }
 
 export const onRequest = defineMiddleware(async (context, next) => {
+  const legacyRedirect = redirectLegacy(context.url);
+  if (legacyRedirect !== null) return legacyRedirect;
+
   if (context.request.method !== "GET") return next();
   if (!CACHEABLE_ROUTE.test(context.url.pathname)) return next();
   if (context.url.search.length > 0) {

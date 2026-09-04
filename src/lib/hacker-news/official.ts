@@ -1,4 +1,3 @@
-import type { HackerNewsItemReference } from "~/lib/item";
 import type { Post } from "~/lib/post";
 import type { TopicItem } from "~/lib/topic";
 import type { User } from "~/lib/user";
@@ -132,15 +131,9 @@ async function getUser(userName: string): Promise<User | null> {
 
 export async function getOfficialItemReference(
   itemId: number,
-): Promise<HackerNewsItemReference | null> {
+): Promise<OfficialItem | null> {
   const item = await getOfficialItem(itemId);
-  if (item === null) return null;
-
-  return {
-    id: item.id,
-    type: item.type,
-    ...(item.parent === undefined ? {} : { parent: item.parent }),
-  };
+  return item;
 }
 
 export function getOfficialBestStoryIds() {

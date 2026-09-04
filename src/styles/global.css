@@ -6,6 +6,9 @@
   --line: #a79077;
   --selection: #b4a28b;
   --selection-ink: #212020;
+  --font-size-increase: 2pt;
+  /* 82% of the parent increase contributes 1.64pt. */
+  --domain-size-adjustment: 0.36pt;
   color-scheme: light;
   font-family:
     var(--font-alike), ui-serif, Georgia, Cambria, "Times New Roman", serif;
@@ -38,7 +41,7 @@ body {
   margin: 0;
   background: var(--canvas);
   color: var(--ink);
-  font-size: 1rem;
+  font-size: calc(1rem + var(--font-size-increase));
   line-height: 1.45;
 }
 
@@ -71,12 +74,12 @@ h2 {
 
 h1 {
   margin-bottom: 0.75rem;
-  font-size: 1.5rem;
+  font-size: calc(1.5rem + var(--font-size-increase));
 }
 
 h2 {
   margin-bottom: 0;
-  font-size: 1.08rem;
+  font-size: calc(1.08rem + var(--font-size-increase));
   font-weight: 400;
 }
 
@@ -175,7 +178,7 @@ pre {
 
 .feed-index {
   color: var(--muted);
-  font-size: 1.4rem;
+  font-size: calc(1.4rem + var(--font-size-increase));
   line-height: 1.25;
   text-align: right;
 }
@@ -216,7 +219,7 @@ pre {
 .meta,
 .comment-info {
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: calc(0.82rem + var(--font-size-increase));
 }
 
 .meta {
@@ -228,7 +231,7 @@ pre {
 }
 
 .domain {
-  font-size: 0.82em;
+  font-size: calc(0.82em + var(--domain-size-adjustment));
 }
 
 .more-link {
@@ -350,6 +353,12 @@ details[open] > .comment-info > .open-label {
   .replies {
     margin-left: 1rem;
     padding-left: 1rem;
+  }
+}
+
+@media (max-width: 24rem) {
+  .nav-link {
+    padding-inline: 0.45rem;
   }
 }
 

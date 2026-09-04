@@ -1,5 +1,6 @@
 ---
 import { Font } from "astro:assets";
+import { ClientRouter } from "astro:transitions";
 import appleTouchIcon from "~/assets/apple-touch-icon.png";
 import favicon32 from "~/assets/favicon-32.png";
 import socialImage from "~/assets/super-hn-social.png";
@@ -81,6 +82,7 @@ const jsonLd = JSON.stringify(structuredData ?? websiteData).replaceAll(
       preload={[{ subset: "latin", style: "normal", weight: 400 }]}
     />
     <title>{pageTitle}</title>
+    <ClientRouter />
     <script is:inline type="application/ld+json" set:html={jsonLd} />
   </head>
   <body>

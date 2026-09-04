@@ -1,4 +1,4 @@
-const DEFAULT_BASE_URL = "https://super-hn.trevor-opiyo.workers.dev";
+const DEFAULT_BASE_URL = "https://superhn.org";
 const WARM_REQUESTS = 30;
 const REQUIRED_COLD_REQUESTS = 10;
 const WARM_ROUTES = ["/top", "/post/8863"] as const;

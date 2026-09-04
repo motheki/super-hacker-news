@@ -1,7 +1,7 @@
 {
   "name": "super-hacker-news",
   "private": false,
-  "homepage": "https://super-hn.trevor-opiyo.workers.dev",
+  "homepage": "https://superhn.org",
   "bugs": "https://github.com/motheki/super-hacker-news/issues",
   "repository": {
     "type": "git",

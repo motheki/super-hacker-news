@@ -4,7 +4,7 @@
 
 A small, server-rendered Hacker News reader built with Astro and deployed on Cloudflare Workers.
 
-- [Live site](https://super-hn.trevor-opiyo.workers.dev)
+- [Live site](https://superhn.org)
 - [Issues](https://github.com/motheki/super-hacker-news/issues)
 
 ## Features

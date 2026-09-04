@@ -9,6 +9,8 @@ import {
 } from "./codec";
 
 const SERVICE_ORIGIN = "https://hn-data.internal";
+const STALE_HEADER = "x-super-hn-stale";
+const STALE_VALUE = "1";
 
 export interface ServiceBinding {
   fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
@@ -17,6 +19,11 @@ export interface ServiceBinding {
 export type ServiceTarget =
   | { readonly kind: "post"; readonly post: Post }
   | { readonly kind: "redirect"; readonly rootId: number };
+
+interface ServiceResult<T> {
+  readonly stale: boolean;
+  readonly value: T;
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -42,7 +49,7 @@ export class HnDataClient {
     this.#binding = binding;
   }
 
-  async #get<T>(path: string, parse: (value: unknown) => T | null) {
+  async #request<T>(path: string, parse: (value: unknown) => T | null) {
     const start = performance.now();
     try {
       const response = await this.#binding.fetch(`${SERVICE_ORIGIN}${path}`, {
@@ -59,7 +66,13 @@ export class HnDataClient {
         );
         return null;
       }
-      return parse(await response.json());
+      const value = parse(await response.json());
+      if (value === null) return null;
+
+      return {
+        stale: response.headers.get(STALE_HEADER) === STALE_VALUE,
+        value,
+      } satisfies ServiceResult<T>;
     } catch (error) {
       console.warn(
         JSON.stringify({
@@ -73,12 +86,19 @@ export class HnDataClient {
     }
   }
 
+  async #get<T>(path: string, parse: (value: unknown) => T | null) {
+    return (await this.#request(path, parse))?.value ?? null;
+  }
+
   getBestStoryIds() {
     return this.#get("/best", parseNumberArray);
   }
 
-  getTarget(itemId: number): Promise<ServiceTarget | null> {
-    return this.#get(`/target/${itemId}`, parseTarget);
+  async getTarget(itemId: number) {
+    const result = await this.#request(`/target/${itemId}`, parseTarget);
+    if (result === null) return null;
+
+    return { stale: result.stale, target: result.value } as const;
   }
 
   getTopics(topic: string, page: number): Promise<TopicItem[] | null> {

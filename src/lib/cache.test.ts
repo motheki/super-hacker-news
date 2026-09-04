@@ -35,7 +35,7 @@ describe("getPostCache", () => {
   test("keeps active discussions fresh", () => {
     expect(getPostCache(NOW_SECONDS - DAY_SECONDS + 1, NOW_SECONDS)).toEqual({
       maxAge: 60,
-      swr: 300,
+      swr: 10,
     });
   });
 

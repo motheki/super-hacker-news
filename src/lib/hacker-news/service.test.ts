@@ -32,8 +32,8 @@ describe("HnDataClient", () => {
     });
 
     expect(await client.getTarget(POST_ID)).toEqual({
-      kind: "post",
-      post: POST,
+      stale: false,
+      target: { kind: "post", post: POST },
     });
     expect(paths).toEqual([`https://hn-data.internal/target/${POST_ID}`]);
   });
@@ -45,8 +45,25 @@ describe("HnDataClient", () => {
     });
 
     expect(await client.getTarget(COMMENT_ID)).toEqual({
-      kind: "redirect",
-      rootId: POST_ID,
+      stale: false,
+      target: { kind: "redirect", rootId: POST_ID },
+    });
+  });
+
+  test("reports a stale materialized target", async () => {
+    const client = new HnDataClient({
+      fetch: () =>
+        Promise.resolve(
+          Response.json(
+            { kind: "post", post: POST },
+            { headers: { "x-super-hn-stale": "1" } },
+          ),
+        ),
+    });
+
+    expect(await client.getTarget(POST_ID)).toEqual({
+      stale: true,
+      target: { kind: "post", post: POST },
     });
   });
 

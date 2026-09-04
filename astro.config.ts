@@ -1,12 +1,12 @@
 import cloudflare from "@astrojs/cloudflare";
 import { cacheCloudflare } from "@astrojs/cloudflare/cache";
 import { defineConfig, fontProviders, svgoOptimizer } from "astro/config";
+import { SITE_URL } from "./src/lib/site";
 
-const SITE_URL = "https://super-hn.trevor-opiyo.workers.dev";
 const FEED_CACHE_SECONDS = 60;
 const FEED_SWR_SECONDS = 300;
 const POST_CACHE_SECONDS = 60;
-const POST_SWR_SECONDS = 300;
+const POST_SWR_SECONDS = 10;
 const PROFILE_CACHE_SECONDS = 900;
 const PROFILE_SWR_SECONDS = 3_600;
 const SITEMAP_CACHE_SECONDS = 3_600;
