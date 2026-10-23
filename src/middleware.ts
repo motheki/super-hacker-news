@@ -21,15 +21,21 @@ function withRenderTiming(response: Response, durationMs: number) {
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const isHttps = context.url.protocol === "https:";
-  const secure = (response: Response) => secureResponse(response, isHttps);
+  const secure = (response: Response) => {
+    const secured = secureResponse(response, isHttps);
+    if (!response.ok) {
+      context.cache.set(false);
+      secured.headers.set("cache-control", "no-store");
+    }
+    return secured;
+  };
   const legacyRedirect = redirectLegacy(context.url);
   if (legacyRedirect !== null) return secure(legacyRedirect);
   const httpRedirect = redirectHttp(context.url);
   if (httpRedirect !== null) return secure(httpRedirect);
 
   const isCacheable =
-    context.request.method === "GET" &&
-    CACHEABLE_ROUTE.test(context.url.pathname);
+    context.request.method === "GET" && CACHEABLE_ROUTE.test(context.url.pathname);
   if (!isCacheable) {
     return secure(await next());
   }

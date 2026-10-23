@@ -16,11 +16,7 @@ function reportPostSelection(metric: PostSelectionMetric) {
   console.info(JSON.stringify({ event: "hn.post_selection", ...metric }));
 }
 
-export async function fetchTopicItems(
-  topic: string,
-  page: number,
-  budget = new RequestBudget(),
-) {
+export async function fetchTopicItems(topic: string, page: number, budget = new RequestBudget()) {
   return preferPrimary(
     "feed",
     () => aggregatedProvider.getTopics(topic, page, budget),
@@ -44,17 +40,11 @@ export async function fetchPost(postId: number, budget = new RequestBudget()) {
   });
 }
 
-export async function fetchItemReference(
-  itemId: number,
-  budget = new RequestBudget(),
-) {
+export async function fetchItemReference(itemId: number, budget = new RequestBudget()) {
   return getOfficialItemReference(itemId, budget);
 }
 
-export async function fetchUser(
-  userName: string,
-  budget = new RequestBudget(),
-) {
+export async function fetchUser(userName: string, budget = new RequestBudget()) {
   return preferPrimary(
     "user",
     () => aggregatedProvider.getUser(userName, budget),

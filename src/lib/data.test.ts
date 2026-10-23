@@ -60,8 +60,7 @@ describe("getPostTarget", () => {
 
     try {
       await getPostTarget(POST_ID, {
-        loadItem: () =>
-          Promise.resolve({ id: POST_ID, type: "story" } as const),
+        loadItem: () => Promise.resolve({ id: POST_ID, type: "story" } as const),
         loadPost: () => Promise.resolve(createPost(35)),
       });
     } finally {
@@ -83,8 +82,7 @@ describe("getPostTarget", () => {
   test("converts provider exhaustion into a route-level outage", async () => {
     const result = getPostTarget(POST_ID, {
       loadItem: () => Promise.resolve({ id: POST_ID, type: "story" }),
-      loadPost: () =>
-        Promise.reject(new PostUnavailableError("providers unavailable")),
+      loadPost: () => Promise.reject(new PostUnavailableError("providers unavailable")),
     });
 
     expect(result).rejects.toBeInstanceOf(DataUnavailableError);

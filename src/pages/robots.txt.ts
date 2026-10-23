@@ -27,14 +27,13 @@ const BLOCKED_AI_CRAWLERS = [
 export const prerender = true;
 
 export const GET: APIRoute = () => {
-  const blocked = BLOCKED_AI_CRAWLERS.map(
-    (crawler) => `User-agent: ${crawler}\nDisallow: /`,
-  ).join("\n\n");
+  const blocked = BLOCKED_AI_CRAWLERS.map((crawler) => `User-agent: ${crawler}\nDisallow: /`).join(
+    "\n\n",
+  );
   const body = `User-agent: *\nAllow: /\nDisallow: /cdn-cgi/\n\n${blocked}\n\nSitemap: ${SITE_URL}/sitemap.xml\nHost: ${SITE_URL}\n`;
 
   return new Response(body, {
     headers: {
-      "cache-control": "public, max-age=86400",
       "content-type": "text/plain; charset=utf-8",
     },
   });

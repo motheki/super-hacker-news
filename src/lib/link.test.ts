@@ -2,9 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { isInternalPath, isSafeExternalUrl, replaceHnPostLinks } from "./link";
 
 test("replaceHnPostLinks rewrites Hacker News discussion URLs only", () => {
-  expect(replaceHnPostLinks("https://news.ycombinator.com/item?id=42")).toBe(
-    "/post/42",
-  );
+  expect(replaceHnPostLinks("https://news.ycombinator.com/item?id=42")).toBe("/post/42");
   expect(replaceHnPostLinks("https://example.com/item?id=42")).toBe(
     "https://example.com/item?id=42",
   );

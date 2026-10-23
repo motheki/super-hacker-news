@@ -9,7 +9,6 @@ const HEADER = new URL("../components/Header.astro", import.meta.url);
 const LAYOUT = new URL("../layouts/BaseLayout.astro", import.meta.url);
 const MASTER_NAME = "super-hn-gourd.png";
 const SOCIAL_NAME = "super-hn-social.png";
-const HERO_PATH = "docs/images/super-hn-gourd-banner.png";
 const VERSIONED_FAVICON_NAME = "super-hn-gourd.ico";
 const ICO_HEADER_SIZE = 6;
 const ICO_ENTRY_SIZE = 16;
@@ -59,19 +58,16 @@ describe("brand images", () => {
 
       if (alpha === 0) continue;
 
-      colors.add(
-        `${data[offset] ?? 0},${data[offset + 1] ?? 0},${data[offset + 2] ?? 0}`,
-      );
+      colors.add(`${data[offset] ?? 0},${data[offset + 1] ?? 0},${data[offset + 2] ?? 0}`);
     }
 
     expect(colors).toEqual(MARK_COLORS);
   });
 
-  test("GitHub hero matches the social image", async () => {
-    const social = await readFile(new URL(SOCIAL_NAME, ASSET_DIR));
-    const hero = await readFile(new URL(HERO_PATH, ROOT));
+  test("README reuses the social image", async () => {
+    const readme = await readFile(new URL("README.md", ROOT), "utf8");
 
-    expect(hero).toEqual(social);
+    expect(readme).toContain(`src/assets/${SOCIAL_NAME}`);
   });
 
   test("header uses the high-resolution theme icons", async () => {
@@ -85,9 +81,7 @@ describe("brand images", () => {
 
   test("preloads only the primary text font", async () => {
     const source = await readFile(LAYOUT, "utf8");
-    const mono = source.match(
-      /<Font cssVariable="--font-dm-mono"[^>]*\/>/u,
-    )?.[0];
+    const mono = source.match(/<Font cssVariable="--font-dm-mono"[^>]*\/>/u)?.[0];
 
     expect(source.match(/<Font/gu)).toHaveLength(2);
     expect(source).toContain('cssVariable="--font-dm-sans"');
@@ -99,9 +93,7 @@ describe("brand images", () => {
     const layout = await readFile(LAYOUT, "utf8");
     const favicon32 = await readFile(new URL("favicon-32.png", ASSET_DIR));
     const legacy = await readFile(new URL("favicon.ico", PUBLIC_DIR));
-    const versioned = await readFile(
-      new URL(VERSIONED_FAVICON_NAME, PUBLIC_DIR),
-    );
+    const versioned = await readFile(new URL(VERSIONED_FAVICON_NAME, PUBLIC_DIR));
     const entry = ICO_HEADER_SIZE + ICO_ENTRY_SIZE;
     const length = versioned.readUInt32LE(entry + ICO_LENGTH_OFFSET);
     const offset = versioned.readUInt32LE(entry + ICO_DATA_OFFSET);

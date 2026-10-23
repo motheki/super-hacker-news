@@ -1,6 +1,5 @@
 ---
 import { Font } from "astro:assets";
-import { ClientRouter } from "astro:transitions";
 import appleTouchIcon from "~/assets/apple-touch-icon.png";
 import favicon32 from "~/assets/favicon-32.png";
 import favicon32Dark from "~/assets/favicon-32-dark.png";
@@ -98,7 +97,6 @@ const jsonLd = JSON.stringify(structuredData ?? websiteData).replaceAll(
     />
     <Font cssVariable="--font-dm-mono" />
     <title>{pageTitle}</title>
-    <ClientRouter />
     <script is:inline type="application/ld+json" set:html={jsonLd} />
   </head>
   <body>

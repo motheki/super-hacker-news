@@ -2,8 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { fetchJson, preferPrimary } from "./client";
 import { RequestBudget } from "./budget";
 
-const parseNumber = (value: unknown) =>
-  typeof value === "number" ? value : null;
+const parseNumber = (value: unknown) => (typeof value === "number" ? value : null);
 
 const noWait = () => Promise.resolve();
 
@@ -12,8 +11,7 @@ describe("fetchJson", () => {
     let calls = 0;
     const fetcher = () => {
       calls += 1;
-      const response =
-        calls === 1 ? new Response(null, { status: 503 }) : Response.json(42);
+      const response = calls === 1 ? new Response(null, { status: 503 }) : Response.json(42);
 
       return Promise.resolve(response);
     };
@@ -51,9 +49,7 @@ describe("fetchJson", () => {
     let calls = 0;
     const fetcher = () => {
       calls += 1;
-      return Promise.reject(
-        new Error("Too many subrequests by single Worker invocation"),
-      );
+      return Promise.reject(new Error("Too many subrequests by single Worker invocation"));
     };
 
     const result = fetchJson("https://example.test/item", parseNumber, {

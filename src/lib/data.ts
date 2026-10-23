@@ -14,10 +14,7 @@ interface PostFallback {
     itemId: number,
     budget: RequestBudget,
   ) => ReturnType<typeof fetchItemReference>;
-  readonly loadPost: (
-    postId: number,
-    budget: RequestBudget,
-  ) => ReturnType<typeof fetchPost>;
+  readonly loadPost: (postId: number, budget: RequestBudget) => ReturnType<typeof fetchPost>;
 }
 
 const POST_FALLBACK: PostFallback = {
@@ -36,11 +33,7 @@ function durationSince(start: number) {
   return Math.round((performance.now() - start) * 10) / 10;
 }
 
-function logPostLoad(
-  postId: number,
-  providerDurationMs: number,
-  commentsCount: number | null,
-) {
+function logPostLoad(postId: number, providerDurationMs: number, commentsCount: number | null) {
   console.info(
     JSON.stringify({
       commentsCount,
@@ -62,10 +55,7 @@ export async function getTopicItems(topic: string, page: number) {
   }
 }
 
-export async function getPostTarget(
-  itemId: number,
-  fallback: PostFallback = POST_FALLBACK,
-) {
+export async function getPostTarget(itemId: number, fallback: PostFallback = POST_FALLBACK) {
   const start = performance.now();
   const budget = new RequestBudget();
   const loadItem = async (currentId: number) => {
@@ -84,11 +74,7 @@ export async function getPostTarget(
       fallback.loadPost(currentId, budget),
     );
     logPostLoad(
-      target.kind === "post"
-        ? target.post.id
-        : target.kind === "redirect"
-          ? target.rootId
-          : itemId,
+      target.kind === "post" ? target.post.id : target.kind === "redirect" ? target.rootId : itemId,
       durationSince(start),
       target.kind === "post" ? target.post.comments_count : null,
     );

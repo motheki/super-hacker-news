@@ -140,11 +140,6 @@ export function parseAggregatedPost(value: unknown): Post | null {
   };
 }
 
-export function isPostComplete(post: Post, officialCount: number | null) {
-  // Aggregates may lead HN's eventually consistent descendant counter.
-  return officialCount === null || post.comments_count >= officialCount;
-}
-
 export function parseAggregatedTopics(value: unknown): TopicItem[] | null {
   if (!Array.isArray(value)) return null;
 
@@ -209,8 +204,7 @@ export function parseOfficialItem(value: unknown): OfficialItem | null {
     !optionalString(value.title) ||
     !optionalString(value.url) ||
     (value.kids !== undefined &&
-      (!Array.isArray(value.kids) ||
-        !value.kids.every((item) => typeof item === "number")))
+      (!Array.isArray(value.kids) || !value.kids.every((item) => typeof item === "number")))
   ) {
     return null;
   }
@@ -255,9 +249,7 @@ function toOfficialComment(
       comments,
       comments_count: count,
       ...(item.by === undefined ? {} : { user: item.by }),
-      ...(item.time === undefined
-        ? {}
-        : { time: item.time, time_ago: formatAge(item.time, now) }),
+      ...(item.time === undefined ? {} : { time: item.time, time_ago: formatAge(item.time, now) }),
       ...(item.text === undefined ? {} : { content: item.text }),
       ...(item.deleted === undefined ? {} : { deleted: item.deleted }),
       ...(item.dead === undefined ? {} : { dead: item.dead }),
@@ -266,10 +258,7 @@ function toOfficialComment(
   };
 }
 
-export function toOfficialTopic(
-  item: OfficialItem,
-  now: number,
-): TopicItem | null {
+export function toOfficialTopic(item: OfficialItem, now: number): TopicItem | null {
   if (item.title === undefined || item.time === undefined) return null;
 
   const domain = getDomain(item.url);
@@ -292,11 +281,7 @@ export function toOfficialPost(
   items: ReadonlyMap<number, OfficialItem>,
   now: number,
 ): Post | null {
-  if (
-    item.title === undefined ||
-    item.time === undefined ||
-    item.by === undefined
-  ) {
+  if (item.title === undefined || item.time === undefined || item.by === undefined) {
     return null;
   }
 

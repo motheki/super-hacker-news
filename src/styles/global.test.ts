@@ -26,9 +26,7 @@ test("reply rails align with the parent content edge", async () => {
 test("feed numbers use stable column widths", async () => {
   const css = await readFile(STYLES, "utf8");
 
-  expect(declarations(css, ".feed-index")).toContain(
-    "font-variant-numeric: tabular-nums",
-  );
+  expect(declarations(css, ".feed-index")).toContain("font-variant-numeric: tabular-nums");
 });
 
 test("touch controls avoid delayed gesture handling", async () => {

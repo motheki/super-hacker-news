@@ -1,72 +1,37 @@
 # Super HN
 
-![Super HN gourd emblem](docs/images/super-hn-gourd-banner.png)
+![Super HN gourd emblem](src/assets/super-hn-social.png)
 
-A small, server-rendered Hacker News reader built with Astro and deployed on Cloudflare Workers.
+A small, server-rendered Hacker News reader built with [Astro](https://astro.build) and deployed on Cloudflare Workers at [superhn.org](https://superhn.org).
 
-- [Live site](https://superhn.org)
-- [Issues](https://github.com/motheki/super-hacker-news/issues)
-
-## Features
-
-- Top, new, Ask HN, and Show HN feeds
-- Validated nested comment trees with native disclosure controls
-- Comment permalinks and redirects to the containing discussion
-- Hacker News user profiles
-- Automatic system light and dark themes
-- Installable web app metadata and responsive icons
-- No React or Next.js browser runtime
-
-## Stack
-
-- Astro server rendering on Cloudflare Workers
-- Astro Fonts with self-hosted DM Sans and DM Mono files sourced from Google Fonts
-- Astro route caching backed by Cloudflare's CDN cache
-- HackerWeb data with Algolia and official HN fallbacks
-- Bun, TypeScript 7, ESLint, Prettier, and Playwright
-
-Astro 7.3.1 and `@astrojs/cloudflare` 14.3.0 are pinned together.
+Top, new, Ask HN, and Show HN feeds; nested comments with native disclosure controls; comment permalinks; user profiles; system light/dark themes.
 
 ## Development
+
+Use Bun and Node.js 22.12+.
 
 ```sh
 bun install
 bun run dev
 ```
 
-Run every check:
-
 ```sh
-bun run format:check
+bun run check
 bun run lint
-bun run typecheck
-bun run test
-bun run test:e2e
+bun test
 bun run build
+bun run preview
 ```
 
-`bun run typecheck` uses Astro's TypeScript 6-compatible checker for `.astro` templates and the TypeScript 7 native compiler for TypeScript source. TypeScript 7 does not yet expose the programmatic API Astro's checker requires.
+## Structure
 
-Run the local route benchmark with `bun run benchmark`. `bun run benchmark:live` compares cache fill, repeated requests, confirmed hits, reference posts, and the current official best stories. It records every tested ID. Override its targets with `BENCHMARK_URLS`, `REFERENCE_POST_IDS`, and `RECENT_POST_IDS`.
+- `src/pages/`: file-based routes. One feed route handles both the first page and pagination. Robots and the web manifest are prerendered; feeds, discussions, and profiles render on demand.
+- `src/layouts/` and `src/components/`: server-rendered HTML, shared metadata, and native comment controls. No client-side router or component framework.
+- `src/lib/`: route validation, response policies, and Hacker News data access. HackerWeb is the fast path; Algolia and bounded official API reconstruction provide fallbacks.
+- `src/assets/` and `src/styles/`: content-hashed brand images and shared styles. Astro Fonts self-hosts DM Sans and DM Mono.
+- `astro.config.ts`: Cloudflare adapter, edge cache rules, and intent-based prefetching with experimental client prerendering.
 
-## Architecture
-
-```text
-Browser
-  -> Astro route cache on Cloudflare
-    -> Astro routes and data service
-      -> HackerWeb fast path
-      -> official root + Algolia fallback
-      -> bounded official comment reconstruction
-```
-
-Astro renders feeds, posts, comments, profiles, metadata, and errors on the server. The browser receives compressed HTML, self-hosted fonts, Astro's transition runtime, and no component framework. Native `<details>` elements own comment collapsing. Discussion links prefetch on intent.
-
-Feeds cache at Cloudflare's edge for one minute with five minutes of background revalidation. Active discussions use one minute with four minutes of revalidation. Discussions from one to 30 days old use five minutes with one hour of revalidation. Older discussions and the sitemap use one hour with one day of revalidation. Profiles use 15 minutes with one hour of revalidation. Successful HTML also receives a 15-second browser cache. Outages return an uncached, retryable 503.
-
-HackerWeb is the fast path. After it misses, the official root and Algolia load together. If both bulk providers miss, small discussions can use official reconstruction. One request budget covers retries, comment redirects, and reconstruction; large trees return 503 instead of exceeding the Worker limit or publishing partial content.
-
-Derived image assets are palette-compressed, content-hashed, and cached immutably for one year. Dynamic HTML uses stale-while-revalidate caching and shared security headers.
+Astro's Cloudflare cache provider caches feeds for one minute and profiles for 15 minutes, with stale-while-revalidate. Discussion cache lifetimes increase with age. Errors are uncached; upstream outages return a retryable 503. Static assets use `public/_headers`; middleware applies dynamic response headers.
 
 ## Deployment
 
@@ -74,24 +39,15 @@ Derived image assets are palette-compressed, content-hashed, and cached immutabl
 bun run deploy
 ```
 
-`bun run deploy` builds and deploys the Astro application. Pushing `master` also deploys it through Cloudflare's Git integration. Astro sessions remain disabled because visitor state is not stored.
+This builds fresh output, then deploys using Astro's generated Wrangler configuration. `wrangler.jsonc` targets the `super-hn` Worker and `superhn.org` custom domain. Cloudflare credentials are required. Sessions are disabled; no application storage bindings are needed.
 
-## Brand
+To check deployment packaging without publishing:
 
-The source logo is [`src/assets/super-hn-gourd.png`](src/assets/super-hn-gourd.png). Its two-tone bottle-gourd silhouette and botanical pattern draw on traditional decorated gourds. Derived favicons, application icons, the social image, and this README banner use the application palette:
+```sh
+bun run build
+bun wrangler deploy --dry-run
+```
 
-- light canvas `#D9C4A8`
-- light ink `#212020`
-- dark canvas `#0F0E0F`
-- dark ink `#C3C3C4`
-- light divider `#A79077`
+## Attribution and license
 
-Regenerate every image with `bun run brand:generate`.
-
-## Attribution
-
-Super HN is based on [Better HN](https://github.com/pajecawav/better-hn) by [pajecawav](https://github.com/pajecawav). Its copyright notice and MIT license remain in this repository.
-
-## License
-
-[MIT](LICENSE)
+Based on [Better HN](https://github.com/pajecawav/better-hn) by [pajecawav](https://github.com/pajecawav). Original copyright retained. [MIT](LICENSE).

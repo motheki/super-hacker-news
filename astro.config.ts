@@ -1,28 +1,17 @@
 import cloudflare from "@astrojs/cloudflare";
 import { cacheCloudflare } from "@astrojs/cloudflare/cache";
-import { defineConfig, fontProviders, svgoOptimizer } from "astro/config";
+import { defineConfig, fontProviders } from "astro/config";
 import { SITE_URL } from "./src/lib/site";
 
-const FEED_CACHE_SECONDS = 60;
-const FEED_SWR_SECONDS = 300;
-const POST_CACHE_SECONDS = 60;
-const POST_SWR_SECONDS = 240;
-const PROFILE_CACHE_SECONDS = 900;
-const PROFILE_SWR_SECONDS = 3_600;
-const SITEMAP_CACHE_SECONDS = 3_600;
-const SITEMAP_SWR_SECONDS = 86_400;
+const feedCache = { maxAge: 60, swr: 300 };
 
 export default defineConfig({
   adapter: cloudflare({ imageService: "passthrough" }),
-  build: {
-    inlineStylesheets: "auto",
-  },
   cache: {
     provider: cacheCloudflare(),
   },
   compressHTML: true,
   experimental: {
-    svgOptimizer: svgoOptimizer(),
     clientPrerender: true,
   },
   fonts: [
@@ -72,26 +61,12 @@ export default defineConfig({
     },
   },
   routeRules: {
-    "/ask": { maxAge: FEED_CACHE_SECONDS, swr: FEED_SWR_SECONDS },
-    "/ask/[page]": { maxAge: FEED_CACHE_SECONDS, swr: FEED_SWR_SECONDS },
-    "/new": { maxAge: FEED_CACHE_SECONDS, swr: FEED_SWR_SECONDS },
-    "/new/[page]": { maxAge: FEED_CACHE_SECONDS, swr: FEED_SWR_SECONDS },
-    "/post/[postId]": {
-      maxAge: POST_CACHE_SECONDS,
-      swr: POST_SWR_SECONDS,
-    },
-    "/show": { maxAge: FEED_CACHE_SECONDS, swr: FEED_SWR_SECONDS },
-    "/show/[page]": { maxAge: FEED_CACHE_SECONDS, swr: FEED_SWR_SECONDS },
-    "/sitemap.xml": {
-      maxAge: SITEMAP_CACHE_SECONDS,
-      swr: SITEMAP_SWR_SECONDS,
-    },
-    "/top": { maxAge: FEED_CACHE_SECONDS, swr: FEED_SWR_SECONDS },
-    "/top/[page]": { maxAge: FEED_CACHE_SECONDS, swr: FEED_SWR_SECONDS },
-    "/user/[userName]": {
-      maxAge: PROFILE_CACHE_SECONDS,
-      swr: PROFILE_SWR_SECONDS,
-    },
+    "/ask/[...page]": feedCache,
+    "/new/[...page]": feedCache,
+    "/show/[...page]": feedCache,
+    "/top/[...page]": feedCache,
+    "/sitemap.xml": { maxAge: 3_600, swr: 86_400 },
+    "/user/[userName]": { maxAge: 900, swr: 3_600 },
   },
   session: false,
   site: SITE_URL,

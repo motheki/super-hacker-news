@@ -1,14 +1,7 @@
 export type JsonParser<T> = (value: unknown) => T | null;
-import {
-  RequestBudget,
-  SubrequestBudgetError,
-  type BudgetSnapshot,
-} from "./budget";
+import { RequestBudget, SubrequestBudgetError, type BudgetSnapshot } from "./budget";
 
-type Fetcher = (
-  input: string | URL | Request,
-  init?: RequestInit,
-) => Promise<Response>;
+type Fetcher = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 type Sleep = (delayMs: number) => Promise<void>;
 
 export interface UpstreamMetric {
@@ -92,9 +85,7 @@ function hitSubrequestLimit(error: unknown) {
   );
 }
 
-function budgetMetric(
-  budget: RequestBudget | undefined,
-): Partial<BudgetSnapshot> {
+function budgetMetric(budget: RequestBudget | undefined): Partial<BudgetSnapshot> {
   return budget?.snapshot() ?? {};
 }
 

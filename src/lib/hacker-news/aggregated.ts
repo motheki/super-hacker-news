@@ -1,9 +1,5 @@
 import { fetchJson } from "./client";
-import {
-  parseAggregatedPost,
-  parseAggregatedTopics,
-  parseAggregatedUser,
-} from "./codec";
+import { parseAggregatedPost, parseAggregatedTopics, parseAggregatedUser } from "./codec";
 import type { ContentProvider } from "./provider";
 import type { RequestBudget } from "./budget";
 
@@ -15,16 +11,12 @@ const POST_TIMEOUT_MS = 800;
 const USER_CACHE_SECONDS = 3_600;
 
 function getTopics(topic: string, page: number, budget: RequestBudget) {
-  return fetchJson(
-    `${HACKER_WEB_APP}/${topic}?page=${page}.json`,
-    parseAggregatedTopics,
-    {
-      cacheTtlSeconds: FEED_CACHE_SECONDS,
-      budget,
-      operation: "feed",
-      provider: "hackerwebapp",
-    },
-  );
+  return fetchJson(`${HACKER_WEB_APP}/${topic}?page=${page}.json`, parseAggregatedTopics, {
+    cacheTtlSeconds: FEED_CACHE_SECONDS,
+    budget,
+    operation: "feed",
+    provider: "hackerwebapp",
+  });
 }
 
 function getPost(postId: number, budget: RequestBudget) {
@@ -39,16 +31,12 @@ function getPost(postId: number, budget: RequestBudget) {
 }
 
 function getUser(userName: string, budget: RequestBudget) {
-  return fetchJson(
-    `${HNPWA}/user/${encodeURIComponent(userName)}.json`,
-    parseAggregatedUser,
-    {
-      cacheTtlSeconds: USER_CACHE_SECONDS,
-      budget,
-      operation: "user",
-      provider: "hnpwa",
-    },
-  );
+  return fetchJson(`${HNPWA}/user/${encodeURIComponent(userName)}.json`, parseAggregatedUser, {
+    cacheTtlSeconds: USER_CACHE_SECONDS,
+    budget,
+    operation: "user",
+    provider: "hnpwa",
+  });
 }
 
 export const aggregatedProvider = {

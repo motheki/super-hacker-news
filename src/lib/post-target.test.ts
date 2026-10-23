@@ -35,13 +35,18 @@ describe("resolvePostTarget", () => {
       [STORY_ID, { id: STORY_ID, type: "story" }],
     ]);
 
+    let postReads = 0;
     const result = await resolvePostTarget(
       COMMENT_ID,
       (id) => Promise.resolve(items.get(id) ?? null),
-      () => Promise.reject(new Error("post loader must not run")),
+      () => {
+        postReads += 1;
+        return Promise.reject(new Error("Discussion unavailable for comment ID"));
+      },
     );
 
     expect(result).toEqual({ kind: "redirect", rootId: STORY_ID });
+    expect(postReads).toBe(1);
   });
 
   test("redirects when a provider resolves a comment to its story", async () => {

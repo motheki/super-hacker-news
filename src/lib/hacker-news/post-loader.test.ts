@@ -1,11 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { Post } from "~/lib/post";
 import type { OfficialItem } from "./codec";
-import {
-  loadPost,
-  PostUnavailableError,
-  type PostSelectionMetric,
-} from "./post-loader";
+import { loadPost, PostUnavailableError, type PostSelectionMetric } from "./post-loader";
 
 const POST_ID = 1;
 const STORY_TIME = 1_700_000_000;
@@ -161,16 +157,21 @@ describe("loadPost", () => {
 
   test("accepts a complete reachable tree below descendants", async () => {
     const official = createPost(3);
+    let officialLoads = 0;
 
     const post = await loadPost(POST_ID, {
-      getAggregated: () => Promise.resolve(createPost(3)),
+      getAggregated: () => Promise.resolve(null),
       getSecondary: () => Promise.resolve(null),
-      getOfficialPost: () => Promise.resolve(official),
+      getOfficialPost: () => {
+        officialLoads += 1;
+        return Promise.resolve(official);
+      },
       getOfficialRoot: () => Promise.resolve(createRoot(4)),
       report: () => undefined,
     });
 
-    expect(post?.comments_count).toBe(3);
+    expect(post).toBe(official);
+    expect(officialLoads).toBe(1);
   });
 
   test("keeps a valid aggregate when verification is unavailable", async () => {
@@ -322,8 +323,7 @@ describe("loadPost", () => {
         officialLoads += 1;
         return Promise.resolve(null);
       },
-      getOfficialRoot: () =>
-        Promise.resolve({ id: POST_ID, parent: 2, type: "comment" }),
+      getOfficialRoot: () => Promise.resolve({ id: POST_ID, parent: 2, type: "comment" }),
       getOfficialSummary: () => null,
       getSecondary: () => {
         secondaryLoads += 1;

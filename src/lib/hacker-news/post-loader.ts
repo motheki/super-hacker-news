@@ -77,8 +77,7 @@ export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
 
   // HackerWeb matches Better HN's fast path: one complete-tree request.
   const aggregatedResult = await settle(loaders.getAggregated);
-  const aggregated =
-    aggregatedResult.status === "fulfilled" ? aggregatedResult.value : null;
+  const aggregated = aggregatedResult.status === "fulfilled" ? aggregatedResult.value : null;
   aggregatedCount = aggregated?.comments_count ?? null;
 
   if (aggregated !== null) {
@@ -91,22 +90,16 @@ export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
   const rootResult = await settle(loaders.getOfficialRoot);
   const root = rootResult.status === "fulfilled" ? rootResult.value : null;
   officialCount = root?.descendants ?? null;
-  const officialSummary =
-    root === null ? null : loaders.getOfficialSummary?.(root);
+  const officialSummary = root === null ? null : loaders.getOfficialSummary?.(root);
 
-  if (
-    root !== null &&
-    loaders.getOfficialSummary !== undefined &&
-    officialSummary === null
-  ) {
+  if (root !== null && loaders.getOfficialSummary !== undefined && officialSummary === null) {
     void secondaryResultPromise;
     report("all-unavailable", "none");
     return null;
   }
 
   const secondaryResult = await secondaryResultPromise;
-  const secondary =
-    secondaryResult.status === "fulfilled" ? secondaryResult.value : null;
+  const secondary = secondaryResult.status === "fulfilled" ? secondaryResult.value : null;
   secondaryCount = secondary?.comments_count ?? null;
 
   if (secondary !== null) {
@@ -142,9 +135,7 @@ export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
 
   if (loaders.canLoadOfficial?.(root) === false) {
     report("budget-exhausted", "none");
-    throw new PostUnavailableError(
-      "The official comment tree exceeds the request budget",
-    );
+    throw new PostUnavailableError("The official comment tree exceeds the request budget");
   }
 
   try {

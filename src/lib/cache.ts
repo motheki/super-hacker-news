@@ -12,8 +12,7 @@ const ACTIVE_POST_CACHE: CachePolicy = { maxAge: 60, swr: 240 };
 const SETTLED_POST_CACHE: CachePolicy = { maxAge: 300, swr: 3_600 };
 const ARCHIVED_POST_CACHE: CachePolicy = { maxAge: 3_600, swr: 86_400 };
 
-export const HTML_CACHE_CONTROL =
-  `public, max-age=${BROWSER_MAX_AGE_SECONDS}` as const;
+export const HTML_CACHE_CONTROL = `public, max-age=${BROWSER_MAX_AGE_SECONDS}` as const;
 
 export function cacheHtml(response: Response) {
   const contentType = response.headers.get("content-type");

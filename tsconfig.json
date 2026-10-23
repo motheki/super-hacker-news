@@ -1,37 +1,11 @@
 {
-  "extends": "astro/tsconfigs/strictest",
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"],
   "compilerOptions": {
-    "target": "ES2023",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "allowJs": false,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-    "module": "ESNext",
-    "moduleDetection": "force",
-    "moduleResolution": "Bundler",
-    "noEmit": true,
-    "noUncheckedIndexedAccess": true,
-    "noUncheckedSideEffectImports": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": false,
-    "strict": true,
-    "verbatimModuleSyntax": true,
+    "types": ["bun"],
     "paths": {
       "~/*": ["./src/*"]
-    },
-    "types": ["bun"]
-  },
-  "include": [
-    ".astro/types.d.ts",
-    "worker-configuration.d.ts",
-    "scripts/**/*.ts",
-    "src/**/*.astro",
-    "src/**/*.ts",
-    "tests/**/*.ts",
-    "*.ts"
-  ],
-  "exclude": ["node_modules", ".direnv", ".devenv", ".config"]
+    }
+  }
 }

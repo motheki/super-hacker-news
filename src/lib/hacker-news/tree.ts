@@ -2,11 +2,7 @@ import type { OfficialItem } from "./codec";
 
 type ItemLoader = (itemId: number) => Promise<OfficialItem | null>;
 
-export async function loadDescendants(
-  root: OfficialItem,
-  loadItem: ItemLoader,
-  batchSize: number,
-) {
+export async function loadDescendants(root: OfficialItem, loadItem: ItemLoader, batchSize: number) {
   const itemsById = new Map<number, OfficialItem>();
   const missingIds: number[] = [];
   const queued = new Set<number>([root.id]);

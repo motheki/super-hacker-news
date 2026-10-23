@@ -18,9 +18,8 @@
     };
   };
 
-  outputs =
-    inputs@{ flake-parts, ... }:
-    flake-parts.lib.mkFlake { inherit inputs; } {
+  outputs = inputs @ {flake-parts, ...}:
+    flake-parts.lib.mkFlake {inherit inputs;} {
       imports = [
         inputs.devenv.flakeModule
         inputs.treefmt-nix.flakeModule
@@ -31,44 +30,40 @@
         "aarch64-darwin"
         "x86_64-darwin"
       ];
-      perSystem =
-        { ... }:
-        {
-          treefmt = {
-            enableDefaultExcludes = true;
-            programs = {
-              alejandra.enable = true;
-              deadnix.enable = true;
-              prettier.enable = true;
-              taplo.enable = true;
-            };
+      perSystem = {...}: {
+        treefmt = {
+          enableDefaultExcludes = true;
+          programs = {
+            alejandra.enable = true;
+            deadnix.enable = true;
           };
-          devenv.shells.default = {
-            name = "super-hacker-news";
-            cachix = {
+        };
+        devenv.shells.default = {
+          name = "super-hacker-news";
+          cachix = {
+            enable = true;
+            pull = [
+              "devenv"
+              "nixpkgs"
+              "flake-parts"
+              "cachix"
+            ];
+          };
+          languages = {
+            javascript = {
               enable = true;
-              pull = [
-                "devenv"
-                "nixpkgs"
-                "flake-parts"
-                "cachix"
-              ];
-            };
-            languages = {
-              javascript = {
+              lsp = {
                 enable = true;
-                lsp = {
+              };
+              bun = {
+                enable = true;
+                install = {
                   enable = true;
-                };
-                bun = {
-                  enable = true;
-                  install = {
-                    enable = true;
-                  };
                 };
               };
             };
           };
         };
+      };
     };
 }

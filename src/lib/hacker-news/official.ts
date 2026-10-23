@@ -59,9 +59,7 @@ async function getOfficialItems(ids: readonly number[], budget: RequestBudget) {
 
   for (let start = 0; start < ids.length; start += ITEM_BATCH_SIZE) {
     const batch = ids.slice(start, start + ITEM_BATCH_SIZE);
-    const loaded = await Promise.all(
-      batch.map((itemId) => getOfficialItem(itemId, budget)),
-    );
+    const loaded = await Promise.all(batch.map((itemId) => getOfficialItem(itemId, budget)));
 
     for (const item of loaded) {
       if (item !== null) items.push(item);
@@ -119,20 +117,14 @@ export function getOfficialPostSummary(root: OfficialItem) {
   return toOfficialPost(root, new Map(), nowSeconds());
 }
 
-async function getPost(
-  postId: number,
-  budget: RequestBudget,
-): Promise<Post | null> {
+async function getPost(postId: number, budget: RequestBudget): Promise<Post | null> {
   const root = await getOfficialPostRoot(postId, budget);
   if (root === null) return null;
 
   return getOfficialPost(root, budget);
 }
 
-async function getUser(
-  userName: string,
-  budget: RequestBudget,
-): Promise<User | null> {
+async function getUser(userName: string, budget: RequestBudget): Promise<User | null> {
   const user = await fetchJson(
     `${OFFICIAL_API}/user/${encodeURIComponent(userName)}.json`,
     parseOfficialUser,

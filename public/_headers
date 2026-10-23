@@ -4,6 +4,15 @@
 /favicon.ico
   Cache-Control: public, max-age=86400
 
+/super-hn-gourd.ico
+  Cache-Control: public, max-age=86400
+
+/manifest.webmanifest
+  Cache-Control: public, max-age=86400
+
+/robots.txt
+  Cache-Control: public, max-age=86400
+
 /*
   Strict-Transport-Security: max-age=300
   X-Content-Type-Options: nosniff
