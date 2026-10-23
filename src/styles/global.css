@@ -133,11 +133,20 @@ samp {
   flex: 0 0 auto;
 }
 
-.brand:hover,
 .source-link:hover,
 .nav-link:hover {
   background: var(--selection);
   color: var(--selection-ink);
+}
+
+/* Raster artwork cannot follow currentColor when a link inverts its colors. */
+.brand {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.brand:hover,
+.brand:active {
+  background: color-mix(in srgb, var(--canvas) 85%, var(--ink));
 }
 
 .brand img {
@@ -286,6 +295,7 @@ samp {
 }
 
 .comment-info {
+  min-height: 24px;
   cursor: pointer;
   list-style: none;
 }

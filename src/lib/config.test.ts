@@ -7,4 +7,5 @@ test("keeps server builds free of unused experiments", async () => {
 
   expect(source).not.toContain("incrementalBuild");
   expect(source).not.toContain("chromeDevtoolsWorkspace");
+  expect(source).toContain('imageService: "compile"');
 });

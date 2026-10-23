@@ -2,11 +2,8 @@ import { defineMiddleware } from "astro:middleware";
 import { cacheHtml } from "~/lib/cache";
 import { redirectHttp, redirectLegacy } from "~/lib/redirect";
 import { secureResponse } from "~/lib/response";
-import { isTopicName, parsePage } from "~/lib/route";
+import { canonicalRoute, isCacheablePath } from "~/lib/route";
 import { addServerTiming } from "~/lib/timing";
-
-const CACHEABLE_ROUTE =
-  /^\/(?:ask|new|show|top)(?:\/\d+)?$|^\/post\/\d+$|^\/user\/[^/]+$|^\/sitemap\.xml$/u;
 
 function withRenderTiming(response: Response, durationMs: number) {
   const headers = new Headers(response.headers);
@@ -35,18 +32,14 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (httpRedirect !== null) return secure(httpRedirect);
 
   const isCacheable =
-    context.request.method === "GET" && CACHEABLE_ROUTE.test(context.url.pathname);
+    (context.request.method === "GET" || context.request.method === "HEAD") &&
+    isCacheablePath(context.url.pathname);
   if (!isCacheable) {
     return secure(await next());
   }
-  if (context.url.search.length > 0) {
-    const topicName = context.url.pathname.slice(1);
-    const page = parsePage(context.url.searchParams.get("page") ?? undefined);
-    if (isTopicName(topicName) && page !== null && page > 1) {
-      return secure(context.redirect(`/${topicName}/${page}`, 308));
-    }
-
-    return secure(context.redirect(context.url.pathname, 308));
+  const canonical = canonicalRoute(context.url);
+  if (canonical !== null) {
+    return secure(context.redirect(canonical, 308));
   }
 
   const start = performance.now();

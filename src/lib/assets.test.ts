@@ -79,6 +79,13 @@ describe("brand images", () => {
     expect(source).not.toContain("favicon-32-dark.png");
   });
 
+  test("discussion prefetch requires tap intent, not incidental hover", async () => {
+    const source = await readFile(new URL("src/components/FeedItem.astro", ROOT), "utf8");
+
+    expect(source).not.toContain('data-astro-prefetch="hover"');
+    expect(source).toContain('data-astro-prefetch="tap"');
+  });
+
   test("preloads only the primary text font", async () => {
     const source = await readFile(LAYOUT, "utf8");
     const mono = source.match(/<Font cssVariable="--font-dm-mono"[^>]*\/>/u)?.[0];

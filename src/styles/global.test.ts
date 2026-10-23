@@ -35,6 +35,22 @@ test("touch controls avoid delayed gesture handling", async () => {
   expect(css).toContain("touch-action: manipulation");
 });
 
+test("brand interaction keeps a canvas-toned background for raster artwork", async () => {
+  const css = await readFile(STYLES, "utf8");
+
+  expect(css).not.toContain(".brand:hover,\n.source-link:hover");
+  expect(declarations(css, ".brand:active")).toContain(
+    "background: color-mix(in srgb, var(--canvas) 85%, var(--ink))",
+  );
+  expect(css).toContain("-webkit-tap-highlight-color: transparent");
+});
+
+test("comment disclosure controls meet the minimum touch target height", async () => {
+  const css = await readFile(STYLES, "utf8");
+
+  expect(css).toContain(".comment-info {\n  min-height: 24px;");
+});
+
 test("comment anchors clear the viewport edge", async () => {
   const css = await readFile(STYLES, "utf8");
 

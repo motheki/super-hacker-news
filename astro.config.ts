@@ -6,7 +6,7 @@ import { SITE_URL } from "./src/lib/site";
 const feedCache = { maxAge: 60, swr: 300 };
 
 export default defineConfig({
-  adapter: cloudflare({ imageService: "passthrough" }),
+  adapter: cloudflare({ imageService: "compile" }),
   cache: {
     provider: cacheCloudflare(),
   },

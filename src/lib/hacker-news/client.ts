@@ -31,7 +31,7 @@ interface FetchJsonOptions {
 interface CloudflareRequestInit extends RequestInit {
   readonly cf?: {
     readonly cacheEverything: boolean;
-    readonly cacheTtl: number;
+    readonly cacheTtlByStatus: Readonly<Record<string, number>>;
   };
 }
 
@@ -107,7 +107,10 @@ export async function fetchJson<T>(
       : {
           cf: {
             cacheEverything: true,
-            cacheTtl: options.cacheTtlSeconds,
+            cacheTtlByStatus: {
+              "200-299": options.cacheTtlSeconds,
+              "300-599": -1,
+            },
           },
         }),
   };
@@ -153,6 +156,9 @@ export async function fetchJson<T>(
       status: response.status,
     });
 
+    // Release the connection before retrying or falling back to another provider.
+    if (!response.ok) await response.body?.cancel();
+
     if (response.status === HTTP_NOT_FOUND) {
       report({ ...metric(), outcome: "not-found" });
       return null;
@@ -172,9 +178,9 @@ export async function fetchJson<T>(
     let value: unknown;
     try {
       value = await response.json();
-    } catch {
+    } catch (error) {
       report({ ...metric(), outcome: "invalid" });
-      return null;
+      throw new Error("Upstream returned unreadable JSON", { cause: error });
     }
 
     const parsed = parse(value);

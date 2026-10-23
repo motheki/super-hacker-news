@@ -1,11 +1,39 @@
 import { describe, expect, test } from "bun:test";
 import {
+  canonicalRoute,
+  isCacheablePath,
   isTopicName,
   isValidUserName,
   MAX_USER_NAME_LENGTH,
   parsePage,
   parsePostId,
 } from "./route";
+
+describe("cache URL canonicalization", () => {
+  test("normalizes slashes and tracking queries in one redirect", () => {
+    const cases = [
+      ["/top/?utm_source=test", "/top"],
+      ["/top/?page=2&utm_source=test", "/top/2"],
+      ["/top/2/?page=3", "/top/2"],
+      ["/post/123/", "/post/123"],
+      ["/user/pg/?tracking=1", "/user/pg"],
+      ["/sitemap.xml/?tracking=1", "/sitemap.xml"],
+    ] as const;
+    for (const [path, canonical] of cases) {
+      const url = new URL(path, "https://superhn.org");
+      expect(isCacheablePath(url.pathname)).toBe(true);
+      expect(canonicalRoute(url)).toBe(canonical);
+    }
+  });
+
+  test("leaves canonical routes and unrelated assets alone", () => {
+    for (const path of ["/top", "/top/2", "/post/123", "/user/pg", "/_astro/app.js?v=1"]) {
+      expect(canonicalRoute(new URL(path, "https://superhn.org"))).toBeNull();
+    }
+    expect(isCacheablePath("/_astro/app.js")).toBe(false);
+    expect(isCacheablePath("/unknown/")).toBe(false);
+  });
+});
 
 describe("topic routes", () => {
   test("recognizes configured topic names", () => {
@@ -24,6 +52,11 @@ describe("topic routes", () => {
     expect(parsePage("1e2")).toBeNull();
     expect(parsePage("0x10")).toBeNull();
     expect(parsePage("bad")).toBeNull();
+    expect(parsePage("10")).toBe(10);
+    expect(parsePage(["10"])).toBe(10);
+    expect(parsePage("11")).toBeNull();
+    expect(parsePage(["11"])).toBeNull();
+    expect(parsePage("9007199254740991")).toBeNull();
   });
 });
 

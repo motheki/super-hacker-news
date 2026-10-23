@@ -7,6 +7,62 @@ const parseNumber = (value: unknown) => (typeof value === "number" ? value : nul
 const noWait = () => Promise.resolve();
 
 describe("fetchJson", () => {
+  test("caches successes without retaining upstream errors or redirects", async () => {
+    let init: RequestInit | undefined;
+    await fetchJson("https://example.test/item", parseNumber, {
+      cacheTtlSeconds: 60,
+      fetcher: (_url, options) => {
+        init = options;
+        return Promise.resolve(Response.json(42));
+      },
+      operation: "item",
+      provider: "test",
+    });
+
+    expect(init).toMatchObject({
+      cf: { cacheEverything: true, cacheTtlByStatus: { "200-299": 60, "300-599": -1 } },
+    });
+    expect(init).not.toHaveProperty("cf.cacheTtl");
+  });
+
+  test("cancels unused error bodies before a retry", async () => {
+    let cancelled = false;
+    let calls = 0;
+    const value = await fetchJson("https://example.test/item", parseNumber, {
+      fetcher: () => {
+        calls += 1;
+        if (calls === 1) {
+          return Promise.resolve(new Response(new ReadableStream({
+            cancel() { cancelled = true; },
+          }), { status: 503 }));
+        }
+        expect(cancelled).toBe(true);
+        return Promise.resolve(Response.json(42));
+      },
+      operation: "item",
+      provider: "test",
+      sleep: noWait,
+    });
+
+    expect(value).toBe(42);
+  });
+
+  test("unreadable JSON is an outage, not a missing resource", async () => {
+    await expect(fetchJson("https://example.test/item", parseNumber, {
+      fetcher: () => Promise.resolve(new Response("{broken")),
+      operation: "item",
+      provider: "test",
+    })).rejects.toThrow("Upstream returned unreadable JSON");
+  });
+
+  test("valid JSON null still represents a missing resource", async () => {
+    expect(await fetchJson("https://example.test/item", parseNumber, {
+      fetcher: () => Promise.resolve(Response.json(null)),
+      operation: "item",
+      provider: "test",
+    })).toBeNull();
+  });
+
   test("retries transient responses", async () => {
     let calls = 0;
     const fetcher = () => {
