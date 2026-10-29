@@ -86,14 +86,14 @@ describe("brand images", () => {
     expect(source).toContain('data-astro-prefetch="tap"');
   });
 
-  test("preloads only the primary text font", async () => {
+  test("system fonts need no font loading or preloads", async () => {
     const source = await readFile(LAYOUT, "utf8");
-    const mono = source.match(/<Font cssVariable="--font-dm-mono"[^>]*\/>/u)?.[0];
+    const config = await readFile(new URL("astro.config.ts", ROOT), "utf8");
 
-    expect(source.match(/<Font/gu)).toHaveLength(2);
-    expect(source).toContain('cssVariable="--font-dm-sans"');
-    expect(mono).toBeDefined();
-    expect(mono).not.toContain("preload");
+    expect(source).not.toContain("<Font");
+    expect(source).not.toContain('as="font"');
+    expect(config).not.toContain("fontProviders");
+    expect(config).not.toContain("fonts:");
   });
 
   test("versioned favicon matches the generated gourd", async () => {

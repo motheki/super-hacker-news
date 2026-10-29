@@ -1,6 +1,6 @@
 import cloudflare from "@astrojs/cloudflare";
 import { cacheCloudflare } from "@astrojs/cloudflare/cache";
-import { defineConfig, fontProviders } from "astro/config";
+import { defineConfig } from "astro/config";
 import { SITE_URL } from "./src/lib/site";
 
 const feedCache = { maxAge: 60, swr: 300 };
@@ -14,41 +14,6 @@ export default defineConfig({
   experimental: {
     clientPrerender: true,
   },
-  fonts: [
-    {
-      cssVariable: "--font-dm-sans",
-      display: "swap",
-      fallbacks: ["ui-sans-serif", "system-ui", "sans-serif"],
-      formats: ["woff2"],
-      name: "DM Sans",
-      optimizedFallbacks: true,
-      provider: fontProviders.google(),
-      styles: ["normal"],
-      subsets: ["latin"],
-      weights: [400],
-    },
-    {
-      cssVariable: "--font-dm-mono",
-      display: "swap",
-      fallbacks: [
-        "ui-monospace",
-        "SFMono-Regular",
-        "Menlo",
-        "Monaco",
-        "Consolas",
-        "Liberation Mono",
-        "Courier New",
-        "monospace",
-      ],
-      formats: ["woff2"],
-      name: "DM Mono",
-      optimizedFallbacks: true,
-      provider: fontProviders.google(),
-      styles: ["normal"],
-      subsets: ["latin"],
-      weights: [400],
-    },
-  ],
   output: "server",
   prefetch: {
     defaultStrategy: "tap",

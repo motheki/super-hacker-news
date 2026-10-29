@@ -10,7 +10,7 @@
   /* 82% of the parent increase contributes 1.64pt. */
   --domain-size-adjustment: 0.36pt;
   color-scheme: light;
-  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: system-ui, ui-sans-serif, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -99,7 +99,7 @@ kbd,
 pre,
 samp {
   font-family:
-    var(--font-dm-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
 }
 

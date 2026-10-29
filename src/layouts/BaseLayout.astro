@@ -1,5 +1,4 @@
 ---
-import { Font } from "astro:assets";
 import appleTouchIcon from "~/assets/apple-touch-icon.png";
 import favicon32 from "~/assets/favicon-32.png";
 import favicon32Dark from "~/assets/favicon-32-dark.png";
@@ -91,11 +90,6 @@ const jsonLd = JSON.stringify(structuredData ?? websiteData).replaceAll(
     />
     <link rel="apple-touch-icon" href={appleTouchIcon.src} />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <Font
-      cssVariable="--font-dm-sans"
-      preload={[{ subset: "latin", style: "normal", weight: 400 }]}
-    />
-    <Font cssVariable="--font-dm-mono" />
     <title>{pageTitle}</title>
     <script is:inline type="application/ld+json" set:html={jsonLd} />
   </head>

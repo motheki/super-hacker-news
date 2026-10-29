@@ -27,7 +27,7 @@ bun run preview
 - `src/pages/`: file-based routes. One feed route handles both the first page and pagination. Robots and the web manifest are prerendered; feeds, discussions, and profiles render on demand.
 - `src/layouts/` and `src/components/`: server-rendered HTML, shared metadata, and native comment controls. No client-side router or component framework.
 - `src/lib/`: route validation, response policies, and Hacker News data access. HackerWeb is the fast path; Algolia and bounded official API reconstruction provide fallbacks.
-- `src/assets/` and `src/styles/`: content-hashed brand images and shared styles. Astro Fonts self-hosts DM Sans and DM Mono.
+- `src/assets/` and `src/styles/`: content-hashed brand images and shared styles. Text uses system UI fonts, with system monospace fonts for code.
 - `astro.config.ts`: Cloudflare adapter, edge cache rules, and intent-based prefetching with experimental client prerendering.
 
 Astro's Cloudflare cache provider caches feeds for one minute and profiles for 15 minutes, with stale-while-revalidate. Discussion cache lifetimes increase with age. Errors are uncached; upstream outages return a retryable 503. Static assets use `public/_headers`; middleware applies dynamic response headers.
