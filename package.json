@@ -9,12 +9,11 @@
   },
   "type": "module",
   "scripts": {
-    "check": "bun astro check",
-    "build": "bun astro build",
-    "dev": "bun astro dev",
-    "preview": "bun astro preview",
-    "deploy": "bun run build && bun run deploy:assets",
-    "deploy:assets": "bun wrangler deploy"
+    "check": "astro check",
+    "build": "astro build",
+    "dev": "astro dev",
+    "preview": "astro preview",
+    "deploy": "astro build && wrangler deploy"
   },
   "dependencies": {
     "@astrojs/cloudflare": "14.4.3",

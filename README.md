@@ -43,15 +43,15 @@ This builds fresh output, then deploys using Astro's generated Wrangler configur
 Cloudflare Workers Builds is connected to GitHub's `master` branch with these commands:
 
 - Build: `bun run build`
-- Deploy: `bun run deploy:assets`
+- Deploy: `bun wrangler deploy`
 
-Keep `deploy:assets` available for that CI configuration. Despite its historical name, it deploys both the server Worker and static assets from the completed build, without rebuilding. Astro writes `.wrangler/deploy/config.json`, which directs Wrangler to `dist/server/wrangler.json` and the assets in `dist/client`; do not override this with `--assets dist` or deploy the source configuration directly.
+CI builds once, then runs Wrangler directly to deploy the server Worker and static assets. Local `bun run deploy` runs `astro build && wrangler deploy`. Astro generates the deployment configuration and sets the asset directory to `dist/client`, so the source Wrangler configuration does not specify an output directory.
 
 To check deployment packaging without publishing:
 
 ```sh
 bun run build
-bun run deploy:assets --dry-run
+bun wrangler deploy --dry-run
 ```
 
 ## Attribution and license
