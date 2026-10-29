@@ -17,7 +17,6 @@ bun run dev
 
 ```sh
 bun run check
-bun run lint
 bun test
 bun run build
 bun run preview
@@ -41,11 +40,18 @@ bun run deploy
 
 This builds fresh output, then deploys using Astro's generated Wrangler configuration. `wrangler.jsonc` targets the `super-hn` Worker and `superhn.org` custom domain. Cloudflare credentials are required. Sessions are disabled; no application storage bindings are needed.
 
+Cloudflare Workers Builds is connected to GitHub's `master` branch with these commands:
+
+- Build: `bun run build`
+- Deploy: `bun run deploy:assets`
+
+Keep `deploy:assets` available for that CI configuration. Despite its historical name, it deploys both the server Worker and static assets from the completed build, without rebuilding. Astro writes `.wrangler/deploy/config.json`, which directs Wrangler to `dist/server/wrangler.json` and the assets in `dist/client`; do not override this with `--assets dist` or deploy the source configuration directly.
+
 To check deployment packaging without publishing:
 
 ```sh
 bun run build
-bun wrangler deploy --dry-run
+bun run deploy:assets --dry-run
 ```
 
 ## Attribution and license
