@@ -44,7 +44,7 @@ const storyUrl = externalUrl ?? `/post/${item.id}`;
               <a
                 class="text-link"
                 data-astro-prefetch="tap"
-                href={`/user/${item.user}`}
+                href={`/user?name=${encodeURIComponent(item.user)}`}
               >
                 {item.user}
               </a>

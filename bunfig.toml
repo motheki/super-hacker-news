@@ -1,0 +1,11 @@
+telemetry = false
+
+[install]
+linker = "isolated"
+globalStore = true
+
+[test]
+root = "./__tests_"
+
+[run]
+bun = false

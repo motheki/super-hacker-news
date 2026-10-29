@@ -1,14 +1,14 @@
 export interface Comment {
   readonly id: number;
-  readonly user?: string;
-  readonly time?: number;
-  readonly time_ago?: string;
-  readonly content?: string;
-  readonly deleted?: boolean;
-  readonly dead?: boolean;
-  readonly comments: readonly Comment[];
-  readonly comments_count?: number;
-  readonly url?: string;
+  readonly parent?: number | undefined;
+  readonly user?: string | undefined;
+  readonly time?: number | undefined;
+  readonly time_ago?: string | undefined;
+  readonly content?: string | undefined;
+  readonly deleted?: boolean | undefined;
+  readonly dead?: boolean | undefined;
+  /** Direct replies, including tombstones; descendants load only on request. */
+  readonly replyCount: number;
 }
 
 export interface Post {
@@ -18,9 +18,14 @@ export interface Post {
   readonly user: string;
   readonly time: number;
   readonly time_ago: string;
-  readonly content?: string;
-  readonly url?: string;
-  readonly domain?: string;
-  readonly comments: readonly Comment[];
+  readonly content?: string | undefined;
+  readonly url?: string | undefined;
+  readonly domain?: string | undefined;
+  /** The official descendant count, never the number loaded on this page. */
   readonly comments_count: number;
+}
+
+export interface CommentPage {
+  readonly comments: readonly Comment[];
+  readonly nextPage: number | null;
 }

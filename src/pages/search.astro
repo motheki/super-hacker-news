@@ -1,0 +1,33 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import "~/styles/search.css";
+export const prerender = true;
+---
+<BaseLayout title="Search" canonical="/search" description="Search recent Hacker News stories on Super HN.">
+  <h1>Search</h1>
+  <p class="meta" id="search-scope">Search a snapshot of recent Top, New, Ask and Show stories. The full Hacker News archive is not included.</p>
+  <p class="meta" id="search-snapshot"></p>
+  <form role="search" class="search-form" id="search-form" action="/search">
+    <label class="visually-hidden" for="search-query">Search stories</label>
+    <input type="search" id="search-query" name="q" placeholder="Search stories…" aria-describedby="search-scope" autocomplete="off" />
+    <label>Time range
+      <select name="range" id="search-range">
+        <option value="all">All indexed stories</option><option value="day">Past day</option>
+        <option value="week">Past week</option><option value="month">Past month</option><option value="year">Past year</option>
+      </select>
+    </label>
+    <label>Sort by
+      <select name="sort" id="search-sort"><option value="relevance">Relevance</option><option value="date">Newest</option></select>
+    </label>
+    <button type="submit">Search</button>
+    <button type="reset">Clear</button>
+  </form>
+  <noscript><p>Search needs JavaScript. You can still browse <a class="text-link" href="/top">Top stories</a>.</p></noscript>
+  <p id="search-status" role="status" aria-live="polite">Enter a word or phrase to search.</p>
+  <div class="feed" id="search-results" aria-label="Search results"></div>
+  <button class="more-link" type="button" id="search-more" hidden>More results</button>
+  <button type="button" id="search-retry" hidden>Try again</button>
+</BaseLayout>
+<script>
+  import "~/scripts/search";
+</script>

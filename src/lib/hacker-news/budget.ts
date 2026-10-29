@@ -1,14 +1,14 @@
-const WORKER_SUBREQUEST_LIMIT = 50;
+const DEFAULT_REQUEST_LIMIT = 64;
 
 export interface BudgetSnapshot {
-  readonly subrequestsRemaining: number;
-  readonly subrequestsUsed: number;
+  readonly requestsRemaining: number;
+  readonly requestsUsed: number;
 }
 
-export class SubrequestBudgetError extends Error {
+export class RequestBudgetError extends Error {
   constructor() {
-    super("Worker subrequest budget exhausted");
-    this.name = "SubrequestBudgetError";
+    super("Hacker News request budget exhausted");
+    this.name = "RequestBudgetError";
   }
 }
 
@@ -16,7 +16,8 @@ export class RequestBudget {
   readonly #limit: number;
   #used = 0;
 
-  constructor(limit = WORKER_SUBREQUEST_LIMIT) {
+  constructor(limit = DEFAULT_REQUEST_LIMIT) {
+    if (!Number.isSafeInteger(limit) || limit < 1) throw new RangeError("Invalid request budget");
     this.#limit = limit;
   }
 
@@ -25,15 +26,15 @@ export class RequestBudget {
   }
 
   take() {
-    if (!this.canTake(1)) throw new SubrequestBudgetError();
+    if (!this.canTake(1)) throw new RequestBudgetError();
 
     this.#used += 1;
   }
 
   snapshot(): BudgetSnapshot {
     return {
-      subrequestsRemaining: this.#limit - this.#used,
-      subrequestsUsed: this.#used,
+      requestsRemaining: this.#limit - this.#used,
+      requestsUsed: this.#used,
     };
   }
 }

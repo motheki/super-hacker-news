@@ -1,26 +1,7 @@
-import { TOPICS, type TopicName } from "~/lib/topic";
+import { TOPICS, MAX_FEED_PAGE, type TopicName } from "~/lib/topic";
 
 export const MAX_USER_NAME_LENGTH = 15;
-// node-hnapi clamps larger pages to 10, creating duplicate crawl/cache entries.
-export const MAX_FEED_PAGE = 10;
-
-const CACHEABLE_ROUTE =
-  /^\/(?:ask|new|show|top)(?:\/\d+)?$|^\/post\/\d+$|^\/user\/[^/]+$|^\/sitemap\.xml$/u;
-
-export const isCacheablePath = (path: string) =>
-  CACHEABLE_ROUTE.test(path.replace(/\/+$/u, ""));
-
-/** Collapse unused queries and trailing slashes before doing any upstream work. */
-export function canonicalRoute(url: URL): string | null {
-  if (!isCacheablePath(url.pathname)) return null;
-  const path = url.pathname.replace(/\/+$/u, "");
-  const topicName = path.slice(1);
-  const page = parsePage(url.searchParams.get("page") ?? undefined);
-  if (isTopicName(topicName) && page !== null && page > 1) {
-    return `/${topicName}/${page}`;
-  }
-  return path !== url.pathname || url.search.length > 0 ? path : null;
-}
+export { MAX_FEED_PAGE };
 
 export const isTopicName = (value: string): value is TopicName =>
   TOPICS.some((topic) => topic.name === value);
@@ -46,4 +27,4 @@ export const parsePage = (value?: string | readonly string[]): number | null => 
 export const parsePostId = (value: string) => parsePositiveInteger(value);
 
 export const isValidUserName = (value: string) =>
-  value.length > 0 && value.length <= MAX_USER_NAME_LENGTH;
+  value.length > 0 && value.length <= MAX_USER_NAME_LENGTH && /^[A-Za-z0-9_-]+$/.test(value);

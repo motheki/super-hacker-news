@@ -10,7 +10,7 @@
   /* 82% of the parent increase contributes 1.64pt. */
   --domain-size-adjustment: 0.36pt;
   color-scheme: light;
-  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -28,6 +28,10 @@
 
 * {
   box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 html {
@@ -99,7 +103,7 @@ kbd,
 pre,
 samp {
   font-family:
-    var(--font-dm-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
 }
 
@@ -158,7 +162,7 @@ samp {
 .topic-nav {
   display: flex;
   min-width: 0;
-  flex: 1 1 auto;
+  flex: 1 0 auto;
   gap: 0.25rem;
 }
 
@@ -383,9 +387,9 @@ details[open] > .comment-info > .open-label {
 }
 
 @media (max-width: 24rem) {
-  .nav-link {
-    padding-inline: 0.45rem;
-  }
+  .site-header { gap: 0.25rem; }
+  .topic-nav { gap: 0; font-size: 0.9em; }
+  .nav-link { padding-inline: 0.25rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -395,3 +399,10 @@ details[open] > .comment-info > .open-label {
     transition-duration: 0s !important;
   }
 }
+
+button, input, select { font: inherit; }
+button { color: var(--ink); background: var(--canvas); border: 1px solid var(--line); border-radius: 0.25rem; padding: 0.35rem 0.65rem; cursor: pointer; }
+button:disabled { opacity: 0.6; cursor: wait; }
+.feed-toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; margin-bottom: 1rem; }
+.feed-toolbar .meta { flex: 1; }
+[data-load-comments], [data-thread-control] { margin-block: 0.75rem; }

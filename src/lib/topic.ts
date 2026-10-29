@@ -1,14 +1,17 @@
+export const ITEMS_PER_PAGE = 30;
+export const MAX_FEED_PAGE = Math.ceil(500 / ITEMS_PER_PAGE);
+
 export interface AvailableTopic {
   readonly name: string;
-  readonly value: string;
+  readonly feed: string;
   readonly title: string;
 }
 
 export const TOPICS = [
-  { name: "top", value: "news", title: "Top" },
-  { name: "new", value: "newest", title: "New" },
-  { name: "ask", value: "ask", title: "Ask" },
-  { name: "show", value: "show", title: "Show" },
+  { name: "top", feed: "topstories", title: "Top" },
+  { name: "new", feed: "newstories", title: "New" },
+  { name: "ask", feed: "askstories", title: "Ask" },
+  { name: "show", feed: "showstories", title: "Show" },
 ] as const satisfies readonly AvailableTopic[];
 
 export type TopicName = (typeof TOPICS)[number]["name"];

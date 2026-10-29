@@ -9,23 +9,30 @@
   },
   "type": "module",
   "scripts": {
-    "check": "bun astro check",
-    "build": "bun astro build",
-    "dev": "bun astro dev",
-    "preview": "bun astro preview",
-    "deploy": "bun run build && bun wrangler deploy"
+    "check": "node node_modules/astro/bin/astro.mjs check",
+    "build": "node node_modules/astro/bin/astro.mjs build",
+    "dev": "node node_modules/astro/bin/astro.mjs dev",
+    "preview": "node node_modules/astro/bin/astro.mjs preview",
+    "deploy": "bun run build && node node_modules/wrangler/bin/wrangler.js deploy --config wrangler.jsonc",
+    "test": "bun test",
+    "validate": "bun run check && bun test && bun run build && bun run test:e2e",
+    "test:e2e": "node node_modules/@playwright/test/cli.js test --config __tests_/playwright.config.ts",
+    "deploy:dry-run": "node node_modules/wrangler/bin/wrangler.js deploy --config wrangler.jsonc --dry-run"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "14.4.3",
     "astro": "7.4.4",
+    "astro-pagefind": "^2.0.1",
+    "dompurify": "^3.4.17",
+    "pagefind": "^1.5.2",
     "sanitize-html": "^2.18.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
+    "@playwright/test": "^1.64.1",
     "@types/bun": "^1.4.4",
     "@types/sanitize-html": "^2.16.2",
     "sharp": "0.35.5",
-    "typescript": "^7.0.2",
+    "typescript": "6.0.3",
     "wrangler": "^4.155.0"
   }
 }

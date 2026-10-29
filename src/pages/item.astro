@@ -1,0 +1,14 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+---
+<BaseLayout title="Discussion" noindex>
+  <section data-viewer="item">
+    <h1>Discussion</h1>
+    <p role="status" data-viewer-status>Loading from Hacker News…</p>
+    <button type="button" data-viewer-retry hidden>Try again</button>
+    <div data-viewer-content></div>
+    <p><a class="text-link" data-hn-fallback href="https://news.ycombinator.com/">Open Hacker News</a></p>
+    <noscript><p>This live view needs JavaScript. You can read the discussion or profile on Hacker News, or browse our <a class="text-link" href="/top">story snapshot</a>.</p></noscript>
+  </section>
+</BaseLayout>
+<script>import "~/scripts/viewer";</script>

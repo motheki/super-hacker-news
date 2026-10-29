@@ -13,3 +13,5 @@ test-results
 .devenv
 .agents
 .config
+
+__tests_/.artifacts/

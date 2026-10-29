@@ -1,66 +1,28 @@
 ---
-import Comment from "~/components/Comment.astro";
 import BaseLayout from "~/layouts/BaseLayout.astro";
-import { getPostCache } from "~/lib/cache";
-import { DataUnavailableError, getPostTarget } from "~/lib/data";
+import { getBuildSnapshot } from "~/lib/build-snapshot";
+import { toOfficialPost } from "~/lib/hacker-news/codec";
+import { searchRanges } from "~/lib/snapshot";
 import { sanitizeHnHtml } from "~/lib/html";
 import { isSafeExternalUrl } from "~/lib/link";
-import { parsePostId } from "~/lib/route";
 import { SITE_URL } from "~/lib/site";
-import { addServerTiming } from "~/lib/timing";
-
-const postId = parsePostId(Astro.params.postId ?? "");
-if (postId === null) {
-  return Astro.rewrite("/404");
+export async function getStaticPaths() {
+  const snapshot = await getBuildSnapshot();
+  return snapshot.stories.map((item) => ({
+    params: { postId: String(item.id) },
+    props: { post: toOfficialPost(item, Date.parse(snapshot.builtAt) / 1000)!, builtAt: snapshot.builtAt },
+  }));
 }
-
-let target: Awaited<ReturnType<typeof getPostTarget>>;
-const providerStart = performance.now();
-try {
-  target = await getPostTarget(postId);
-} catch (error) {
-  if (error instanceof DataUnavailableError) {
-    return Astro.rewrite("/503");
-  }
-
-  throw error;
-} finally {
-  addServerTiming(
-    Astro.response.headers,
-    "provider",
-    performance.now() - providerStart,
-  );
-}
-if (target.kind === "redirect") {
-  return Astro.redirect(`/post/${target.rootId}#comment-${postId}`, 302);
-}
-if (target.kind === "missing") {
-  return Astro.rewrite("/404");
-}
-const { post } = target;
-
-Astro.cache.set(getPostCache(post.time, Math.floor(Date.now() / 1_000)));
-
+const { post, builtAt } = Astro.props;
+const ranges = searchRanges(post.time, builtAt);
 const externalUrl = isSafeExternalUrl(post.url) ? post.url : null;
-const content =
-  post.content === undefined ? undefined : sanitizeHnHtml(post.content);
+const content = post.content === undefined ? undefined : sanitizeHnHtml(post.content);
 const canonical = `/post/${post.id}`;
 const description = `${post.points} points and ${post.comments_count} comments on Hacker News.`;
 const structuredData = {
-  "@context": "https://schema.org",
-  "@type": "DiscussionForumPosting",
-  author: {
-    "@type": "Person",
-    name: post.user,
-    url: `${SITE_URL}/user/${post.user}`,
-  },
-  headline: post.title,
-  interactionStatistic: {
-    "@type": "InteractionCounter",
-    interactionType: "https://schema.org/CommentAction",
-    userInteractionCount: post.comments_count,
-  },
-  url: `${SITE_URL}${canonical}`,
+  "@context": "https://schema.org", "@type": "DiscussionForumPosting",
+  author: { "@type": "Person", name: post.user, url: `https://news.ycombinator.com/user?id=${encodeURIComponent(post.user)}` },
+  headline: post.title, url: `${SITE_URL}${canonical}`,
 };
 ---
 
@@ -71,8 +33,8 @@ const structuredData = {
   structuredData={structuredData}
   title={post.title}
 >
-  <article data-testid="post-content">
-    <h1 class="post-title">
+  <article data-testid="post-content" data-pagefind-body>
+    <h1 class="post-title" data-pagefind-meta="title">
       {
         externalUrl === null ? (
           <>
@@ -97,7 +59,7 @@ const structuredData = {
       <a
         class="text-link"
         data-astro-prefetch="tap"
-        href={`/user/${post.user}`}
+        href={`/user?name=${encodeURIComponent(post.user)}`}
       >
         {post.user}
       </a>{" "}
@@ -112,16 +74,23 @@ const structuredData = {
     }
   </article>
 
-  <section aria-label="Comments" id="comments">
-    {
-      post.comments.map((comment, index) => (
-        <Comment
-          comment={comment}
-          nextId={post.comments[index + 1]?.id}
-          prevId={post.comments[index - 1]?.id}
-          rootId={comment.id}
-        />
-      ))
-    }
+  <div hidden data-pagefind-body>
+    <span data-pagefind-meta="user">{post.user}</span>
+    <span data-pagefind-meta="domain">{post.domain ?? ""}</span>
+    <span data-pagefind-meta="points">{post.points}</span>
+    <span data-pagefind-meta="comments">{post.comments_count}</span>
+    <span data-pagefind-sort="date" data-pagefind-meta="time">{post.time}</span>
+    {ranges.map((range) => <span data-pagefind-filter="range">{range}</span>)}
+  </div>
+  <p class="meta">Story snapshot: <time datetime={builtAt}>{builtAt}</time>.</p>
+  <section aria-label="Comments" id="comments" data-comments-id={post.id}>
+    <h2>Comments</h2>
+    <button data-load-comments type="button" hidden>Load comments</button>
+    <p role="status" class="meta"></p>
+    <div data-comments-list></div>
+    <p><a class="text-link" href={`https://news.ycombinator.com/item?id=${post.id}`}>Read the discussion on Hacker News</a></p>
+    <noscript><p>Live comments need JavaScript. The story above is available without it.</p></noscript>
   </section>
 </BaseLayout>
+
+<script>import "~/scripts/discussion";</script>

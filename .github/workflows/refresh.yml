@@ -1,0 +1,41 @@
+name: Refresh static snapshot
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: production-static-snapshot
+  cancel-in-progress: false
+jobs:
+  refresh:
+    # Opt in after setting credentials and checking the CI minute allowance.
+    if: github.event_name == 'workflow_dispatch' || vars.ENABLE_SCHEDULED_REFRESH == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: '1.4.4'
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+      - run: bun test
+      - name: Build shared snapshot and search index
+        run: bun run build
+        env:
+          HN_SNAPSHOT_LIMIT: '100'
+      - name: Verify asset-only deployment
+        run: bun run deploy:dry-run
+      - name: Deploy validated assets
+        run: node node_modules/wrangler/bin/wrangler.js deploy --config wrangler.jsonc
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

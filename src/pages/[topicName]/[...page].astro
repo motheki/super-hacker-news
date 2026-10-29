@@ -1,54 +1,25 @@
 ---
 import FeedItem from "~/components/FeedItem.astro";
 import BaseLayout from "~/layouts/BaseLayout.astro";
-import { DataUnavailableError, getTopicItems } from "~/lib/data";
-import { MAX_FEED_PAGE, parsePage } from "~/lib/route";
-import { TOPICS } from "~/lib/topic";
-import { addServerTiming } from "~/lib/timing";
-
-const ITEMS_PER_PAGE = 30;
-const topic = TOPICS.find((item) => item.name === Astro.params.topicName);
-const page = parsePage(Astro.params.page);
-
-if (topic === undefined || page === null) {
-  return Astro.rewrite("/404");
-}
-if (Astro.params.page !== undefined && page === 1) {
-  return Astro.redirect(`/${topic.name}`, 308);
-}
-
-let items: Awaited<ReturnType<typeof getTopicItems>>;
-const providerStart = performance.now();
-try {
-  items = await getTopicItems(topic.value, page);
-} catch (error) {
-  if (error instanceof DataUnavailableError) {
-    return Astro.rewrite("/503");
-  }
-  throw error;
-} finally {
-  addServerTiming(Astro.response.headers, "provider", performance.now() - providerStart);
-}
-if (items === null || (page > 1 && items.length === 0)) {
-  return Astro.rewrite("/404");
-}
-
+import { getBuildSnapshot } from "~/lib/build-snapshot";
+import { snapshotPages } from "~/lib/snapshot";
+import { ITEMS_PER_PAGE, MAX_FEED_PAGE } from "~/lib/topic";
+export async function getStaticPaths() { return snapshotPages(await getBuildSnapshot()); }
+const { topic, page, items, hasMore, liveHasMore, liveNextPage, builtAt } = Astro.props;
 const canonical = `/${topic.name}${page > 1 ? `/${page}` : ""}`;
-const title = topic.name === "top" ? undefined : topic.title;
 ---
-
-<BaseLayout canonical={canonical} title={title}>
-  <section data-testid="topic-shell">
+<BaseLayout canonical={canonical} title={topic.name === "top" ? undefined : topic.title}>
+  <section data-testid="topic-shell" data-live-feed={topic.name} data-page={page}>
     <h1 class="visually-hidden">{topic.title}</h1>
-    <div class="feed" data-testid={`topic-content-${topic.name}`}>
-      {items.map((item, index) => (
-        <FeedItem index={index + 1 + ITEMS_PER_PAGE * (page - 1)} item={item} />
-      ))}
+    <div class="feed-toolbar">
+      <p class="meta" data-feed-status role="status">Snapshot: <time datetime={builtAt}>{builtAt}</time></p>
+      <button type="button" data-refresh-feed hidden>Refresh stories</button>
     </div>
-    {items.length > 0 && page < MAX_FEED_PAGE && (
-      <a class="more-link text-link" data-astro-prefetch="tap" href={`/${topic.name}/${page + 1}`}>
-        More…
-      </a>
-    )}
+    <div class="feed" data-feed-list data-testid={`topic-content-${topic.name}`}>
+      {items.map((item, index) => <FeedItem index={index + 1 + ITEMS_PER_PAGE * (page - 1)} item={item} />)}
+    </div>
+    {page < MAX_FEED_PAGE && (hasMore || liveHasMore) && <a class="more-link text-link" data-feed-more href={hasMore ? `/${topic.name}/${page + 1}` : `/feed?topic=${topic.name}&page=${liveNextPage}`}>{hasMore ? "More…" : "More live stories…"}</a>}
+    <noscript><p><a class="text-link" href="https://news.ycombinator.com/">Browse live stories on Hacker News</a></p></noscript>
   </section>
 </BaseLayout>
+<script>import "~/scripts/feed";</script>

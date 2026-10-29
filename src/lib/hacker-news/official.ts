@@ -1,163 +1,111 @@
-import type { Post } from "~/lib/post";
-import type { TopicItem } from "~/lib/topic";
-import type { User } from "~/lib/user";
-import { fetchJson } from "./client";
+import type { CommentPage } from "../post";
+import { TOPICS, ITEMS_PER_PAGE, MAX_FEED_PAGE, type TopicName } from "../topic";
+import { RequestBudget } from "./budget";
+import { fetchJson, type FetchJsonOptions, type JsonParser } from "./client";
 import {
-  parseNumberArray,
-  parseOfficialItem,
-  parseOfficialUser,
-  toOfficialPost,
-  toOfficialTopic,
-  toOfficialUser,
-  type OfficialItem,
+  parseNumberArray, parseOfficialItem, parseOfficialUser,
+  toComment, toOfficialTopic, toOfficialUser, type OfficialItem,
 } from "./codec";
-import type { ContentProvider } from "./provider";
-import type { RequestBudget } from "./budget";
-import { loadDescendants } from "./tree";
 
-const OFFICIAL_API = "https://hacker-news.firebaseio.com/v0";
-const ITEMS_PER_PAGE = 30;
-const ITEM_BATCH_SIZE = 30;
-const FEED_CACHE_SECONDS = 30;
-const ITEM_CACHE_SECONDS = 15;
-const USER_CACHE_SECONDS = 3_600;
+export const OFFICIAL_API = "https://hacker-news.firebaseio.com/v0";
+export const COMMENTS_PER_PAGE = 20;
+const CONCURRENCY = 6;
 
-const FEED_NAMES: Readonly<Record<string, string>> = {
-  ask: "askstories",
-  newest: "newstories",
-  news: "topstories",
-  show: "showstories",
+/** A bounded worker pool preserves HN ranking without opening 30 connections. */
+export async function mapConcurrent<T, R>(
+  values: readonly T[], load: (value: T) => Promise<R>, concurrency = CONCURRENCY,
+): Promise<R[]> {
+  if (!Number.isSafeInteger(concurrency) || concurrency < 1) throw new RangeError("Invalid concurrency");
+  const results: R[] = new Array(values.length);
+  let cursor = 0;
+  let failed = false;
+  const outcomes = await Promise.allSettled(Array.from({ length: Math.min(concurrency, values.length) }, async () => {
+    while (!failed && cursor < values.length) {
+      const index = cursor++;
+      try {
+        results[index] = await load(values[index]!);
+      } catch (error) {
+        failed = true;
+        throw error;
+      }
+    }
+  }));
+  const rejection = outcomes.find((outcome) => outcome.status === "rejected");
+  if (rejection?.status === "rejected") throw rejection.reason;
+  return results;
+}
+
+type ClientOptions = Pick<FetchJsonOptions, "fetcher" | "report" | "sleep" | "timeoutMs"> & {
+  readonly budget?: RequestBudget;
 };
 
-function nowSeconds() {
-  return Math.floor(Date.now() / 1_000);
-}
+/** Create once per request/build: deduplication never leaks stale items across requests. */
+export function createHackerNewsClient(options: ClientOptions = {}) {
+  const budget = options.budget ?? new RequestBudget();
+  const items = new Map<number, Promise<OfficialItem | null>>();
+  const request = <T>(path: string, parse: JsonParser<T>, operation: string) =>
+    fetchJson(`${OFFICIAL_API}/${path}.json`, parse, {
+      ...options, budget, operation, provider: "official",
+    });
 
-async function getOfficialItem(itemId: number, budget: RequestBudget) {
-  return fetchJson(`${OFFICIAL_API}/item/${itemId}.json`, parseOfficialItem, {
-    cacheTtlSeconds: ITEM_CACHE_SECONDS,
-    budget,
-    operation: "item",
-    provider: "official",
-  });
-}
-
-async function getOfficialFeedIds(topic: string, budget: RequestBudget) {
-  const feed = FEED_NAMES[topic];
-  if (feed === undefined) return null;
-
-  return fetchJson(`${OFFICIAL_API}/${feed}.json`, parseNumberArray, {
-    cacheTtlSeconds: FEED_CACHE_SECONDS,
-    budget,
-    operation: "feed-ids",
-    provider: "official",
-  });
-}
-
-async function getOfficialItems(ids: readonly number[], budget: RequestBudget) {
-  const items: OfficialItem[] = [];
-
-  for (let start = 0; start < ids.length; start += ITEM_BATCH_SIZE) {
-    const batch = ids.slice(start, start + ITEM_BATCH_SIZE);
-    const loaded = await Promise.all(batch.map((itemId) => getOfficialItem(itemId, budget)));
-
-    for (const item of loaded) {
-      if (item !== null) items.push(item);
+  const getItem = (id: number) => {
+    if (!Number.isSafeInteger(id) || id <= 0) throw new RangeError("Invalid item ID");
+    let pending = items.get(id);
+    if (pending === undefined) {
+      pending = request(`item/${id}`, parseOfficialItem, "item").then((item) => {
+        if (item !== null && item.id !== id) throw new Error("Upstream item ID mismatch");
+        return item;
+      });
+      items.set(id, pending);
     }
-  }
+    return pending;
+  };
 
-  return items;
-}
+  const getFeedIds = async (topic: TopicName | "best") => {
+    const feed = topic === "best" ? "beststories" : TOPICS.find(({ name }) => name === topic)?.feed;
+    if (feed === undefined) throw new RangeError("Invalid feed");
+    const ids = await request(feed, parseNumberArray, "feed-ids");
+    if (ids === null) throw new Error("Upstream feed is unavailable");
+    return [...new Set(ids)];
+  };
 
-async function getTopics(
-  topic: string,
-  page: number,
-  budget: RequestBudget,
-): Promise<TopicItem[] | null> {
-  const ids = await getOfficialFeedIds(topic, budget);
-  if (ids === null) return null;
-
-  const start = ITEMS_PER_PAGE * (page - 1);
-  const pageIds = ids.slice(start, start + ITEMS_PER_PAGE);
-  const items = await getOfficialItems(pageIds, budget);
-  const now = nowSeconds();
-
-  const topics: TopicItem[] = [];
-  for (const item of items) {
-    const topicItem = toOfficialTopic(item, now);
-    if (topicItem !== null) topics.push(topicItem);
-  }
-
-  return topics;
-}
-
-export async function getOfficialPost(
-  root: OfficialItem,
-  budget: RequestBudget,
-): Promise<Post | null> {
-  const result = await loadDescendants(
-    root,
-    (itemId) => getOfficialItem(itemId, budget),
-    ITEM_BATCH_SIZE,
-  );
-
-  // Every reachable child must load; HN can count unreachable killed comments.
-  if (result.missingIds.length > 0) {
-    throw new Error("Official comment tree is incomplete");
-  }
-
-  return toOfficialPost(root, result.items, nowSeconds());
-}
-
-export function getOfficialPostRoot(postId: number, budget: RequestBudget) {
-  return getOfficialItem(postId, budget);
-}
-
-export function getOfficialPostSummary(root: OfficialItem) {
-  return toOfficialPost(root, new Map(), nowSeconds());
-}
-
-async function getPost(postId: number, budget: RequestBudget): Promise<Post | null> {
-  const root = await getOfficialPostRoot(postId, budget);
-  if (root === null) return null;
-
-  return getOfficialPost(root, budget);
-}
-
-async function getUser(userName: string, budget: RequestBudget): Promise<User | null> {
-  const user = await fetchJson(
-    `${OFFICIAL_API}/user/${encodeURIComponent(userName)}.json`,
-    parseOfficialUser,
-    {
-      cacheTtlSeconds: USER_CACHE_SECONDS,
-      budget,
-      operation: "user",
-      provider: "official",
+  return {
+    getItem,
+    getFeedIds,
+    async getFeed(topic: TopicName, page: number) {
+      if (!Number.isSafeInteger(page) || page < 1 || page > MAX_FEED_PAGE) return null;
+      const ids = await getFeedIds(topic);
+      const start = (page - 1) * ITEMS_PER_PAGE;
+      if (start >= ids.length && page > 1) return null;
+      const loaded = await mapConcurrent(ids.slice(start, start + ITEMS_PER_PAGE), getItem);
+      const now = Math.floor(Date.now() / 1_000);
+      return {
+        items: loaded.flatMap((item) => {
+          const topicItem = item === null ? null : toOfficialTopic(item, now);
+          return topicItem === null ? [] : [topicItem];
+        }),
+        hasMore: start + ITEMS_PER_PAGE < ids.length && page < MAX_FEED_PAGE,
+      };
     },
-  );
-
-  return user === null ? null : toOfficialUser(user, nowSeconds());
+    async getComments(parent: OfficialItem, page = 1): Promise<CommentPage | null> {
+      if (!Number.isSafeInteger(page) || page < 1) return null;
+      const ids = [...new Set(parent.kids ?? [])].filter((id) => id !== parent.id);
+      const start = (page - 1) * COMMENTS_PER_PAGE;
+      if (start >= ids.length && page > 1) return null;
+      const loaded = await mapConcurrent(ids.slice(start, start + COMMENTS_PER_PAGE), getItem);
+      return {
+        comments: loaded.flatMap((item) =>
+          item !== null && item.type === "comment" && item.parent === parent.id
+            ? [toComment(item, Math.floor(Date.now() / 1_000))] : []),
+        nextPage: start + COMMENTS_PER_PAGE < ids.length ? page + 1 : null,
+      };
+    },
+    async getUser(name: string) {
+      const user = await request(`user/${encodeURIComponent(name)}`, parseOfficialUser, "user");
+      if (user !== null && user.id !== name) throw new Error("Upstream user ID mismatch");
+      return user === null ? null : toOfficialUser(user, Math.floor(Date.now() / 1_000));
+    },
+  };
 }
 
-export async function getOfficialItemReference(
-  itemId: number,
-  budget: RequestBudget,
-): Promise<OfficialItem | null> {
-  const item = await getOfficialItem(itemId, budget);
-  return item;
-}
-
-export function getOfficialBestStoryIds(budget: RequestBudget) {
-  return fetchJson(`${OFFICIAL_API}/beststories.json`, parseNumberArray, {
-    cacheTtlSeconds: FEED_CACHE_SECONDS,
-    budget,
-    operation: "best-story-ids",
-    provider: "official",
-  });
-}
-
-export const officialProvider = {
-  getPost,
-  getTopics,
-  getUser,
-} satisfies ContentProvider;
+export type HackerNewsClient = ReturnType<typeof createHackerNewsClient>;

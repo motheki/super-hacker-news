@@ -1,0 +1,11 @@
+/ /top 302
+/top/1 /top 301
+/new/1 /new 301
+/ask/1 /ask 301
+/show/1 /show 301
+/user/:name /user?name=:name 302
+/user/:name/ /user?name=:name 302
+/thread/:id/:page /thread?id=:id&page=:page 302
+/thread/:id/:page/ /thread?id=:id&page=:page 302
+/thread/:id /thread?id=:id 302
+/thread/:id/ /thread?id=:id 302

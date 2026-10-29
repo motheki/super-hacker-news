@@ -8,7 +8,8 @@ interface Props {
   readonly repositoryUrl: string;
 }
 
-const { currentPath, repositoryUrl } = Astro.props;
+const { repositoryUrl } = Astro.props;
+const currentPath = Astro.props.currentPath.replace(/\/+$/u, "");
 ---
 
 <header class="site-header">
@@ -30,7 +31,7 @@ const { currentPath, repositoryUrl } = Astro.props;
   <nav aria-label="Topics" class="topic-nav">
     {
       TOPICS.map(({ name, title }) => {
-        const active = currentPath === `/${name}`;
+        const active = currentPath === `/${name}` || currentPath.startsWith(`/${name}/`);
 
         return (
           <a
@@ -45,6 +46,10 @@ const { currentPath, repositoryUrl } = Astro.props;
       })
     }
   </nav>
+
+  <a aria-label="Search stories" title="Search stories" class:list={["nav-link", { selected: currentPath === "/search" }]} aria-current={currentPath === "/search" ? "page" : undefined} href="/search">
+    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/></svg>
+  </a>
 
   <a
     aria-label="Project source code"

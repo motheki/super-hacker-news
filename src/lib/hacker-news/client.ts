@@ -1,7 +1,7 @@
 export type JsonParser<T> = (value: unknown) => T | null;
-import { RequestBudget, SubrequestBudgetError, type BudgetSnapshot } from "./budget";
+import { RequestBudget, RequestBudgetError, type BudgetSnapshot } from "./budget";
 
-type Fetcher = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
+export type Fetcher = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 type Sleep = (delayMs: number) => Promise<void>;
 
 export interface UpstreamMetric {
@@ -12,13 +12,12 @@ export interface UpstreamMetric {
   readonly outcome: "failure" | "invalid" | "not-found" | "retry" | "success";
   readonly provider: string;
   readonly status?: number;
-  readonly subrequestsRemaining?: number;
-  readonly subrequestsUsed?: number;
+  readonly requestsRemaining?: number;
+  readonly requestsUsed?: number;
 }
 
-interface FetchJsonOptions {
+export interface FetchJsonOptions {
   readonly budget?: RequestBudget;
-  readonly cacheTtlSeconds?: number;
   readonly fetcher?: Fetcher;
   readonly operation: string;
   readonly provider: string;
@@ -28,13 +27,6 @@ interface FetchJsonOptions {
   readonly timeoutMs?: number;
 }
 
-interface CloudflareRequestInit extends RequestInit {
-  readonly cf?: {
-    readonly cacheEverything: boolean;
-    readonly cacheTtlByStatus: Readonly<Record<string, number>>;
-  };
-}
-
 const HTTP_NOT_FOUND = 404;
 const HTTP_RATE_LIMITED = 429;
 const HTTP_SERVER_ERROR = 500;
@@ -42,7 +34,6 @@ const REQUEST_TIMEOUT_MS = 3_000;
 const RETRY_COUNT = 1;
 const RETRY_DELAY_MS = 100;
 const SLOW_REQUEST_MS = 250;
-const SUBREQUEST_LIMIT_MESSAGE = "Too many subrequests";
 
 function wait(delayMs: number) {
   return new Promise<void>((resolve) => {
@@ -74,17 +65,6 @@ function contentLength(response: Response) {
   return Number.isSafeInteger(bytes) && bytes >= 0 ? bytes : undefined;
 }
 
-function toError(error: unknown) {
-  return error instanceof Error ? error : new Error(String(error));
-}
-
-function hitSubrequestLimit(error: unknown) {
-  return (
-    error instanceof SubrequestBudgetError ||
-    toError(error).message.includes(SUBREQUEST_LIMIT_MESSAGE)
-  );
-}
-
 function budgetMetric(budget: RequestBudget | undefined): Partial<BudgetSnapshot> {
   return budget?.snapshot() ?? {};
 }
@@ -100,20 +80,7 @@ export async function fetchJson<T>(
   const sleep = options.sleep ?? wait;
   const timeoutMs = options.timeoutMs ?? REQUEST_TIMEOUT_MS;
   const attempts = retryCount + 1;
-  const requestInit: CloudflareRequestInit = {
-    headers: { accept: "application/json" },
-    ...(options.cacheTtlSeconds === undefined
-      ? {}
-      : {
-          cf: {
-            cacheEverything: true,
-            cacheTtlByStatus: {
-              "200-299": options.cacheTtlSeconds,
-              "300-599": -1,
-            },
-          },
-        }),
-  };
+  const requestInit: RequestInit = { headers: { accept: "application/json" } };
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     const start = performance.now();
@@ -126,7 +93,7 @@ export async function fetchJson<T>(
         signal: AbortSignal.timeout(timeoutMs),
       });
     } catch (error) {
-      const canRetryError = !hitSubrequestLimit(error) && attempt < attempts;
+      const canRetryError = !(error instanceof RequestBudgetError) && attempt < attempts;
       const outcome = canRetryError ? "retry" : "failure";
       report({
         attempt,
@@ -156,7 +123,7 @@ export async function fetchJson<T>(
       status: response.status,
     });
 
-    // Release the connection before retrying or falling back to another provider.
+    // Release the connection before retrying.
     if (!response.ok) await response.body?.cancel();
 
     if (response.status === HTTP_NOT_FOUND) {
@@ -183,28 +150,18 @@ export async function fetchJson<T>(
       throw new Error("Upstream returned unreadable JSON", { cause: error });
     }
 
+    if (value === null) {
+      report({ ...metric(), outcome: "not-found" });
+      return null;
+    }
     const parsed = parse(value);
-    report({ ...metric(), outcome: parsed === null ? "invalid" : "success" });
+    if (parsed === null) {
+      report({ ...metric(), outcome: "invalid" });
+      throw new Error("Upstream returned invalid data");
+    }
+    report({ ...metric(), outcome: "success" });
     return parsed;
   }
 
   throw new Error("Upstream request exhausted its attempts");
-}
-
-export async function preferPrimary<T>(
-  operation: string,
-  primary: () => Promise<T | null>,
-  official: () => Promise<T | null>,
-): Promise<T | null> {
-  let reason = "primary-miss";
-
-  try {
-    const value = await primary();
-    if (value !== null) return value;
-  } catch (error) {
-    reason = `primary-failure: ${toError(error).message}`;
-  }
-
-  console.warn(JSON.stringify({ event: "hn.fallback", operation, reason }));
-  return official();
 }
