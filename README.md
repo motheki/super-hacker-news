@@ -71,10 +71,13 @@ Start hourly, measure complete runner usage, and adjust the schedule to the CI a
 ```sh
 bun run build
 bun run deploy:dry-run        # packaging only; does not publish
+bun run deploy:assets         # publish the existing validated dist directory
 bun run deploy               # fresh build, then publish validated static assets
 ```
 
 The source Wrangler configuration targets the existing `super-hn` service and `superhn.org` domain. Commands explicitly pass `--config wrangler.jsonc` to avoid stale adapter-generated config from an earlier checkout. No Cloudflare application bindings or paid data services are needed.
+
+Cloudflare Workers Builds should use `bun run build` as the build command and `bun run deploy:assets` as the deploy command. The deploy script retries only Cloudflare's upload-session API error `10013`, with at most three attempts and waits of 10 and 20 seconds. This failure happens before assets are uploaded or a version is activated. Retries reuse `dist` without repeating the snapshot fetch or Pagefind build. Authentication, configuration, later deployment errors, and persistent service failures still fail the job. The scheduled refresh workflow uses the same script.
 
 Ordinary static asset requests are free and unlimited under [Cloudflare's static asset pricing](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/). Keep Workers Caching disabled: [its cache hits count as billable requests](https://developers.cloudflare.com/workers/platform/pricing/). Static asset count/size limits and CI build quotas still apply. These changes remove application invocations and upstream fetches from the Cloudflare request path; they do not eliminate build-time or browser API requests.
 
