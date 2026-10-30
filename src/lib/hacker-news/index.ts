@@ -11,6 +11,7 @@ import {
   officialProvider,
 } from "./official";
 import { loadPost, type PostSelectionMetric } from "./post-loader";
+import { withPostCache } from "./post-cache";
 
 function reportPostSelection(metric: PostSelectionMetric) {
   console.info(JSON.stringify({ event: "hn.post_selection", ...metric }));
@@ -25,7 +26,7 @@ export async function fetchTopicItems(topic: string, page: number, budget = new 
 }
 
 export async function fetchPost(postId: number, budget = new RequestBudget()) {
-  return loadPost(postId, {
+  return withPostCache(postId, () => loadPost(postId, {
     canLoadOfficial: (root) => {
       const descendants = root.descendants;
       return descendants === undefined || budget.canTake(descendants, 1);
@@ -37,7 +38,7 @@ export async function fetchPost(postId: number, budget = new RequestBudget()) {
     getOfficialSummary: getOfficialPostSummary,
     getSecondary: () => getAlgoliaPost(postId, budget),
     report: reportPostSelection,
-  });
+  }));
 }
 
 export async function fetchItemReference(itemId: number, budget = new RequestBudget()) {

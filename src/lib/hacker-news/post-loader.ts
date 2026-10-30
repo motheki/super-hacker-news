@@ -9,7 +9,9 @@ type SelectionReason =
   | "official-fallback"
   | "official-incomplete"
   | "primary"
-  | "secondary";
+  | "secondary"
+  | "verified-empty"
+  | "empty-unverified";
 
 export interface PostSelectionMetric {
   readonly aggregatedCount: number | null;
@@ -75,18 +77,20 @@ export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
     });
   };
 
-  // HackerWeb matches Better HN's fast path: one complete-tree request.
+  // Preserve the single-request fast path for populated bulk trees. An empty
+  // tree can be a partial upstream response, even when its HTTP status is 200.
   const aggregatedResult = await settle(loaders.getAggregated);
   const aggregated = aggregatedResult.status === "fulfilled" ? aggregatedResult.value : null;
   aggregatedCount = aggregated?.comments_count ?? null;
 
-  if (aggregated !== null) {
+  if (aggregated !== null && aggregated.comments.length > 0) {
     report("primary", "hackerwebapp");
     return aggregated;
   }
 
-  // Start both fallbacks, but let comment redirects continue on the root result.
-  const secondaryResultPromise = settle(loaders.getSecondary);
+  // On a miss, start both fallbacks. For an empty primary, first check whether
+  // the story really has no comments, avoiding an unnecessary secondary read.
+  const secondaryResultPromise = aggregated === null ? settle(loaders.getSecondary) : null;
   const rootResult = await settle(loaders.getOfficialRoot);
   const root = rootResult.status === "fulfilled" ? rootResult.value : null;
   officialCount = root?.descendants ?? null;
@@ -98,13 +102,27 @@ export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
     return null;
   }
 
-  const secondaryResult = await secondaryResultPromise;
+  const verifiedEmpty = root !== null &&
+    (root.descendants ?? 0) === 0 && (root.kids?.length ?? 0) === 0;
+  if (aggregated !== null && verifiedEmpty) {
+    report("verified-empty", "hackerwebapp");
+    return aggregated;
+  }
+
+  const secondaryResult = await (secondaryResultPromise ?? settle(loaders.getSecondary));
   const secondary = secondaryResult.status === "fulfilled" ? secondaryResult.value : null;
   secondaryCount = secondary?.comments_count ?? null;
 
-  if (secondary !== null) {
-    report("secondary", "algolia");
+  if (secondary !== null && (secondary.comments.length > 0 || verifiedEmpty)) {
+    report(secondary.comments.length > 0 ? "secondary" : "verified-empty", "algolia");
     return secondary;
+  }
+
+  // Neither bulk provider may turn an unverified empty tree into a cacheable
+  // success. Throw so last-known-good data can be used during a provider outage.
+  if (root === null && (aggregated !== null || secondary !== null)) {
+    report("empty-unverified", "none");
+    throw new PostUnavailableError("An empty comment tree could not be verified");
   }
 
   // The official API remains the complete-tree fallback when bulk APIs miss.

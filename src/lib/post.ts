@@ -12,6 +12,7 @@ export interface Comment {
 }
 
 export interface Post {
+  readonly stale?: boolean;
   readonly id: number;
   readonly title: string;
   readonly points: number;

@@ -7,7 +7,7 @@ const HACKER_WEB_APP = "https://api.hackerwebapp.com";
 const HNPWA = "https://api.hnpwa.com/v0";
 const FEED_CACHE_SECONDS = 30;
 const POST_CACHE_SECONDS = 60;
-const POST_TIMEOUT_MS = 800;
+const POST_TIMEOUT_MS = 3_000;
 const USER_CACHE_SECONDS = 3_600;
 
 function getTopics(topic: string, page: number, budget: RequestBudget) {
