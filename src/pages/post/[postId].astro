@@ -39,7 +39,13 @@ if (target.kind === "missing") {
 }
 const { post } = target;
 
-Astro.cache.set(getPostCache(post.time, Math.floor(Date.now() / 1_000)));
+if (post.stale) {
+  // Do not extend last-known-good data's lifetime through the HTML cache.
+  Astro.cache.set(false);
+  Astro.response.headers.set("Cache-Control", "no-store");
+} else {
+  Astro.cache.set(getPostCache(post.time, Math.floor(Date.now() / 1_000)));
+}
 
 const externalUrl = isSafeExternalUrl(post.url) ? post.url : null;
 const content =

@@ -4,7 +4,15 @@ import { RequestBudget, SubrequestBudgetError, type BudgetSnapshot } from "./bud
 type Fetcher = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 type Sleep = (delayMs: number) => Promise<void>;
 
+interface SafeUpstreamError {
+  readonly category: "timeout" | "abort" | "network" | "invalid-json" | "subrequest-limit" | "unknown";
+  readonly name: string;
+  readonly code?: string;
+  readonly cause?: SafeUpstreamError;
+}
+
 export interface UpstreamMetric {
+  readonly error?: SafeUpstreamError;
   readonly attempt: number;
   readonly bytes?: number;
   readonly durationMs: number;
@@ -85,6 +93,51 @@ function hitSubrequestLimit(error: unknown) {
   );
 }
 
+const SAFE_ERROR_NAMES = new Set([
+  "Error", "TypeError", "SyntaxError", "RangeError", "AggregateError",
+  "DOMException", "TimeoutError", "AbortError", "SubrequestBudgetError",
+]);
+const TIMEOUT_ERROR_CODES = new Set([
+  "ETIMEDOUT", "UND_ERR_CONNECT_TIMEOUT", "UND_ERR_HEADERS_TIMEOUT", "UND_ERR_BODY_TIMEOUT",
+]);
+const NETWORK_ERROR_CODES = new Set([
+  "ECONNRESET", "ECONNREFUSED", "ECONNABORTED", "ENOTFOUND", "EAI_AGAIN",
+  "ENETUNREACH", "EHOSTUNREACH", "EPIPE", "UND_ERR_SOCKET",
+]);
+
+function errorField(error: unknown, key: "name" | "code" | "cause"): unknown {
+  // Thrown values need not be Errors, and custom accessors must not break reporting.
+  try {
+    return typeof error === "object" && error !== null ? Reflect.get(error, key) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function safeError(error: unknown, depth = 0): SafeUpstreamError {
+  const rawName = errorField(error, "name");
+  const name = typeof rawName === "string" && SAFE_ERROR_NAMES.has(rawName) ? rawName : "UnknownError";
+  const rawCode = errorField(error, "code");
+  const code = typeof rawCode === "string" &&
+    (TIMEOUT_ERROR_CODES.has(rawCode) || NETWORK_ERROR_CODES.has(rawCode)) ? rawCode : undefined;
+  const rawCause = errorField(error, "cause");
+  // Bound both cyclic and excessively deep chains; never serialize messages, stacks, or URLs.
+  const cause = depth < 3 && rawCause !== undefined ? safeError(rawCause, depth + 1) : undefined;
+  let category: SafeUpstreamError["category"] = cause?.category ?? "unknown";
+  if (name === "TimeoutError" || (code !== undefined && TIMEOUT_ERROR_CODES.has(code))) {
+    category = "timeout";
+  } else if (name === "AbortError") {
+    category = "abort";
+  } else if (name === "SubrequestBudgetError") {
+    category = "subrequest-limit";
+  } else if (name === "SyntaxError") {
+    category = "invalid-json";
+  } else if (category === "unknown" && (name === "TypeError" || code !== undefined)) {
+    category = "network";
+  }
+  return { category, name, ...(code === undefined ? {} : { code }), ...(cause ? { cause } : {}) };
+}
+
 function budgetMetric(budget: RequestBudget | undefined): Partial<BudgetSnapshot> {
   return budget?.snapshot() ?? {};
 }
@@ -132,6 +185,7 @@ export async function fetchJson<T>(
         attempt,
         ...budgetMetric(options.budget),
         durationMs: durationSince(start),
+        error: safeError(error),
         operation: options.operation,
         outcome,
         provider: options.provider,
@@ -179,7 +233,7 @@ export async function fetchJson<T>(
     try {
       value = await response.json();
     } catch (error) {
-      report({ ...metric(), outcome: "invalid" });
+      report({ ...metric(), error: safeError(error), outcome: "invalid" });
       throw new Error("Upstream returned unreadable JSON", { cause: error });
     }
 
@@ -197,14 +251,18 @@ export async function preferPrimary<T>(
   official: () => Promise<T | null>,
 ): Promise<T | null> {
   let reason = "primary-miss";
+  let failure: SafeUpstreamError | undefined;
 
   try {
     const value = await primary();
     if (value !== null) return value;
   } catch (error) {
-    reason = `primary-failure: ${toError(error).message}`;
+    reason = "primary-failure";
+    failure = safeError(error);
   }
 
-  console.warn(JSON.stringify({ event: "hn.fallback", operation, reason }));
+  console.warn(JSON.stringify({
+    event: "hn.fallback", operation, reason, ...(failure ? { error: failure } : {}),
+  }));
   return official();
 }

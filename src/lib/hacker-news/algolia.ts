@@ -5,7 +5,7 @@ import type { RequestBudget } from "./budget";
 
 const ALGOLIA_API = "https://hn.algolia.com/api/v1";
 const POST_CACHE_SECONDS = 60;
-const POST_TIMEOUT_MS = 2_000;
+const POST_TIMEOUT_MS = 5_000;
 
 interface ParsedComment {
   readonly comment: Comment;

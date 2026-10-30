@@ -30,7 +30,7 @@ bun run preview
 - `src/assets/` and `src/styles/`: content-hashed brand images and shared styles. Text uses system UI fonts, with system monospace fonts for code.
 - `astro.config.ts`: Cloudflare adapter, edge cache rules, and intent-based prefetching with experimental client prerendering.
 
-Astro's Cloudflare cache provider caches feeds for one minute and profiles for 15 minutes, with stale-while-revalidate. Discussion cache lifetimes increase with age. Errors are uncached; upstream outages return a retryable 503. Static assets use `public/_headers`; middleware applies dynamic response headers.
+Astro's Cloudflare cache provider caches feeds for one minute and profiles for 15 minutes, with stale-while-revalidate. Discussion cache lifetimes increase with age. Empty bulk comment trees are verified against the official API before being accepted. A separate, data-center-local Cache API store retains successful discussions for up to one hour, used only when providers fail; restored pages are not cached again. Missing/deleted posts clear that fallback. Errors are uncached; upstream outages without a usable fallback return a retryable 503. Static assets use `public/_headers`; middleware applies dynamic response headers.
 
 ## Deployment
 
@@ -38,7 +38,7 @@ Astro's Cloudflare cache provider caches feeds for one minute and profiles for 1
 bun run deploy
 ```
 
-This builds fresh output, then deploys using Astro's generated Wrangler configuration. `wrangler.jsonc` targets the `super-hn` Worker and `superhn.org` custom domain. Cloudflare credentials are required. Sessions are disabled; no application storage bindings are needed.
+This builds fresh output, then deploys using Astro's generated Wrangler configuration. `wrangler.jsonc` targets the `super-hn` Worker and `superhn.org` custom domain. Cloudflare credentials are required. Sessions are disabled; no application storage bindings are needed. The deployment uses Workers Standard. Its application-level fallback budget is capped at 1,000 subrequests (below the platform's 10,000 limit), including retries; set the default in `src/lib/hacker-news/budget.ts` to 50 before deploying on Workers Free. HackerWeb and Algolia post requests have 3-second and 5-second timeouts, respectively, with no automatic bulk retries.
 
 Cloudflare Workers Builds is connected to GitHub's `master` branch with these commands:
 

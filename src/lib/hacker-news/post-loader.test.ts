@@ -136,7 +136,7 @@ describe("loadPost", () => {
     expect(metrics[0]?.reason).toBe("primary");
   });
 
-  test("trusts the primary without an official mismatch check", async () => {
+  test("reconstructs comments when the primary incorrectly returns an empty tree", async () => {
     const primary = createPost(0);
     let officialLoads = 0;
 
@@ -151,8 +151,8 @@ describe("loadPost", () => {
       report: () => undefined,
     });
 
-    expect(post).toBe(primary);
-    expect(officialLoads).toBe(0);
+    expect(post?.comments_count).toBe(3);
+    expect(officialLoads).toBe(1);
   });
 
   test("accepts a complete reachable tree below descendants", async () => {

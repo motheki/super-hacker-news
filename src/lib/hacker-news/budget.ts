@@ -1,4 +1,7 @@
-const WORKER_SUBREQUEST_LIMIT = 50;
+// This deployment uses Workers Standard (10,000 subrequests per invocation).
+// Keep a smaller application cap to bound fallback work, with room for comment
+// trees, deleted items, and retries. Free-plan callers can pass a limit of 50.
+const WORKER_SUBREQUEST_LIMIT = 1_000;
 
 export interface BudgetSnapshot {
   readonly subrequestsRemaining: number;
