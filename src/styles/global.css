@@ -14,13 +14,11 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --canvas: #000;
-    --ink: #fff;
-    --muted: #aaa;
-    --faint: #999;
+    --ink: #f5f3ee;
+    --muted: #a6a5a2;
+    --faint: #a6a5a2;
     --accent: #ee9ca1;
-    --line: #555;
-    --selection: #fff;
-    --selection-ink: #000;
+    --line: rgb(245 243 238 / 15%);
     color-scheme: dark;
   }
 }
@@ -32,8 +30,7 @@
 html {
   background: var(--canvas);
   color: var(--ink);
-  /* Clear the 2.25rem header controls and 1.25rem vertical padding. */
-  scroll-padding-top: 3.5rem;
+  scroll-padding-top: 1rem;
 }
 
 body {
@@ -110,19 +107,19 @@ samp {
   width: min(100%, calc(900px + 4rem));
   margin-inline: auto;
   padding-inline: 2rem;
+  padding-top: 3rem;
   padding-bottom: 2rem;
 }
 
 .site-header {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  display: flex;
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
   align-items: center;
-  gap: 0.5rem;
-  padding-block: 0.5rem 0.75rem;
+  gap: 1rem;
+  padding-bottom: 2rem;
   background: var(--canvas);
-  font-size: 1rem;
+  font-size: 1.15rem;
+  line-height: 1.7;
 }
 
 .brand,
@@ -137,9 +134,8 @@ samp {
 
 .brand,
 .source-link {
-  width: 2.25rem;
-  height: 2.25rem;
-  flex: 0 0 auto;
+  width: 2.75rem;
+  height: 2.75rem;
 }
 
 .source-link:hover,
@@ -160,20 +156,20 @@ samp {
 
 .brand img {
   display: block;
-  width: 2.125rem;
-  height: 2.125rem;
+  width: 2.5rem;
+  height: 2.5rem;
 }
 
 .topic-nav {
   display: flex;
   min-width: 0;
-  flex: 1 1 auto;
-  gap: 0.25rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
 }
 
 .nav-link {
-  min-height: 2.25rem;
-  padding-inline: 0.65rem;
+  min-height: 2.75rem;
+  padding-inline: 0.25rem;
   white-space: nowrap;
 }
 
@@ -277,30 +273,62 @@ samp {
   margin-top: 1rem;
 }
 
+.post-header {
+  padding-block: 0.75rem 2rem;
+  border-bottom: 1px solid var(--line);
+}
+
 .post-title {
+  margin-bottom: 1.5rem;
   overflow-wrap: anywhere;
 }
 
 .post-body {
-  padding-bottom: 0.75rem;
-  border-bottom: 2px dotted var(--line);
+  margin-top: 1.5rem;
 }
 
 .rich-text {
   overflow-wrap: anywhere;
 }
 
-.rich-text p {
-  margin-block: 0.65rem;
+.rich-text p,
+.rich-text ul,
+.rich-text ol,
+.rich-text blockquote,
+.rich-text pre {
+  margin-block: 1.5rem;
+}
+
+.rich-text > :last-child {
+  margin-bottom: 0;
+}
+
+.rich-text ul,
+.rich-text ol {
+  padding-inline-start: 1.5rem;
+}
+
+.rich-text blockquote {
+  margin-inline: 0;
+  padding-inline-start: 1rem;
+  border-inline-start: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.rich-text pre {
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--line);
+  font-size: 0.8rem;
+  line-height: 1.5;
 }
 
 #comments {
-  margin-top: 1rem;
+  margin-top: 2rem;
   scroll-margin-top: 1rem;
 }
 
 .comment {
-  margin-top: 0.65rem;
+  margin-top: 2rem;
   scroll-margin-top: 1rem;
 }
 
@@ -310,6 +338,7 @@ samp {
 
 .comment-info {
   min-height: 24px;
+  overflow-wrap: anywhere;
   cursor: pointer;
   list-style: none;
 }
@@ -335,14 +364,20 @@ details[open] > .comment-info > .open-label {
 }
 
 .comment-content {
+  /* HN can start with bare text or a paragraph; keep both equally spaced. */
+  margin-top: 1.5rem;
   outline-offset: 0.25rem;
 }
 
 .replies {
   min-width: 0;
-  margin-left: 0;
-  padding-left: 0.75rem;
-  border-left: 2px dotted var(--line);
+  margin-top: 1.5rem;
+  padding-inline-start: 0.75rem;
+  border-inline-start: 1px solid var(--line);
+}
+
+.replies > .comment + .comment {
+  margin-top: 1.5rem;
 }
 
 .user-facts {
@@ -379,34 +414,31 @@ details[open] > .comment-info > .open-label {
 }
 
 @media (min-width: 40rem) {
-  .site-header {
-    gap: 0.75rem;
-  }
-
-  .topic-nav {
-    gap: 0.5rem;
-  }
-
   .feed {
     column-gap: 1.5rem;
   }
 
   .replies {
-    padding-left: 1rem;
+    padding-inline-start: 1rem;
   }
 }
 
-@media (max-width: 24rem) {
-  .site-header {
-    gap: 0.25rem;
+@media (max-width: 60rem) {
+  .site-shell {
+    padding-top: 1rem;
   }
+}
 
+@media (max-width: 39.999rem) {
   .topic-nav {
-    gap: 0.125rem;
+    grid-row: 2;
+    grid-column: 1 / -1;
+    gap: 0.5rem;
   }
 
-  .nav-link {
-    padding-inline: 0.25rem;
+  .source-link {
+    grid-row: 1;
+    grid-column: 3;
   }
 }
 
