@@ -14,13 +14,11 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --canvas: #000;
-    --ink: #fff;
-    --muted: #aaa;
-    --faint: #999;
+    --ink: #f5f3ee;
+    --muted: #a6a5a2;
+    --faint: #a6a5a2;
     --accent: #ee9ca1;
-    --line: #555;
-    --selection: #fff;
-    --selection-ink: #000;
+    --line: rgb(245 243 238 / 15%);
     color-scheme: dark;
   }
 }
@@ -277,30 +275,62 @@ samp {
   margin-top: 1rem;
 }
 
+.post-header {
+  padding-block: 0.75rem 2rem;
+  border-bottom: 1px solid var(--line);
+}
+
 .post-title {
+  margin-bottom: 1.5rem;
   overflow-wrap: anywhere;
 }
 
 .post-body {
-  padding-bottom: 0.75rem;
-  border-bottom: 2px dotted var(--line);
+  margin-top: 1.5rem;
 }
 
 .rich-text {
   overflow-wrap: anywhere;
 }
 
-.rich-text p {
-  margin-block: 0.65rem;
+.rich-text p,
+.rich-text ul,
+.rich-text ol,
+.rich-text blockquote,
+.rich-text pre {
+  margin-block: 1.5rem;
+}
+
+.rich-text > :last-child {
+  margin-bottom: 0;
+}
+
+.rich-text ul,
+.rich-text ol {
+  padding-inline-start: 1.5rem;
+}
+
+.rich-text blockquote {
+  margin-inline: 0;
+  padding-inline-start: 1rem;
+  border-inline-start: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.rich-text pre {
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--line);
+  font-size: 0.8rem;
+  line-height: 1.5;
 }
 
 #comments {
-  margin-top: 1rem;
+  margin-top: 2rem;
   scroll-margin-top: 1rem;
 }
 
 .comment {
-  margin-top: 0.65rem;
+  margin-top: 2rem;
   scroll-margin-top: 1rem;
 }
 
@@ -310,6 +340,7 @@ samp {
 
 .comment-info {
   min-height: 24px;
+  overflow-wrap: anywhere;
   cursor: pointer;
   list-style: none;
 }
@@ -335,14 +366,20 @@ details[open] > .comment-info > .open-label {
 }
 
 .comment-content {
+  /* HN can start with bare text or a paragraph; keep both equally spaced. */
+  margin-top: 1.5rem;
   outline-offset: 0.25rem;
 }
 
 .replies {
   min-width: 0;
-  margin-left: 0;
-  padding-left: 0.75rem;
-  border-left: 2px dotted var(--line);
+  margin-top: 1.5rem;
+  padding-inline-start: 0.75rem;
+  border-inline-start: 1px solid var(--line);
+}
+
+.replies > .comment + .comment {
+  margin-top: 1.5rem;
 }
 
 .user-facts {
@@ -392,7 +429,7 @@ details[open] > .comment-info > .open-label {
   }
 
   .replies {
-    padding-left: 1rem;
+    padding-inline-start: 1rem;
   }
 }
 

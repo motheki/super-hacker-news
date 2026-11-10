@@ -62,18 +62,20 @@ const content =
       {comment.deleted === true && <div>deleted</div>}
     </div>
 
-    <div class="replies">
-      {
-        comment.comments.map((reply, index) => (
-          <Astro.self
-            comment={reply}
-            nextId={comment.comments[index + 1]?.id}
-            parentId={comment.id}
-            prevId={comment.comments[index - 1]?.id}
-            rootId={rootId}
-          />
-        ))
-      }
-    </div>
+    {
+      comment.comments.length > 0 && (
+        <div class="replies">
+          {comment.comments.map((reply, index) => (
+            <Astro.self
+              comment={reply}
+              nextId={comment.comments[index + 1]?.id}
+              parentId={comment.id}
+              prevId={comment.comments[index - 1]?.id}
+              rootId={rootId}
+            />
+          ))}
+        </div>
+      )
+    }
   </details>
 </article>

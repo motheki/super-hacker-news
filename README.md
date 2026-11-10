@@ -6,7 +6,7 @@ A small, server-rendered Hacker News reader built with [Astro](https://astro.bui
 
 Top, new, Ask HN, and Show HN feeds; nested comments with native disclosure controls; comment permalinks; user profiles; paper-toned light mode, black dark mode, and system serif typography.
 
-Reading styles follow [Alex Wang's article](https://alexwang.ai/posts/reasoning-as-pathfinding/): 20px text with 1.65 line spacing, 40px article titles, ink and muted-gray text, and 32px side padding around a centered column. The light palette uses `#F5F3EE`, `#2C2D30`, and `#595A5D`; dark mode keeps a pure black background.
+Reading styles follow [Alex Wang's article](https://alexwang.ai/posts/reasoning-as-pathfinding/): 20px text with 1.65 line spacing, 40px article titles, ink and muted-gray text, and 32px side padding around a centered column. Discussions use the same typography with 24px paragraph spacing and subtle reply borders. The light palette uses `#F5F3EE`, `#2C2D30`, and `#595A5D`; dark mode uses a pure black background, `#F5F3EE` text, and `#A6A5A2` secondary text, with identical spacing and padding.
 
 ## Development
 
