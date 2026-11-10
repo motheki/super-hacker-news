@@ -7,6 +7,9 @@
 /super-hn-gourd.ico
   Cache-Control: public, max-age=86400
 
+/super-hn-monochrome.ico
+  Cache-Control: public, max-age=86400
+
 /manifest.webmanifest
   Cache-Control: public, max-age=86400
 

@@ -1,6 +1,6 @@
 # Super HN
 
-![Super HN gourd emblem](src/assets/super-hn-social.png)
+![Super HN black-and-white gourd emblem](src/assets/super-hn-social.png)
 
 A small, server-rendered Hacker News reader built with [Astro](https://astro.build) and deployed on Cloudflare Workers at [superhn.org](https://superhn.org).
 
@@ -29,7 +29,7 @@ bun run preview
 - `src/pages/`: file-based routes. One feed route handles both the first page and pagination. Robots and the web manifest are prerendered; feeds, discussions, and profiles render on demand.
 - `src/layouts/` and `src/components/`: server-rendered HTML, shared metadata, native comment controls, and Astro's client router. Navigation fades the content over 120ms while keeping the header stable and updating the selected topic. Reduced-motion preferences disable animations; browsers without view transitions swap content immediately. No component framework.
 - `src/lib/`: route validation, response policies, and Hacker News data access. HackerWeb is the fast path; Algolia and bounded official API reconstruction provide fallbacks.
-- `src/assets/` and `src/styles/`: content-hashed brand images and shared styles. The header mark renders in monochrome. Text uses system serif fonts, with system monospace fonts for code; no font downloads.
+- `src/assets/` and `src/styles/`: monochrome logo, light/dark favicons and header icons, app icons, README/social artwork, and shared styles. Imported images use content-hashed URLs; the ICO favicon has a versioned URL. Text uses system serif fonts, with system monospace fonts for code; no font downloads.
 - `astro.config.ts`: Cloudflare adapter, edge cache rules, and intent-based prefetching. Full-document speculative prerendering is disabled because navigation uses Astro's client router.
 
 Astro's Cloudflare cache provider caches feeds for one minute and profiles for 15 minutes, with stale-while-revalidate. Discussion cache lifetimes increase with age. Empty bulk comment trees are verified against the official API before being accepted. A separate, data-center-local Cache API store retains successful discussions for up to one hour, used only when providers fail; restored pages are not cached again. Missing/deleted posts clear that fallback. Errors are uncached; upstream outages without a usable fallback return a retryable 503. Static assets use `public/_headers`; middleware applies dynamic response headers.
