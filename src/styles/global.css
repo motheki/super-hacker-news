@@ -30,8 +30,7 @@
 html {
   background: var(--canvas);
   color: var(--ink);
-  /* Clear the 2.25rem header controls and 1.25rem vertical padding. */
-  scroll-padding-top: 3.5rem;
+  scroll-padding-top: 1rem;
 }
 
 body {
@@ -108,19 +107,19 @@ samp {
   width: min(100%, calc(900px + 4rem));
   margin-inline: auto;
   padding-inline: 2rem;
+  padding-top: 3rem;
   padding-bottom: 2rem;
 }
 
 .site-header {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  display: flex;
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
   align-items: center;
-  gap: 0.5rem;
-  padding-block: 0.5rem 0.75rem;
+  gap: 1rem;
+  padding-bottom: 2rem;
   background: var(--canvas);
-  font-size: 1rem;
+  font-size: 1.15rem;
+  line-height: 1.7;
 }
 
 .brand,
@@ -135,9 +134,8 @@ samp {
 
 .brand,
 .source-link {
-  width: 2.25rem;
-  height: 2.25rem;
-  flex: 0 0 auto;
+  width: 2.75rem;
+  height: 2.75rem;
 }
 
 .source-link:hover,
@@ -158,20 +156,20 @@ samp {
 
 .brand img {
   display: block;
-  width: 2.125rem;
-  height: 2.125rem;
+  width: 2.5rem;
+  height: 2.5rem;
 }
 
 .topic-nav {
   display: flex;
   min-width: 0;
-  flex: 1 1 auto;
-  gap: 0.25rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
 }
 
 .nav-link {
-  min-height: 2.25rem;
-  padding-inline: 0.65rem;
+  min-height: 2.75rem;
+  padding-inline: 0.25rem;
   white-space: nowrap;
 }
 
@@ -416,14 +414,6 @@ details[open] > .comment-info > .open-label {
 }
 
 @media (min-width: 40rem) {
-  .site-header {
-    gap: 0.75rem;
-  }
-
-  .topic-nav {
-    gap: 0.5rem;
-  }
-
   .feed {
     column-gap: 1.5rem;
   }
@@ -433,17 +423,22 @@ details[open] > .comment-info > .open-label {
   }
 }
 
-@media (max-width: 24rem) {
-  .site-header {
-    gap: 0.25rem;
+@media (max-width: 60rem) {
+  .site-shell {
+    padding-top: 1rem;
   }
+}
 
+@media (max-width: 39.999rem) {
   .topic-nav {
-    gap: 0.125rem;
+    grid-row: 2;
+    grid-column: 1 / -1;
+    gap: 0.5rem;
   }
 
-  .nav-link {
-    padding-inline: 0.25rem;
+  .source-link {
+    grid-row: 1;
+    grid-column: 3;
   }
 }
 
