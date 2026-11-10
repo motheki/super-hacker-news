@@ -4,11 +4,13 @@
 
 A small, server-rendered Hacker News reader built with [Astro](https://astro.build) and deployed on Cloudflare Workers at [superhn.org](https://superhn.org).
 
-Top, new, Ask HN, and Show HN feeds; nested comments with native disclosure controls; comment permalinks; user profiles; system light/dark themes.
+Top, new, Ask HN, and Show HN feeds; nested comments with native disclosure controls; comment permalinks; user profiles; pure white/black system light/dark themes and system serif typography.
 
 ## Development
 
 Use Bun and Node.js 22.12+.
+
+TypeScript stays on 6.x because `astro check` does not support TypeScript 7.0 yet.
 
 ```sh
 bun install
@@ -25,10 +27,10 @@ bun run preview
 ## Structure
 
 - `src/pages/`: file-based routes. One feed route handles both the first page and pagination. Robots and the web manifest are prerendered; feeds, discussions, and profiles render on demand.
-- `src/layouts/` and `src/components/`: server-rendered HTML, shared metadata, and native comment controls. No client-side router or component framework.
+- `src/layouts/` and `src/components/`: server-rendered HTML, shared metadata, native comment controls, and Astro's client router. Navigation fades the content over 120ms while keeping the header stable and updating the selected topic. Reduced-motion preferences disable animations; browsers without view transitions swap content immediately. No component framework.
 - `src/lib/`: route validation, response policies, and Hacker News data access. HackerWeb is the fast path; Algolia and bounded official API reconstruction provide fallbacks.
-- `src/assets/` and `src/styles/`: content-hashed brand images and shared styles. Text uses system UI fonts, with system monospace fonts for code.
-- `astro.config.ts`: Cloudflare adapter, edge cache rules, and intent-based prefetching with experimental client prerendering.
+- `src/assets/` and `src/styles/`: content-hashed brand images and shared styles. The header mark renders in monochrome. Text uses system serif fonts, with system monospace fonts for code; no font downloads.
+- `astro.config.ts`: Cloudflare adapter, edge cache rules, and intent-based prefetching. Full-document speculative prerendering is disabled because navigation uses Astro's client router.
 
 Astro's Cloudflare cache provider caches feeds for one minute and profiles for 15 minutes, with stale-while-revalidate. Discussion cache lifetimes increase with age. Empty bulk comment trees are verified against the official API before being accepted. A separate, data-center-local Cache API store retains successful discussions for up to one hour, used only when providers fail; restored pages are not cached again. Missing/deleted posts clear that fallback. Errors are uncached; upstream outages without a usable fallback return a retryable 503. Static assets use `public/_headers`; middleware applies dynamic response headers.
 
