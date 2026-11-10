@@ -8,7 +8,7 @@ Top, new, Ask HN, and Show HN feeds; nested comments with native disclosure cont
 
 Reading styles follow [Alex Wang's article](https://alexwang.ai/posts/reasoning-as-pathfinding/): 20px text with 1.65 line spacing, 40px article titles, ink and muted-gray text, and 32px side padding around a centered column. Comments use the same 20px text and 1.65 line spacing, compact paragraph gaps, and a consistent 12px reply indent with subtle borders. The light palette uses `#F5F3EE`, `#2C2D30`, and `#595A5D`; dark mode uses a pure black background, `#F5F3EE` text, and `#A6A5A2` secondary text, with identical spacing and padding.
 
-The header follows the reference's 48px desktop and 16px mobile top spacing, with 18.4px navigation text, a 40px logo, and 44px-tall controls. On phones, topic links occupy their own row. The header scrolls with the page.
+The header is a sticky horizontal pill with topic links centered between the logo and GitHub icon. Controls remain 44px tall; narrower screens use smaller text and artwork to keep the toolbar on one row. Comment anchors clear the sticky toolbar.
 
 ## Development
 
