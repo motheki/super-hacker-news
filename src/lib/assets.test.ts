@@ -9,12 +9,12 @@ const HEADER = new URL("../components/Header.astro", import.meta.url);
 const LAYOUT = new URL("../layouts/BaseLayout.astro", import.meta.url);
 const MASTER_NAME = "super-hn-gourd.png";
 const SOCIAL_NAME = "super-hn-social.png";
-const VERSIONED_FAVICON_NAME = "super-hn-gourd.ico";
+const VERSIONED_FAVICON_NAME = "super-hn-monochrome.ico";
 const ICO_HEADER_SIZE = 6;
 const ICO_ENTRY_SIZE = 16;
 const ICO_LENGTH_OFFSET = 8;
 const ICO_DATA_OFFSET = 12;
-const MARK_COLORS = new Set(["33,32,32", "217,196,168"]);
+const MARK_COLORS = new Set(["0,0,0", "255,255,255"]);
 const ASSET_SPECS = {
   [MASTER_NAME]: {
     maxBytes: 60_000,
@@ -42,6 +42,21 @@ describe("brand images", () => {
       expect(asset.size).toBeLessThanOrEqual(spec.maxBytes);
       expect(metadata.width).toBe(spec.width);
       expect(metadata.height).toBe(spec.height);
+    });
+
+    test(`${name} contains only neutral colors`, async () => {
+      const { data, info } = await sharp(new URL(name, ASSET_DIR).pathname)
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      let coloredPixels = 0;
+      for (let offset = 0; offset < data.length; offset += info.channels) {
+        if (data[offset + 3] === 0) continue;
+        if (data[offset] !== data[offset + 1] || data[offset] !== data[offset + 2]) {
+          coloredPixels += 1;
+        }
+      }
+      expect(coloredPixels).toBe(0);
     });
   }
 
