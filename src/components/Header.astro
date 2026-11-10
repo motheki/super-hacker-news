@@ -11,7 +11,7 @@ interface Props {
 const { currentPath, repositoryUrl } = Astro.props;
 ---
 
-<header class="site-header">
+<header class="site-header" transition:name="header" transition:animate="none">
   <a
     aria-label="Super HN home"
     class="brand"
@@ -30,7 +30,8 @@ const { currentPath, repositoryUrl } = Astro.props;
   <nav aria-label="Topics" class="topic-nav">
     {
       TOPICS.map(({ name, title }) => {
-        const active = currentPath === `/${name}`;
+        const active =
+          currentPath === `/${name}` || currentPath.startsWith(`/${name}/`);
 
         return (
           <a

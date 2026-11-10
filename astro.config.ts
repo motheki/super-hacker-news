@@ -11,9 +11,6 @@ export default defineConfig({
     provider: cacheCloudflare(),
   },
   compressHTML: true,
-  experimental: {
-    clientPrerender: true,
-  },
   output: "server",
   prefetch: {
     defaultStrategy: "tap",

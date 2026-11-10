@@ -1,4 +1,5 @@
 ---
+import { ClientRouter, fade } from "astro:transitions";
 import appleTouchIcon from "~/assets/apple-touch-icon.png";
 import favicon32 from "~/assets/favicon-32.png";
 import favicon32Dark from "~/assets/favicon-32-dark.png";
@@ -44,19 +45,19 @@ const jsonLd = JSON.stringify(structuredData ?? websiteData).replaceAll(
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" transition:animate="none">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     <meta
       name="theme-color"
-      content="#D9C4A8"
+      content="#FFFFFF"
       media="(prefers-color-scheme: light)"
     />
     <meta
       name="theme-color"
-      content="#0F0E0F"
+      content="#000000"
       media="(prefers-color-scheme: dark)"
     />
     <meta name="description" content={description} />
@@ -91,13 +92,18 @@ const jsonLd = JSON.stringify(structuredData ?? websiteData).replaceAll(
     <link rel="apple-touch-icon" href={appleTouchIcon.src} />
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>{pageTitle}</title>
+    <ClientRouter fallback="swap" />
     <script is:inline type="application/ld+json" set:html={jsonLd} />
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
     <div class="site-shell">
       <Header currentPath={Astro.url.pathname} repositoryUrl={REPOSITORY_URL} />
-      <main id="content">
+      <main
+        id="content"
+        transition:name="content"
+        transition:animate={fade({ duration: "120ms" })}
+      >
         <slot />
       </main>
     </div>
