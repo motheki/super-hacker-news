@@ -323,12 +323,12 @@ samp {
 }
 
 #comments {
-  margin-top: 2rem;
+  margin-top: 1rem;
   scroll-margin-top: 1rem;
 }
 
 .comment {
-  margin-top: 2rem;
+  margin-top: 0.65rem;
   scroll-margin-top: 1rem;
 }
 
@@ -364,20 +364,29 @@ details[open] > .comment-info > .open-label {
 }
 
 .comment-content {
-  /* HN can start with bare text or a paragraph; keep both equally spaced. */
-  margin-top: 1.5rem;
+  /* Match the reference body without scaling at each reply depth. */
+  font-size: 1.25rem;
+  line-height: 1.65;
   outline-offset: 0.25rem;
+}
+
+.comment-content .rich-text :is(p, ul, ol, blockquote, pre) {
+  margin-block: 0.65rem;
+}
+
+.comment-content .rich-text > :last-child {
+  margin-bottom: 0;
+}
+
+.comment-content .rich-text pre {
+  padding: 0;
+  border: 0;
 }
 
 .replies {
   min-width: 0;
-  margin-top: 1.5rem;
   padding-inline-start: 0.75rem;
   border-inline-start: 1px solid var(--line);
-}
-
-.replies > .comment + .comment {
-  margin-top: 1.5rem;
 }
 
 .user-facts {
@@ -416,10 +425,6 @@ details[open] > .comment-info > .open-label {
 @media (min-width: 40rem) {
   .feed {
     column-gap: 1.5rem;
-  }
-
-  .replies {
-    padding-inline-start: 1rem;
   }
 }
 
