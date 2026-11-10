@@ -4,7 +4,9 @@
 
 A small, server-rendered Hacker News reader built with [Astro](https://astro.build) and deployed on Cloudflare Workers at [superhn.org](https://superhn.org).
 
-Top, new, Ask HN, and Show HN feeds; nested comments with native disclosure controls; comment permalinks; user profiles; pure white/black system light/dark themes and system serif typography.
+Top, new, Ask HN, and Show HN feeds; nested comments with native disclosure controls; comment permalinks; user profiles; paper-toned light mode, black dark mode, and system serif typography.
+
+Reading styles follow [Alex Wang's article](https://alexwang.ai/posts/reasoning-as-pathfinding/): 20px text with 1.65 line spacing, 40px article titles, ink and muted-gray text, and 32px side padding around a centered column. The light palette uses `#F5F3EE`, `#2C2D30`, and `#595A5D`; dark mode keeps a pure black background.
 
 ## Development
 
@@ -19,7 +21,6 @@ bun run dev
 
 ```sh
 bun run check
-bun test
 bun run build
 bun run preview
 ```

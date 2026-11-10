@@ -1,14 +1,12 @@
 :root {
-  --canvas: #fff;
-  --ink: #000;
-  --muted: #555;
-  --faint: #666;
-  --line: #aaa;
-  --selection: #000;
-  --selection-ink: #fff;
-  --font-size-increase: 2pt;
-  /* 82% of the parent increase contributes 1.64pt. */
-  --domain-size-adjustment: 0.36pt;
+  --canvas: #f5f3ee;
+  --ink: #2c2d30;
+  --muted: #595a5d;
+  --faint: #595a5d;
+  --accent: #b3202a;
+  --line: rgb(44 45 48 / 15%);
+  --selection: color-mix(in srgb, var(--accent) 22%, var(--canvas));
+  --selection-ink: var(--ink);
   color-scheme: light;
   font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 }
@@ -19,6 +17,7 @@
     --ink: #fff;
     --muted: #aaa;
     --faint: #999;
+    --accent: #ee9ca1;
     --line: #555;
     --selection: #fff;
     --selection-ink: #000;
@@ -42,8 +41,8 @@ body {
   margin: 0;
   background: var(--canvas);
   color: var(--ink);
-  font-size: calc(1rem + var(--font-size-increase));
-  line-height: 1.45;
+  font-size: 1.25rem;
+  line-height: 1.65;
 }
 
 a {
@@ -76,17 +75,18 @@ dl {
 
 h1,
 h2 {
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
 h1 {
   margin-bottom: 0.75rem;
-  font-size: calc(1.5rem + var(--font-size-increase));
+  font-size: 2.5rem;
+  overflow-wrap: anywhere;
 }
 
 h2 {
   margin-bottom: 0;
-  font-size: calc(1.08rem + var(--font-size-increase));
+  font-size: 1.25rem;
   font-weight: 400;
 }
 
@@ -106,8 +106,10 @@ samp {
 }
 
 .site-shell {
-  width: min(100% - 1rem, 48rem);
+  /* Match the reference's 900px content area plus 32px side gutters. */
+  width: min(100%, calc(900px + 4rem));
   margin-inline: auto;
+  padding-inline: 2rem;
   padding-bottom: 2rem;
 }
 
@@ -120,6 +122,7 @@ samp {
   gap: 0.5rem;
   padding-block: 0.5rem 0.75rem;
   background: var(--canvas);
+  font-size: 1rem;
 }
 
 .brand,
@@ -207,7 +210,7 @@ samp {
 
 .feed-index {
   color: var(--muted);
-  font-size: calc(1.4rem + var(--font-size-increase));
+  font-size: 1.25rem;
   font-variant-numeric: tabular-nums;
   line-height: 1.25;
   text-align: right;
@@ -227,11 +230,6 @@ samp {
   color: var(--faint);
 }
 
-.story-link:hover,
-.text-link:hover {
-  color: var(--ink);
-}
-
 .text-link,
 .rich-text a {
   color: var(--muted);
@@ -241,15 +239,25 @@ samp {
   text-underline-offset: 0.2em;
 }
 
+.rich-text a {
+  color: var(--ink);
+}
+
 .text-link:visited,
 .rich-text a:visited {
   color: var(--faint);
 }
 
+.story-link:hover,
+.text-link:hover,
+.rich-text a:hover {
+  color: var(--accent);
+}
+
 .meta,
 .comment-info {
   color: var(--muted);
-  font-size: calc(0.82rem + var(--font-size-increase));
+  font-size: 0.85rem;
 }
 
 .meta {
@@ -261,7 +269,7 @@ samp {
 }
 
 .domain {
-  font-size: calc(0.82em + var(--domain-size-adjustment));
+  font-size: 0.85em;
 }
 
 .more-link {
@@ -389,8 +397,16 @@ details[open] > .comment-info > .open-label {
 }
 
 @media (max-width: 24rem) {
+  .site-header {
+    gap: 0.25rem;
+  }
+
+  .topic-nav {
+    gap: 0.125rem;
+  }
+
   .nav-link {
-    padding-inline: 0.45rem;
+    padding-inline: 0.25rem;
   }
 }
 
