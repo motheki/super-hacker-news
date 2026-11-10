@@ -38,9 +38,9 @@ const title = topic.name === "top" ? undefined : topic.title;
 ---
 
 <BaseLayout canonical={canonical} title={title}>
-  <section data-testid="topic-shell">
+  <section>
     <h1 class="visually-hidden">{topic.title}</h1>
-    <div class="feed" data-testid={`topic-content-${topic.name}`}>
+    <div class="feed">
       {items.map((item, index) => (
         <FeedItem index={index + 1 + ITEMS_PER_PAGE * (page - 1)} item={item} />
       ))}
