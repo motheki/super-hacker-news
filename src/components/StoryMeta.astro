@@ -4,7 +4,7 @@ interface Props {
   readonly user?: string | null;
   readonly timeAgo: string;
   readonly commentsCount: number;
-  readonly commentsHref: string;
+  readonly commentsHref?: string;
 }
 
 const { points, user, timeAgo, commentsCount, commentsHref } = Astro.props;
@@ -16,14 +16,18 @@ const { points, user, timeAgo, commentsCount, commentsHref } = Astro.props;
     {points != null && <span>{points} points</span>}
     <span>{timeAgo}</span>
   </p>
-  <a
-    class="story-comments"
-    data-astro-prefetch={commentsHref.startsWith("#") ? undefined : "tap"}
-    href={commentsHref}
-  >
-    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24">
-      <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-4-.9L3 21l1.9-5.5a9 9 0 0 1-.9-4A8.5 8.5 0 0 1 12.5 3h.5a8.5 8.5 0 0 1 8 8v.5Z" />
-    </svg>
-    <span>{commentsCount} {commentsCount === 1 ? "comment" : "comments"}</span>
-  </a>
+  {
+    commentsHref !== undefined && (
+      <a
+        class="story-comments"
+        data-astro-prefetch={commentsHref.startsWith("#") ? undefined : "tap"}
+        href={commentsHref}
+      >
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24">
+          <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-4-.9L3 21l1.9-5.5a9 9 0 0 1-.9-4A8.5 8.5 0 0 1 12.5 3h.5a8.5 8.5 0 0 1 8 8v.5Z" />
+        </svg>
+        <span>{commentsCount} {commentsCount === 1 ? "comment" : "comments"}</span>
+      </a>
+    )
+  }
 </div>
