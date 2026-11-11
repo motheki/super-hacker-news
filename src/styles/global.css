@@ -2,8 +2,8 @@
   --canvas: #fff;
   --toolbar-surface: #fff;
   --card-surface: #fff;
-  --rank-background: #000;
-  --rank-ink: #fff;
+  --comment-background: #000;
+  --comment-ink: #fff;
   --ink: #2c2d30;
   --muted: #595a5d;
   --faint: #595a5d;
@@ -21,8 +21,8 @@
     --canvas: #000;
     --toolbar-surface: color-mix(in srgb, var(--ink) 8%, var(--canvas));
     --card-surface: color-mix(in srgb, var(--ink) 2%, var(--canvas));
-    --rank-background: #fff;
-    --rank-ink: #000;
+    --comment-background: #fff;
+    --comment-ink: #000;
     --ink: #f5f3ee;
     --muted: #a6a5a2;
     --faint: #a6a5a2;
@@ -249,11 +249,7 @@ samp {
   padding-block: var(--card-padding);
   padding-inline: calc((var(--card-padding) + var(--rank-gap)) / 2);
   border-inline-end: 1px dotted var(--dotted-line);
-  border-start-start-radius: calc(var(--corner-radius) - 1px);
-  border-end-start-radius: calc(var(--corner-radius) - 1px);
-  background: var(--rank-background);
-  background-clip: padding-box;
-  color: var(--rank-ink);
+  color: var(--ink);
   font-size: 1.125rem;
   font-variant-numeric: tabular-nums;
   line-height: 1.35;
@@ -358,8 +354,8 @@ samp {
   padding: 0.875rem;
   border-top: 1px dotted var(--dotted-line);
   border-end-end-radius: calc(var(--corner-radius) - 1px);
-  background: var(--canvas);
-  color: var(--dotted-line);
+  background: var(--comment-background);
+  color: var(--comment-ink);
   font-size: 1.125rem;
   line-height: 1.4;
   text-decoration: none;
