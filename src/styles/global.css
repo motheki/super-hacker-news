@@ -43,6 +43,15 @@ html {
   scroll-padding-top: 5rem;
 }
 
+/* Astro controls the 120ms content fade. Disable the browser's separate
+   geometry animation so long feeds, short profiles, and restored scroll
+   positions don't stretch or slide for the default 250ms. */
+::view-transition-group(root),
+::view-transition-group(header),
+::view-transition-group(content) {
+  animation: none;
+}
+
 body {
   min-height: 100dvh;
   margin: 0;

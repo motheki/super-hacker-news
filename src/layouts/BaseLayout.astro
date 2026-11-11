@@ -45,7 +45,7 @@ const jsonLd = JSON.stringify(structuredData ?? websiteData).replaceAll(
 ---
 
 <!doctype html>
-<html lang="en" transition:animate="none">
+<html lang="en" transition:name="root" transition:animate="none">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -99,6 +99,8 @@ const jsonLd = JSON.stringify(structuredData ?? websiteData).replaceAll(
     <a class="skip-link" href="#content">Skip to content</a>
     <div class="site-shell">
       <Header currentPath={Astro.url.pathname} repositoryUrl={REPOSITORY_URL} />
+      <!-- A neutral fade suits topic switches, pagination, and detail/history navigation.
+           https://docs.astro.build/en/guides/view-transitions/#customizing-animations -->
       <main
         id="content"
         transition:name="content"

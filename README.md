@@ -12,7 +12,7 @@ The header is a sticky rounded toolbar with topic links centered between the log
 
 ## Development
 
-Use Bun and Node.js 22.12+.
+Use Bun 1.4.4 and Node.js 22.12+. The `packageManager` field pins Bun for Cloudflare Workers Builds so frozen installs can read the repository's lockfile format.
 
 TypeScript stays on 6.x because `astro check` does not support TypeScript 7.0 yet.
 
@@ -30,12 +30,18 @@ bun run preview
 ## Structure
 
 - `src/pages/`: file-based routes. One feed route handles both the first page and pagination. Robots and the web manifest are prerendered; feeds, discussions, and profiles render on demand.
-- `src/layouts/` and `src/components/`: server-rendered HTML, shared metadata, native comment controls, and Astro's client router. Navigation fades the content over 120ms while keeping the header stable and updating the selected topic. Reduced-motion preferences disable animations; browsers without view transitions swap content immediately. No component framework.
+- `src/layouts/` and `src/components/`: server-rendered HTML, shared metadata, native comment controls, and Astro's client router. No component framework.
 - `src/lib/`: route validation, response policies, and Hacker News data access. HackerWeb is the fast path; Algolia and bounded official API reconstruction provide fallbacks.
 - `src/assets/` and `src/styles/`: monochrome logo, light/dark favicons and header icons, app icons, README/social artwork, and shared styles. Imported images use content-hashed URLs; the ICO favicon has a versioned URL. Text uses system serif fonts, with system monospace fonts for code; no font downloads.
 - `astro.config.ts`: Cloudflare adapter, edge cache rules, and intent-based prefetching. Full-document speculative prerendering is disabled because navigation uses Astro's client router.
 
 Astro's Cloudflare cache provider caches feeds for one minute and profiles for 15 minutes, with stale-while-revalidate. Discussion cache lifetimes increase with age. Empty bulk comment trees are verified against the official API before being accepted. A separate, data-center-local Cache API store retains successful discussions for up to one hour, used only when providers fail; restored pages are not cached again. Missing/deleted posts clear that fallback. Errors are uncached; upstream outages without a usable fallback return a retryable 503. Static assets use `public/_headers`; middleware applies dynamic response headers.
+
+## Navigation transitions
+
+Follow [Astro's view transitions guide](https://docs.astro.build/en/guides/view-transitions/): the shared layout uses `ClientRouter`, explicit `transition:name` directives, and `fade({ duration: "120ms" })` on the main content. Topic changes, pagination, discussions, profiles, and browser back/forward use the same brief crossfade; these reading views do not imply a left/right spatial order. The header stays steady while its selected topic updates. Browser-generated group geometry animations are disabled so changes in content height or restored scroll position cannot stretch the page or outlast the fade.
+
+Astro handles history and scroll restoration, same-page comment anchors, external links, and route announcements. Comment anchors move within the current page without a page transition. Reduced-motion preferences disable animations, and `fallback="swap"` changes content immediately in browsers without view transition support. Keep these behaviors in Astro's router when changing navigation.
 
 ## Deployment
 
