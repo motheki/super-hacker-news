@@ -5,6 +5,7 @@
   --faint: #595a5d;
   --accent: #b3202a;
   --line: rgb(44 45 48 / 15%);
+  --dotted-line: var(--ink);
   --selection: color-mix(in srgb, var(--accent) 22%, var(--canvas));
   --selection-ink: var(--ink);
   --corner-radius: 0.75rem;
@@ -20,6 +21,7 @@
     --faint: #a6a5a2;
     --accent: #ee9ca1;
     --line: rgb(245 243 238 / 15%);
+    --dotted-line: #fff;
     color-scheme: dark;
   }
 }
@@ -40,7 +42,7 @@ body {
   margin: 0;
   background: var(--canvas);
   color: var(--ink);
-  font-size: 1.25rem;
+  font-size: 1rem;
   line-height: 1.65;
 }
 
@@ -85,7 +87,8 @@ h1 {
 
 h2 {
   margin-bottom: 0;
-  font-size: 1.25rem;
+  font-size: 1.125rem;
+  line-height: 1.35;
   font-weight: 400;
 }
 
@@ -123,6 +126,7 @@ samp {
   gap: 0.25rem;
   margin-bottom: 2rem;
   padding: 0.25rem;
+  border: 1px dotted var(--dotted-line);
   border-radius: var(--corner-radius);
   background: color-mix(in srgb, var(--ink) 8%, var(--canvas));
   font-size: 1.15rem;
@@ -221,16 +225,16 @@ samp {
 .post-card {
   min-width: 0;
   padding: 1rem;
-  border: 1px solid var(--line);
+  border: 1px dotted var(--dotted-line);
   border-radius: var(--corner-radius);
   background: color-mix(in srgb, var(--ink) 2%, var(--canvas));
 }
 
 .feed-index {
   color: var(--muted);
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-variant-numeric: tabular-nums;
-  line-height: 1.25;
+  line-height: 1.35;
   text-align: right;
 }
 
@@ -242,7 +246,7 @@ samp {
 }
 
 .feed-item > .meta {
-  grid-column: 1 / -1;
+  grid-column: 2;
 }
 
 .story-link {
@@ -372,12 +376,15 @@ samp {
 }
 
 .post-title {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.375rem;
+  font-weight: 400;
+  line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
 .post-body {
-  margin-top: 1.5rem;
+  margin-top: 1rem;
 }
 
 .rich-text {
@@ -457,8 +464,8 @@ details[open] > .comment-info > .open-label {
 }
 
 .comment-content {
-  /* Match the reference body without scaling at each reply depth. */
-  font-size: 1.25rem;
+  /* Keep reading text the same size at every reply depth. */
+  font-size: 1rem;
   line-height: 1.65;
   outline-offset: 0.25rem;
 }
@@ -479,7 +486,7 @@ details[open] > .comment-info > .open-label {
 .replies {
   min-width: 0;
   padding-inline-start: 0.75rem;
-  border-inline-start: 1px solid var(--line);
+  border-inline-start: 1px dotted var(--dotted-line);
 }
 
 .user-facts {
@@ -522,10 +529,6 @@ details[open] > .comment-info > .open-label {
 
   .feed-item {
     column-gap: 1rem;
-  }
-
-  .feed-item > .meta {
-    grid-column: 2;
   }
 
   .story-meta {
