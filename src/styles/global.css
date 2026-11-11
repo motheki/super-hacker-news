@@ -299,8 +299,7 @@ samp {
 }
 
 .story-meta,
-.story-stats,
-.story-actions {
+.story-stats {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -321,39 +320,43 @@ samp {
   white-space: nowrap;
 }
 
-.story-actions {
-  flex-basis: 100%;
+.story-stats > .story-author {
   min-width: 0;
   max-width: 100%;
-  gap: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px dotted var(--dotted-line);
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
-.meta-button {
-  display: inline-flex;
+.story-comments {
+  display: flex;
+  flex-basis: 100%;
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
   min-width: 0;
   max-width: 100%;
   min-height: 2.75rem;
-  padding: 0.375rem 0.75rem;
-  border: 1px dotted var(--dotted-line);
-  border-radius: var(--corner-radius);
+  padding: 0.75rem;
+  border-top: 1px dotted var(--dotted-line);
   background: var(--canvas);
   color: var(--dotted-line);
   line-height: 1.4;
   text-decoration: none;
 }
 
-.meta-button:hover,
-.meta-button:active {
+.story-comments:hover,
+.story-comments:active {
+  background: var(--selection);
+  color: var(--selection-ink);
   text-decoration: underline dotted;
   text-underline-offset: 0.2em;
 }
 
-.meta-button svg {
+.story-comments:focus-visible {
+  outline-offset: -3px;
+}
+
+.story-comments svg {
   flex-shrink: 0;
   fill: none;
   stroke: currentColor;
@@ -362,7 +365,7 @@ samp {
   stroke-linejoin: round;
 }
 
-.comment-button {
+.story-comments > span {
   white-space: nowrap;
 }
 
@@ -545,13 +548,9 @@ details[open] > .comment-info > .open-label {
 }
 
 @media (min-width: 40rem) and (pointer: fine) {
-  .story-actions {
-    gap: 0.375rem;
-  }
-
-  .meta-button {
+  .story-comments {
     min-height: 2rem;
-    padding: 0.25rem 0.625rem;
+    padding: 0.5rem;
   }
 }
 

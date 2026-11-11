@@ -37,6 +37,7 @@ const storyUrl = externalUrl ?? `/post/${item.id}`;
     ) : (
       <StoryMeta
         points={item.points}
+        user={item.user}
         timeAgo={item.time_ago}
         commentsCount={item.comments_count}
         commentsHref={`/post/${item.id}`}
