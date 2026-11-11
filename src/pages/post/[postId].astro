@@ -1,5 +1,6 @@
 ---
 import Comment from "~/components/Comment.astro";
+import StoryMeta from "~/components/StoryMeta.astro";
 import BaseLayout from "~/layouts/BaseLayout.astro";
 import { getPostCache } from "~/lib/cache";
 import { DataUnavailableError, getPostTarget } from "~/lib/data";
@@ -98,18 +99,13 @@ const structuredData = {
       }
     </h1>
 
-    <p class="meta">
-      {post.points} points by{" "}
-      <a
-        class="text-link"
-        data-astro-prefetch="tap"
-        href={`/user/${post.user}`}
-      >
-        {post.user}
-      </a>{" "}
-      {post.time_ago} | {post.comments_count}{" "}
-      {post.comments_count === 1 ? "comment" : "comments"}
-    </p>
+    <StoryMeta
+      points={post.points}
+      user={post.user}
+      timeAgo={post.time_ago}
+      commentsCount={post.comments_count}
+      commentsHref="#comments"
+    />
 
     {
       content !== undefined && content.length > 0 && (

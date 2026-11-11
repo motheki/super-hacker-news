@@ -273,6 +273,75 @@ samp {
   margin-block: 0.2rem 0;
 }
 
+.story-meta,
+.story-stats,
+.story-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.story-meta {
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.story-stats {
+  flex-basis: 100%;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+}
+
+.story-stats > span {
+  white-space: nowrap;
+}
+
+.story-actions {
+  min-width: 0;
+  max-width: 100%;
+  gap: 0.5rem;
+}
+
+.meta-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 2.75rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--ink) 8%, var(--canvas));
+  color: var(--muted);
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+.meta-button:hover,
+.meta-button:active {
+  background: var(--selection);
+  color: var(--selection-ink);
+}
+
+.meta-button svg {
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.comment-button {
+  white-space: nowrap;
+}
+
+.poster-button > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .faint {
   color: var(--faint);
 }
@@ -438,6 +507,25 @@ details[open] > .comment-info > .open-label {
 @media (min-width: 40rem) {
   .feed {
     column-gap: 1.5rem;
+  }
+
+  .story-meta {
+    margin-top: 0.375rem;
+  }
+
+  .story-stats {
+    flex-basis: auto;
+  }
+}
+
+@media (min-width: 40rem) and (pointer: fine) {
+  .story-actions {
+    gap: 0.375rem;
+  }
+
+  .meta-button {
+    min-height: 2rem;
+    padding: 0.25rem 0.625rem;
   }
 }
 

@@ -1,4 +1,5 @@
 ---
+import StoryMeta from "~/components/StoryMeta.astro";
 import { isSafeExternalUrl } from "~/lib/link";
 import type { TopicItem } from "~/lib/topic";
 
@@ -34,33 +35,13 @@ const storyUrl = externalUrl ?? `/post/${item.id}`;
     item.type === "job" ? (
       <p class="meta">{item.time_ago}</p>
     ) : (
-      <p class="meta">
-        {item.points} points
-        {item.user !== undefined &&
-          item.user !== null &&
-          item.user.length > 0 && (
-            <>
-              {" by "}
-              <a
-                class="text-link"
-                data-astro-prefetch="tap"
-                href={`/user/${item.user}`}
-              >
-                {item.user}
-              </a>
-            </>
-          )}{" "}
-        {item.time_ago}
-        {" | "}
-        <a
-          class="text-link"
-          data-astro-prefetch="tap"
-          href={`/post/${item.id}`}
-        >
-          {item.comments_count}&nbsp;
-          {item.comments_count === 1 ? "comment" : "comments"}
-        </a>
-      </p>
+      <StoryMeta
+        points={item.points}
+        user={item.user}
+        timeAgo={item.time_ago}
+        commentsCount={item.comments_count}
+        commentsHref={`/post/${item.id}`}
+      />
     )
   }
 </article>
