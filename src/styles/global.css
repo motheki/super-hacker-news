@@ -1,5 +1,9 @@
 :root {
-  --canvas: #f5f3ee;
+  --canvas: #fff;
+  --toolbar-surface: #fff;
+  --card-surface: #fff;
+  --comment-background: #000;
+  --comment-ink: #fff;
   --ink: #2c2d30;
   --muted: #595a5d;
   --faint: #595a5d;
@@ -15,6 +19,10 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --canvas: #000;
+    --toolbar-surface: color-mix(in srgb, var(--ink) 8%, var(--canvas));
+    --card-surface: color-mix(in srgb, var(--ink) 2%, var(--canvas));
+    --comment-background: #fff;
+    --comment-ink: #000;
     --ink: #f5f3ee;
     --muted: #a6a5a2;
     --faint: #a6a5a2;
@@ -127,7 +135,7 @@ samp {
   padding: 0.25rem;
   border: 1px dotted var(--dotted-line);
   border-radius: var(--corner-radius);
-  background: color-mix(in srgb, var(--ink) 8%, var(--canvas));
+  background: var(--toolbar-surface);
   font-size: 1.15rem;
   line-height: 1.7;
 }
@@ -227,7 +235,7 @@ samp {
   padding: var(--card-padding);
   border: 1px dotted var(--dotted-line);
   border-radius: var(--corner-radius);
-  background: color-mix(in srgb, var(--ink) 2%, var(--canvas));
+  background: var(--card-surface);
 }
 
 .feed-index {
@@ -346,8 +354,8 @@ samp {
   padding: 0.875rem;
   border-top: 1px dotted var(--dotted-line);
   border-end-end-radius: calc(var(--corner-radius) - 1px);
-  background: #fff;
-  color: #000;
+  background: var(--comment-background);
+  color: var(--comment-ink);
   font-size: 1.125rem;
   line-height: 1.4;
   text-decoration: none;
