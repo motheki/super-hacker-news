@@ -7,6 +7,7 @@
   --line: rgb(44 45 48 / 15%);
   --selection: color-mix(in srgb, var(--accent) 22%, var(--canvas));
   --selection-ink: var(--ink);
+  --corner-radius: 0.75rem;
   color-scheme: light;
   font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 }
@@ -122,7 +123,7 @@ samp {
   gap: 0.25rem;
   margin-bottom: 2rem;
   padding: 0.25rem;
-  border-radius: 9999px;
+  border-radius: var(--corner-radius);
   background: color-mix(in srgb, var(--ink) 8%, var(--canvas));
   font-size: 1.15rem;
   line-height: 1.7;
@@ -134,7 +135,7 @@ samp {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
+  border-radius: var(--corner-radius);
   text-decoration: none;
 }
 
@@ -213,8 +214,16 @@ samp {
 
 .feed {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: 1rem 1.25rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.post-card {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--corner-radius);
+  background: color-mix(in srgb, var(--ink) 2%, var(--canvas));
 }
 
 .feed-index {
@@ -226,7 +235,14 @@ samp {
 }
 
 .feed-item {
-  min-width: 0;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: 0.75rem;
+  align-content: start;
+}
+
+.feed-item > .meta {
+  grid-column: 1 / -1;
 }
 
 .story-link {
@@ -311,7 +327,7 @@ samp {
   max-width: 100%;
   min-height: 2.75rem;
   padding: 0.375rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: var(--corner-radius);
   background: color-mix(in srgb, var(--ink) 8%, var(--canvas));
   color: var(--muted);
   line-height: 1.4;
@@ -353,11 +369,6 @@ samp {
 .more-link {
   display: inline-block;
   margin-top: 1rem;
-}
-
-.post-header {
-  padding-block: 0.75rem 2rem;
-  border-bottom: 1px solid var(--line);
 }
 
 .post-title {
@@ -505,8 +516,16 @@ details[open] > .comment-info > .open-label {
 }
 
 @media (min-width: 40rem) {
-  .feed {
-    column-gap: 1.5rem;
+  .post-card {
+    padding: 1.25rem;
+  }
+
+  .feed-item {
+    column-gap: 1rem;
+  }
+
+  .feed-item > .meta {
+    grid-column: 2;
   }
 
   .story-meta {

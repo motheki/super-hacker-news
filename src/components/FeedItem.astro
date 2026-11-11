@@ -13,8 +13,8 @@ const externalUrl = isSafeExternalUrl(item.url) ? item.url : null;
 const storyUrl = externalUrl ?? `/post/${item.id}`;
 ---
 
-<span aria-hidden="true" class="feed-index">{index}</span>
-<article class="feed-item">
+<article class="feed-item post-card">
+  <span aria-hidden="true" class="feed-index">{index}</span>
   <h2>
     <a
       class="story-link"
