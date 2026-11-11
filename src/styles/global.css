@@ -346,8 +346,8 @@ samp {
   padding: 0.875rem;
   border-top: 1px dotted var(--dotted-line);
   border-end-end-radius: calc(var(--corner-radius) - 1px);
-  background: var(--canvas);
-  color: var(--dotted-line);
+  background: #fff;
+  color: #000;
   font-size: 1.125rem;
   line-height: 1.4;
   text-decoration: none;
@@ -355,8 +355,6 @@ samp {
 
 .story-comments:hover,
 .story-comments:active {
-  background: var(--selection);
-  color: var(--selection-ink);
   text-decoration: underline dotted;
   text-underline-offset: 0.2em;
 }
