@@ -12,7 +12,7 @@ The header is a sticky rounded toolbar with topic links centered between the log
 
 ## Development
 
-Use Bun and Node.js 22.12+.
+Use Bun 1.4.4 and Node.js 22.12+. The `packageManager` field pins Bun for Cloudflare Workers Builds so frozen installs can read the repository's lockfile format.
 
 TypeScript stays on 6.x because `astro check` does not support TypeScript 7.0 yet.
 

@@ -8,6 +8,7 @@
     "url": "https://github.com/motheki/super-hacker-news.git"
   },
   "type": "module",
+  "packageManager": "bun@1.4.4",
   "scripts": {
     "check": "astro check",
     "build": "astro build",
