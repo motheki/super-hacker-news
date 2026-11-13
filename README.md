@@ -45,28 +45,6 @@ Follow [Astro's view transitions guide](https://docs.astro.build/en/guides/view-
 
 Astro handles history and scroll restoration, same-page comment anchors, external links, and route announcements. Comment anchors move within the current page without a page transition. Reduced-motion preferences disable animations, and `fallback="swap"` changes content immediately in browsers without view transition support. Keep these behaviors in Astro's router when changing navigation.
 
-## Deployment
-
-```sh
-bun run deploy
-```
-
-This builds fresh output, then deploys using Astro's generated Wrangler configuration. `wrangler.jsonc` targets the `super-hn` Worker and `superhn.org` custom domain. Cloudflare credentials are required. Sessions are disabled; no application storage bindings are needed. The deployment uses Workers Standard. Its application-level fallback budget is capped at 1,000 subrequests (below the platform's 10,000 limit), including retries; set the default in `src/lib/hacker-news/budget.ts` to 50 before deploying on Workers Free. HackerWeb and Algolia post requests have 3-second and 5-second timeouts, respectively, with no automatic bulk retries.
-
-Cloudflare Workers Builds is connected to GitHub's `master` branch with these commands:
-
-- Build: `bun run build`
-- Deploy: `bun wrangler deploy`
-
-CI builds once, then runs Wrangler directly to deploy the server Worker and static assets. Local `bun run deploy` runs `astro build && wrangler deploy`. Astro generates the deployment configuration and sets the asset directory to `dist/client`, so the source Wrangler configuration does not specify an output directory.
-
-To check deployment packaging without publishing:
-
-```sh
-bun run build
-bun wrangler deploy --dry-run
-```
-
 ## Attribution and license
 
 Based on [Better HN](https://github.com/pajecawav/better-hn) by [pajecawav](https://github.com/pajecawav). Original copyright retained. [MIT](LICENSE).
