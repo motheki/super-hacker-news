@@ -7,8 +7,7 @@ export const MAX_FEED_PAGE = 10;
 const CACHEABLE_ROUTE =
   /^\/(?:ask|new|show|top)(?:\/\d+)?$|^\/post\/\d+$|^\/user\/[^/]+$|^\/sitemap\.xml$/u;
 
-export const isCacheablePath = (path: string) =>
-  CACHEABLE_ROUTE.test(path.replace(/\/+$/u, ""));
+export const isCacheablePath = (path: string) => CACHEABLE_ROUTE.test(path.replace(/\/+$/u, ""));
 
 /** Collapse unused queries and trailing slashes before doing any upstream work. */
 export function canonicalRoute(url: URL): string | null {

@@ -102,8 +102,8 @@ export async function loadPost(postId: number, loaders: Readonly<PostLoaders>) {
     return null;
   }
 
-  const verifiedEmpty = root !== null &&
-    (root.descendants ?? 0) === 0 && (root.kids?.length ?? 0) === 0;
+  const verifiedEmpty =
+    root !== null && (root.descendants ?? 0) === 0 && (root.kids?.length ?? 0) === 0;
   if (aggregated !== null && verifiedEmpty) {
     report("verified-empty", "hackerwebapp");
     return aggregated;

@@ -80,9 +80,12 @@ export async function withPostCache(
           const envelope: unknown = await response.json();
           if (
             response.status === 200 &&
-            typeof envelope === "object" && envelope !== null &&
-            "loadedAt" in envelope && typeof envelope.loadedAt === "number" &&
-            Number.isFinite(envelope.loadedAt) && envelope.loadedAt >= 0 &&
+            typeof envelope === "object" &&
+            envelope !== null &&
+            "loadedAt" in envelope &&
+            typeof envelope.loadedAt === "number" &&
+            Number.isFinite(envelope.loadedAt) &&
+            envelope.loadedAt >= 0 &&
             "post" in envelope
           ) {
             const restored = parseAggregatedPost(envelope.post);
@@ -118,15 +121,21 @@ export async function withPostCache(
     const normalized = parseAggregatedPost(post);
     const remainingSeconds = Math.floor((MAX_AGE_MS - (now() - loadedAt)) / 1_000);
     if (
-      normalized?.id === postId && Number.isFinite(loadedAt) && loadedAt >= 0 &&
-      remainingSeconds > 0 && remainingSeconds <= MAX_AGE_MS / 1_000
+      normalized?.id === postId &&
+      Number.isFinite(loadedAt) &&
+      loadedAt >= 0 &&
+      remainingSeconds > 0 &&
+      remainingSeconds <= MAX_AGE_MS / 1_000
     ) {
-      await cache.put(key, new Response(JSON.stringify({ loadedAt, post: normalized }), {
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": `public, max-age=${remainingSeconds}`,
-        },
-      }));
+      await cache.put(
+        key,
+        new Response(JSON.stringify({ loadedAt, post: normalized }), {
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": `public, max-age=${remainingSeconds}`,
+          },
+        }),
+      );
     }
   } catch {
     report({ outcome: "cache-failure", operation: "write" });

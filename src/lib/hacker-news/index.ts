@@ -26,19 +26,21 @@ export async function fetchTopicItems(topic: string, page: number, budget = new 
 }
 
 export async function fetchPost(postId: number, budget = new RequestBudget()) {
-  return withPostCache(postId, () => loadPost(postId, {
-    canLoadOfficial: (root) => {
-      const descendants = root.descendants;
-      return descendants === undefined || budget.canTake(descendants, 1);
-    },
-    getAggregated: () => aggregatedProvider.getPost(postId, budget),
-    getBudget: () => budget.snapshot(),
-    getOfficialPost: (root) => getOfficialPost(root, budget),
-    getOfficialRoot: () => getOfficialPostRoot(postId, budget),
-    getOfficialSummary: getOfficialPostSummary,
-    getSecondary: () => getAlgoliaPost(postId, budget),
-    report: reportPostSelection,
-  }));
+  return withPostCache(postId, () =>
+    loadPost(postId, {
+      canLoadOfficial: (root) => {
+        const descendants = root.descendants;
+        return descendants === undefined || budget.canTake(descendants, 1);
+      },
+      getAggregated: () => aggregatedProvider.getPost(postId, budget),
+      getBudget: () => budget.snapshot(),
+      getOfficialPost: (root) => getOfficialPost(root, budget),
+      getOfficialRoot: () => getOfficialPostRoot(postId, budget),
+      getOfficialSummary: getOfficialPostSummary,
+      getSecondary: () => getAlgoliaPost(postId, budget),
+      report: reportPostSelection,
+    }),
+  );
 }
 
 export async function fetchItemReference(itemId: number, budget = new RequestBudget()) {

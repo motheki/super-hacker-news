@@ -5,7 +5,13 @@ type Fetcher = (input: string | URL | Request, init?: RequestInit) => Promise<Re
 type Sleep = (delayMs: number) => Promise<void>;
 
 interface SafeUpstreamError {
-  readonly category: "timeout" | "abort" | "network" | "invalid-json" | "subrequest-limit" | "unknown";
+  readonly category:
+    | "timeout"
+    | "abort"
+    | "network"
+    | "invalid-json"
+    | "subrequest-limit"
+    | "unknown";
   readonly name: string;
   readonly code?: string;
   readonly cause?: SafeUpstreamError;
@@ -94,15 +100,32 @@ function hitSubrequestLimit(error: unknown) {
 }
 
 const SAFE_ERROR_NAMES = new Set([
-  "Error", "TypeError", "SyntaxError", "RangeError", "AggregateError",
-  "DOMException", "TimeoutError", "AbortError", "SubrequestBudgetError",
+  "Error",
+  "TypeError",
+  "SyntaxError",
+  "RangeError",
+  "AggregateError",
+  "DOMException",
+  "TimeoutError",
+  "AbortError",
+  "SubrequestBudgetError",
 ]);
 const TIMEOUT_ERROR_CODES = new Set([
-  "ETIMEDOUT", "UND_ERR_CONNECT_TIMEOUT", "UND_ERR_HEADERS_TIMEOUT", "UND_ERR_BODY_TIMEOUT",
+  "ETIMEDOUT",
+  "UND_ERR_CONNECT_TIMEOUT",
+  "UND_ERR_HEADERS_TIMEOUT",
+  "UND_ERR_BODY_TIMEOUT",
 ]);
 const NETWORK_ERROR_CODES = new Set([
-  "ECONNRESET", "ECONNREFUSED", "ECONNABORTED", "ENOTFOUND", "EAI_AGAIN",
-  "ENETUNREACH", "EHOSTUNREACH", "EPIPE", "UND_ERR_SOCKET",
+  "ECONNRESET",
+  "ECONNREFUSED",
+  "ECONNABORTED",
+  "ENOTFOUND",
+  "EAI_AGAIN",
+  "ENETUNREACH",
+  "EHOSTUNREACH",
+  "EPIPE",
+  "UND_ERR_SOCKET",
 ]);
 
 function errorField(error: unknown, key: "name" | "code" | "cause"): unknown {
@@ -116,10 +139,14 @@ function errorField(error: unknown, key: "name" | "code" | "cause"): unknown {
 
 function safeError(error: unknown, depth = 0): SafeUpstreamError {
   const rawName = errorField(error, "name");
-  const name = typeof rawName === "string" && SAFE_ERROR_NAMES.has(rawName) ? rawName : "UnknownError";
+  const name =
+    typeof rawName === "string" && SAFE_ERROR_NAMES.has(rawName) ? rawName : "UnknownError";
   const rawCode = errorField(error, "code");
-  const code = typeof rawCode === "string" &&
-    (TIMEOUT_ERROR_CODES.has(rawCode) || NETWORK_ERROR_CODES.has(rawCode)) ? rawCode : undefined;
+  const code =
+    typeof rawCode === "string" &&
+    (TIMEOUT_ERROR_CODES.has(rawCode) || NETWORK_ERROR_CODES.has(rawCode))
+      ? rawCode
+      : undefined;
   const rawCause = errorField(error, "cause");
   // Bound both cyclic and excessively deep chains; never serialize messages, stacks, or URLs.
   const cause = depth < 3 && rawCause !== undefined ? safeError(rawCause, depth + 1) : undefined;
@@ -261,8 +288,13 @@ export async function preferPrimary<T>(
     failure = safeError(error);
   }
 
-  console.warn(JSON.stringify({
-    event: "hn.fallback", operation, reason, ...(failure ? { error: failure } : {}),
-  }));
+  console.warn(
+    JSON.stringify({
+      event: "hn.fallback",
+      operation,
+      reason,
+      ...(failure ? { error: failure } : {}),
+    }),
+  );
   return official();
 }
