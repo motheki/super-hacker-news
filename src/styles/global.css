@@ -453,7 +453,7 @@ samp {
 }
 
 /* Code blocks keep their indentation and scroll sideways instead of wrapping.
-   Astro's Code component adds wrapping inline for quoted prose. */
+   Token colors live in prism.css. */
 .rich-text pre {
   padding: 0.75rem 1rem;
   border: 1px solid var(--line);
@@ -465,21 +465,10 @@ samp {
   tab-size: 4;
 }
 
-/* Astro's Code component emits both themes as variables on each token. */
-.astro-code,
-.astro-code span {
-  color: var(--shiki-light);
-  font-style: var(--shiki-light-font-style);
-  font-weight: var(--shiki-light-font-weight);
-}
-
-@media (prefers-color-scheme: dark) {
-  .astro-code,
-  .astro-code span {
-    color: var(--shiki-dark);
-    font-style: var(--shiki-dark-font-style);
-    font-weight: var(--shiki-dark-font-weight);
-  }
+/* Quoted prose reads better wrapped than behind a scrollbar. */
+.rich-text pre.wrap {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
 #comments {
@@ -487,12 +476,13 @@ samp {
   scroll-margin-top: 1rem;
 }
 
-.comment {
+/* Scoped to the element: Prism also puts a "comment" class on code comments. */
+article.comment {
   margin-top: 0.65rem;
   scroll-margin-top: 1rem;
 }
 
-.comment:first-child {
+article.comment:first-child {
   margin-top: 0;
 }
 

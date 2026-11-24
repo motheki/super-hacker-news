@@ -4,26 +4,27 @@
  * are common in code blocks and must stay plain text.
  */
 
+/** Prism language ids. */
 export type CodeLanguage =
+  | "bash"
   | "clojure"
-  | "common-lisp"
   | "cpp"
   | "csharp"
   | "css"
   | "diff"
   | "go"
   | "haskell"
-  | "html"
   | "java"
   | "json"
   | "kotlin"
+  | "lisp"
+  | "markup"
   | "php"
   | "plaintext"
   | "python"
   | "ruby"
   | "rust"
   | "scheme"
-  | "shellscript"
   | "sql"
   | "swift"
   | "toml"
@@ -56,7 +57,7 @@ const RULES: Readonly<Partial<Record<CodeLanguage, readonly Rule[]>>> = {
     [/^ *\(def\s+\S+/mu, 3],
     [/\(:require\s|\(->>?\s|\(fn\s+\[/u, 3],
   ],
-  "common-lisp": [
+  lisp: [
     [/^ *\((defun|defvar|defparameter|defgeneric|defmethod|defclass)\s/mu, 5],
     [/^ *\((setq|setf|defmacro|let\*)\s/mu, 3],
     [/\((lambda|progn|funcall|mapcar)\s/u, 2],
@@ -108,7 +109,7 @@ const RULES: Readonly<Partial<Record<CodeLanguage, readonly Rule[]>>> = {
     [/^import\s+(qualified\s+)?[A-Z][\w.]*/mu, 2],
     [/\bwhere$|\s<-\s|\s<\$>\s|\s>>=\s/mu, 1],
   ],
-  html: [
+  markup: [
     [/<!doctype html/iu, 5],
     [/<\/(div|span|p|a|html|body|head|script|style|ul|li|table|button|form|h[1-6])>/u, 3],
     [/<\w+(\s+[\w-]+(="[^"]*")?)+\s*\/?>/u, 2],
@@ -166,7 +167,7 @@ const RULES: Readonly<Partial<Record<CodeLanguage, readonly Rule[]>>> = {
     [/^ *\(define(-syntax|-record-type)?\s/mu, 5],
     [/\((call\/cc|let-values|set!)\s|\(lambda\s+\(/u, 2],
   ],
-  shellscript: [
+  bash: [
     [/^#!.*\b(ba|z|k|da)?sh\b/u, 6],
     [/^ *\$\s+[a-z./~]/mu, 4],
     [new RegExp(`^ *(${TOOLS})\\s+[-\\w./~"'$]`, "mu"), 3],
