@@ -1,15 +1,13 @@
 ---
-import { Code } from "astro:components";
+import { Prism } from "@astrojs/prism";
 import { parseHnHtml } from "~/lib/html";
+import "~/styles/prism.css";
 
 interface Props {
   readonly class?: string | undefined;
   /** Untrusted Hacker News markup. */
   readonly html: string | undefined;
 }
-
-// Token colors come from CSS variables so the block follows the page theme.
-const themes = { dark: "github-dark", light: "github-light" } as const;
 
 const { class: className, html } = Astro.props;
 const segments = html === undefined ? [] : parseHnHtml(html);
@@ -22,12 +20,10 @@ const segments = html === undefined ? [] : parseHnHtml(html);
         segment.kind === "html" ? (
           <Fragment set:html={segment.html} />
         ) : (
-          <Code
+          <Prism
+            class={segment.wrap ? "wrap" : undefined}
             code={segment.code}
-            defaultColor={false}
             lang={segment.lang}
-            themes={themes}
-            wrap={segment.wrap}
           />
         ),
       )}

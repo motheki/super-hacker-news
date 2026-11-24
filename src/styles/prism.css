@@ -1,0 +1,71 @@
+/*
+ * Grayscale theme for the tokens Astro's <Prism /> component emits.
+ *
+ * Shades mix the text color toward the page, so they follow the theme
+ * variables in global.css. Each keeps at least 4.5:1 contrast on the code
+ * surface. Weight and slant carry the distinctions that gray alone cannot.
+ * Blocks with no recognized language contain no tokens and stay plain.
+ */
+
+pre[class*="language-"] {
+  --code-soft: color-mix(in srgb, var(--ink) 84%, var(--canvas));
+  --code-mid: color-mix(in srgb, var(--ink) 76%, var(--canvas));
+  --code-faint: color-mix(in srgb, var(--ink) 68%, var(--canvas));
+}
+
+/* Light text on black leaves more room between shades. */
+@media (prefers-color-scheme: dark) {
+  pre[class*="language-"] {
+    --code-soft: color-mix(in srgb, var(--ink) 80%, var(--canvas));
+    --code-mid: color-mix(in srgb, var(--ink) 66%, var(--canvas));
+    --code-faint: color-mix(in srgb, var(--ink) 54%, var(--canvas));
+  }
+}
+
+/* Names, functions, types, and tags keep the full text color. */
+
+.token.keyword,
+.token.atrule,
+.token.selector,
+.token.important,
+.token.inserted,
+.token.bold {
+  font-weight: 600;
+}
+
+.token.number,
+.token.boolean,
+.token.constant,
+.token.symbol,
+.token.variable,
+.token.property,
+.token.attr-name,
+.token.builtin,
+.token.operator {
+  color: var(--code-soft);
+}
+
+.token.string,
+.token.char,
+.token.attr-value,
+.token.regex,
+.token.url,
+.token.coord {
+  color: var(--code-mid);
+}
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata,
+.token.punctuation,
+.token.entity,
+.token.namespace,
+.token.deleted {
+  color: var(--code-faint);
+}
+
+.token.comment,
+.token.italic {
+  font-style: italic;
+}
