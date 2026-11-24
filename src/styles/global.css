@@ -10,6 +10,7 @@
   --faint: #595a5d;
   --line: rgb(44 45 48 / 15%);
   --dotted-line: var(--ink);
+  --code-surface: color-mix(in srgb, var(--ink) 3%, var(--canvas));
   --selection: color-mix(in srgb, var(--ink) 12%, var(--canvas));
   --selection-ink: var(--ink);
   --corner-radius: 0.75rem;
@@ -30,6 +31,7 @@
     --faint: #a6a5a2;
     --line: rgb(245 243 238 / 15%);
     --dotted-line: #fff;
+    --code-surface: color-mix(in srgb, var(--ink) 7%, var(--canvas));
     color-scheme: dark;
   }
 }
@@ -113,7 +115,6 @@ h2 {
 pre {
   max-width: 100%;
   overflow-x: auto;
-  white-space: pre-wrap;
 }
 
 code,
@@ -451,11 +452,34 @@ samp {
   color: var(--muted);
 }
 
+/* Code blocks keep their indentation and scroll sideways instead of wrapping.
+   Astro's Code component adds wrapping inline for quoted prose. */
 .rich-text pre {
-  padding: 1rem 1.25rem;
+  padding: 0.75rem 1rem;
   border: 1px solid var(--line);
+  border-radius: calc(var(--corner-radius) / 2);
+  background: var(--code-surface);
   font-size: 0.8rem;
   line-height: 1.5;
+  overflow-wrap: normal;
+  tab-size: 4;
+}
+
+/* Astro's Code component emits both themes as variables on each token. */
+.astro-code,
+.astro-code span {
+  color: var(--shiki-light);
+  font-style: var(--shiki-light-font-style);
+  font-weight: var(--shiki-light-font-weight);
+}
+
+@media (prefers-color-scheme: dark) {
+  .astro-code,
+  .astro-code span {
+    color: var(--shiki-dark);
+    font-style: var(--shiki-dark-font-style);
+    font-weight: var(--shiki-dark-font-weight);
+  }
 }
 
 #comments {
@@ -512,11 +536,6 @@ details[open] > .comment-info > .open-label {
 
 .comment-content .rich-text > :last-child {
   margin-bottom: 0;
-}
-
-.comment-content .rich-text pre {
-  padding: 0;
-  border: 0;
 }
 
 .replies {

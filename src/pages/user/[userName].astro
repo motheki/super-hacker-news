@@ -1,7 +1,7 @@
 ---
+import RichText from "~/components/RichText.astro";
 import BaseLayout from "~/layouts/BaseLayout.astro";
 import { DataUnavailableError, getUser } from "~/lib/data";
-import { sanitizeHnHtml } from "~/lib/html";
 import { isValidUserName } from "~/lib/route";
 import { addServerTiming } from "~/lib/timing";
 
@@ -33,7 +33,6 @@ if (user === null) {
 
 const description = `Hacker News profile for ${user.id}, with ${user.karma} karma.`;
 const canonical = `/user/${encodeURIComponent(user.id)}`;
-const about = user.about === undefined ? undefined : sanitizeHnHtml(user.about);
 ---
 
 <BaseLayout
@@ -67,10 +66,6 @@ const about = user.about === undefined ? undefined : sanitizeHnHtml(user.about);
       >
     </p>
 
-    {
-      about !== undefined && about.length > 0 && (
-        <div class="rich-text user-about" set:html={about} />
-      )
-    }
+    <RichText class="user-about" html={user.about} />
   </section>
 </BaseLayout>
