@@ -12,6 +12,8 @@ The top toolbar inverts the theme: pure black with white text, icons, and dotted
 
 The header is a sticky rounded toolbar with topic links centered between the logo and GitHub icon. Cards and toolbar controls share a 12px corner radius. Toolbar controls remain 44px tall; narrower screens use smaller text and artwork to keep the toolbar on one row. Story metadata aligns with the title beside the rank number at every screen size, with the author shown as muted text before points and age. Feed ranks use the primary text color, and dotted dividers meet the card borders. The entire feed footer links to comments, with centered 18px text and a 20px icon, no inset button, and at least a 48px tap target. Comment footers invert with the theme: pure black with white text and icons in light mode, and pure white with black text and icons in dark mode, including hover and pressed states. Discussion header cards omit this footer and separate any included post body with a full-width dotted line. Link interaction and selection highlights use neutral theme colors. Comment anchors clear the sticky toolbar.
 
+Code blocks in posts, comments, and profiles render through [Astro's `<Code />` component](https://docs.astro.build/en/guides/syntax-highlighting/#code-) as inset blocks that keep their indentation and scroll sideways instead of wrapping. Hacker News code carries no language, so `src/lib/code.ts` guesses one from the text and falls back to plain text when unsure; indented quotes of ordinary prose wrap instead of scrolling. Tokens use the GitHub light and dark themes, switched by the system color scheme. The Shiki grammars load on demand and add about 1.8 MB (gzip) to the Worker upload, which stays under the 3 MB free-plan limit.
+
 ## Development
 
 Use Bun 1.4.4 and Node.js 22.12+. The `packageManager` field pins Bun for Cloudflare Workers Builds so frozen installs can read the repository's lockfile format.
@@ -32,7 +34,7 @@ bun run preview
 ## Structure
 
 - `src/pages/`: file-based routes. One feed route handles both the first page and pagination. Robots and the web manifest are prerendered; feeds, discussions, and profiles render on demand.
-- `src/layouts/` and `src/components/`: server-rendered HTML, shared metadata, native comment controls, and Astro's client router. No component framework.
+- `src/layouts/` and `src/components/`: server-rendered HTML, shared metadata, native comment controls, highlighted code blocks, and Astro's client router. No component framework.
 - `src/lib/`: route validation, response policies, and Hacker News data access. HackerWeb is the fast path; Algolia and bounded official API reconstruction provide fallbacks.
 - `src/assets/` and `src/styles/`: monochrome logo, light/dark favicons and header icons, app icons, README/social artwork, and shared styles. Imported images use content-hashed URLs; the ICO favicon has a versioned URL. Text uses system serif fonts, with system monospace fonts for code; no font downloads.
 - `astro.config.ts`: Cloudflare adapter, edge cache rules, and intent-based prefetching. Full-document speculative prerendering is disabled because navigation uses Astro's client router.

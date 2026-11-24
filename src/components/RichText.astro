@@ -1,0 +1,36 @@
+---
+import { Code } from "astro:components";
+import { parseHnHtml } from "~/lib/html";
+
+interface Props {
+  readonly class?: string | undefined;
+  /** Untrusted Hacker News markup. */
+  readonly html: string | undefined;
+}
+
+// Token colors come from CSS variables so the block follows the page theme.
+const themes = { dark: "github-dark", light: "github-light" } as const;
+
+const { class: className, html } = Astro.props;
+const segments = html === undefined ? [] : parseHnHtml(html);
+---
+
+{
+  segments.length > 0 && (
+    <div class:list={["rich-text", className]}>
+      {segments.map((segment) =>
+        segment.kind === "html" ? (
+          <Fragment set:html={segment.html} />
+        ) : (
+          <Code
+            code={segment.code}
+            defaultColor={false}
+            lang={segment.lang}
+            themes={themes}
+            wrap={segment.wrap}
+          />
+        ),
+      )}
+    </div>
+  )
+}
