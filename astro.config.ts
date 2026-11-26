@@ -7,6 +7,11 @@ const feedCache = { maxAge: 60, swr: 300 };
 
 export default defineConfig({
   adapter: cloudflare({ imageService: "compile" }),
+  build: {
+    // One small shared stylesheet: inlining it removes the only render-blocking request.
+    // https://docs.astro.build/en/guides/styling/#production
+    inlineStylesheets: "always",
+  },
   cache: {
     provider: cacheCloudflare(),
   },
@@ -28,6 +33,7 @@ export default defineConfig({
     "/show/[...page]": feedCache,
     "/top/[...page]": feedCache,
     "/sitemap.xml": { maxAge: 3_600, swr: 86_400 },
+    "/search": { maxAge: 60, swr: 300 },
     "/user/[userName]": { maxAge: 900, swr: 3_600 },
   },
   session: false,

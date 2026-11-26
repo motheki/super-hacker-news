@@ -1,11 +1,12 @@
 ---
 import StoryMeta from "~/components/StoryMeta.astro";
 import { isSafeExternalUrl } from "~/lib/link";
+import type { TitleSegment } from "~/lib/search";
 import type { TopicItem } from "~/lib/topic";
 
 interface Props {
   readonly index: number;
-  readonly item: TopicItem;
+  readonly item: TopicItem & { readonly titleSegments?: readonly TitleSegment[] };
 }
 
 const { index, item } = Astro.props;
@@ -22,7 +23,13 @@ const storyUrl = externalUrl ?? `/post/${item.id}`;
       href={storyUrl}
       rel={externalUrl === null ? undefined : "noreferrer noopener"}
     >
-      {item.title}
+      {
+        item.titleSegments === undefined
+          ? item.title
+          : item.titleSegments.map((segment) =>
+              segment.match ? <mark>{segment.text}</mark> : segment.text,
+            )
+      }
       {
         item.domain !== undefined && item.domain.length > 0 && (
           <span class="faint domain"> ({item.domain})</span>

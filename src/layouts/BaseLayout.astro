@@ -16,6 +16,7 @@ import "~/styles/global.css";
 interface Props {
   readonly canonical?: string | undefined;
   readonly description?: string | undefined;
+  readonly noindex?: boolean | undefined;
   readonly openGraphType?: "article" | "profile" | "website" | undefined;
   readonly structuredData?: unknown;
   readonly title?: string | undefined;
@@ -24,6 +25,7 @@ interface Props {
 const {
   canonical = Astro.url.pathname,
   description = SITE_DESCRIPTION,
+  noindex = false,
   openGraphType = "website",
   structuredData,
   title,
@@ -61,6 +63,7 @@ const jsonLd = JSON.stringify(structuredData ?? websiteData).replaceAll(
       media="(prefers-color-scheme: dark)"
     />
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
     <meta name="application-name" content={SITE_NAME} />
     <meta property="og:type" content={openGraphType} />
     <meta property="og:site_name" content={SITE_NAME} />
