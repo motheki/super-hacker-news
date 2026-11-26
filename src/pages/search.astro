@@ -1,0 +1,199 @@
+---
+import FeedItem from "~/components/FeedItem.astro";
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import {
+  HITS_PER_PAGE,
+  MAX_QUERY_LENGTH,
+  SEARCH_RANGES,
+  readSearchParams,
+  searchHref,
+  searchStories,
+} from "~/lib/search";
+import { addServerTiming } from "~/lib/timing";
+
+const params = readSearchParams(Astro.url);
+if (params === null) {
+  return Astro.rewrite("/404");
+}
+
+let results: Awaited<ReturnType<typeof searchStories>>;
+const providerStart = performance.now();
+try {
+  results = await searchStories(params);
+} catch {
+  return Astro.rewrite("/503");
+} finally {
+  addServerTiming(Astro.response.headers, "provider", performance.now() - providerStart);
+}
+if (results === null) {
+  return Astro.rewrite("/503");
+}
+
+const { query, sort, range, page } = params;
+const hasPrevious = page > 1;
+const hasNext = page < results.totalPages;
+const title = query.length > 0 ? `Search: ${query}` : "Search";
+const resultLabel = `${results.totalHits.toLocaleString("en-US")} ${
+  results.totalHits === 1 ? "result" : "results"
+}`;
+---
+
+<BaseLayout
+  canonical="/search"
+  description="Search Hacker News stories."
+  noindex={Astro.url.search.length > 0}
+  title={title}
+>
+  <section class="search">
+    <h1 class="visually-hidden">Search Hacker News</h1>
+    <form action="/search" class="search-form" data-search-form method="get" role="search">
+      <input
+        aria-label="Search Hacker News"
+        autocapitalize="off"
+        autocomplete="off"
+        autofocus={query.length === 0}
+        class="search-input"
+        enterkeyhint="search"
+        maxlength={MAX_QUERY_LENGTH}
+        name="q"
+        placeholder="Search Hacker News…"
+        spellcheck="false"
+        transition:persist="search-input"
+        type="search"
+        value={query}
+      />
+      <select aria-label="Time range" class="search-select" name="range">
+        {
+          SEARCH_RANGES.map((option) => (
+            <option selected={option.value === range} value={option.value}>
+              {option.label}
+            </option>
+          ))
+        }
+      </select>
+      <select aria-label="Sort by" class="search-select" name="sort">
+        <option selected={sort === "relevance"} value="relevance">Relevance</option>
+        <option selected={sort === "date"} value="date">Date</option>
+      </select>
+      <noscript><button class="search-submit" type="submit">Search</button></noscript>
+    </form>
+
+    {
+      results.items.length === 0 ? (
+        <div class="search-empty">
+          <p>No results{query.length > 0 && <> for “{query}”</>}.</p>
+          <p class="meta">
+            Try <code>author:pg</code>, <code>points&gt;100</code>, <code>comments&gt;10</code>,{" "}
+            <code>story:8863</code>, or <code>"an exact phrase"</code>.
+          </p>
+        </div>
+      ) : (
+        <>
+          <p aria-live="polite" class="meta search-summary">
+            {resultLabel}
+            {page > 1 && <> · page {page}</>}
+          </p>
+          <div class="feed">
+            {results.items.map((item, index) => (
+              <FeedItem index={index + 1 + HITS_PER_PAGE * (page - 1)} item={item} />
+            ))}
+          </div>
+        </>
+      )
+    }
+
+    {
+      (hasPrevious || hasNext) && (
+        <nav aria-label="Search pages" class="search-pages">
+          {hasPrevious && (
+            <a class="more-link text-link" href={searchHref({ ...params, page: page - 1 })}>
+              ← Previous
+            </a>
+          )}
+          {hasNext && (
+            <a class="more-link text-link" href={searchHref({ ...params, page: page + 1 })}>
+              More…
+            </a>
+          )}
+        </nav>
+      )
+    }
+  </section>
+</BaseLayout>
+
+<script>
+  import { navigate } from "astro:transitions/client";
+
+  const DEBOUNCE_MS = 300;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  const searchForm = (target: EventTarget | null) =>
+    target instanceof Element ? target.closest<HTMLFormElement>("form[data-search-form]") : null;
+
+  /** Mirror searchHref(): drop defaults so equal searches share one cached page. */
+  function searchUrl(form: HTMLFormElement) {
+    const data = new FormData(form);
+    const params = new URLSearchParams();
+    const query = String(data.get("q") ?? "").trim();
+    const range = String(data.get("range") ?? "all");
+    const sort = String(data.get("sort") ?? "relevance");
+    if (query.length > 0) params.set("q", query);
+    if (sort !== "relevance") params.set("sort", sort);
+    if (range !== "all") params.set("range", range);
+    const search = params.toString();
+
+    return search.length > 0 ? `/search?${search}` : "/search";
+  }
+
+  function search(form: HTMLFormElement, history: "push" | "replace") {
+    clearTimeout(timer);
+    const href = searchUrl(form);
+    if (href === `${location.pathname}${location.search}`) return;
+    void navigate(href, { history });
+  }
+
+  // Search as you type; replace history so Back leaves search instead of replaying keystrokes.
+  document.addEventListener("input", (event) => {
+    const form = searchForm(event.target);
+    if (form === null || !(event.target instanceof HTMLInputElement)) return;
+    clearTimeout(timer);
+    timer = setTimeout(() => search(form, "replace"), DEBOUNCE_MS);
+  });
+
+  document.addEventListener("change", (event) => {
+    const form = searchForm(event.target);
+    if (form !== null && event.target instanceof HTMLSelectElement) search(form, "push");
+  });
+
+  // Capture runs before the ClientRouter's own submit handler, which skips prevented events.
+  document.addEventListener(
+    "submit",
+    (event) => {
+      const form = searchForm(event.target);
+      if (form === null) return;
+      event.preventDefault();
+      search(form, "push");
+    },
+    { capture: true },
+  );
+
+  // The input persists across swaps to keep focus while typing; resync it on Back/Forward.
+  document.addEventListener("astro:after-swap", () => {
+    const input = document.querySelector<HTMLInputElement>("form[data-search-form] input[name=q]");
+    if (input === null || input === document.activeElement) return;
+    input.value = new URL(location.href).searchParams.get("q") ?? "";
+  });
+
+  // Native autofocus only applies on full page loads, not after a router swap.
+  function focusEmptySearch() {
+    const input = document.querySelector<HTMLInputElement>(
+      "form[data-search-form] input[autofocus]",
+    );
+    const active = document.activeElement;
+    if (input !== null && (active === null || active === document.body)) input.focus();
+  }
+
+  // This module first runs after the swap that reaches /search, so also focus immediately.
+  focusEmptySearch();
+  document.addEventListener("astro:page-load", focusEmptySearch);
+</script>

@@ -13,7 +13,7 @@ const { points, user, timeAgo, commentsCount, commentsHref } = Astro.props;
 <div class="meta story-meta">
   <p class="story-stats">
     {user != null && user.length > 0 && <span class="story-author">{user}</span>}
-    {points != null && <span>{points} points</span>}
+    {points != null && <span>{points} {points === 1 ? "point" : "points"}</span>}
     <span>{timeAgo}</span>
   </p>
   {

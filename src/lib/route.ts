@@ -5,7 +5,8 @@ export const MAX_USER_NAME_LENGTH = 15;
 export const MAX_FEED_PAGE = 10;
 
 const CACHEABLE_ROUTE =
-  /^\/(?:ask|new|show|top)(?:\/\d+)?$|^\/post\/\d+$|^\/user\/[^/]+$|^\/sitemap\.xml$/u;
+  /^\/(?:ask|new|show|top)(?:\/\d+)?$|^\/post\/\d+$|^\/user\/[^/]+$|^\/search$|^\/sitemap\.xml$/u;
+const SEARCH_PATH = "/search";
 
 export const isCacheablePath = (path: string) => CACHEABLE_ROUTE.test(path.replace(/\/+$/u, ""));
 
@@ -13,6 +14,8 @@ export const isCacheablePath = (path: string) => CACHEABLE_ROUTE.test(path.repla
 export function canonicalRoute(url: URL): string | null {
   if (!isCacheablePath(url.pathname)) return null;
   const path = url.pathname.replace(/\/+$/u, "");
+  // Search state lives in the query, so only the trailing slash is normalized.
+  if (path === SEARCH_PATH) return path === url.pathname ? null : `${path}${url.search}`;
   const topicName = path.slice(1);
   const page = parsePage(url.searchParams.get("page") ?? undefined);
   if (isTopicName(topicName) && page !== null && page > 1) {

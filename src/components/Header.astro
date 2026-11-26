@@ -48,8 +48,22 @@ const { currentPath, repositoryUrl } = Astro.props;
   </nav>
 
   <a
+    aria-current={currentPath === "/search" ? "page" : undefined}
+    aria-label="Search Hacker News"
+    class="icon-link"
+    data-astro-prefetch="tap"
+    href="/search"
+    title="Search Hacker News"
+  >
+    <svg aria-hidden="true" class="icon-stroke" height="22" viewBox="0 0 24 24" width="22">
+      <circle cx="10.5" cy="10.5" r="6.5"></circle>
+      <path d="m15.5 15.5 5 5"></path>
+    </svg>
+  </a>
+
+  <a
     aria-label="Project source code"
-    class="source-link"
+    class="icon-link"
     href={repositoryUrl}
     rel="noreferrer noopener"
     title="Project source code"
